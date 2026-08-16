@@ -69,13 +69,13 @@ both tools serve as reference, with Figma canonical for the design system.
 
 The first state Claude design produced from the brief, before any refinement:
 
-![Setup screen: pitch, grid-size control, artwork picker, and a wooden board preview with glass tiles](assets/02-design/claude-design-setup.png)
+<img src="assets/02-design/claude-design-setup.png" width="800" alt="Setup screen: pitch, grid-size control, artwork picker, and a wooden board preview with glass tiles">
 
-![Play screen: read-outs above the wooden frame, grid-size control and restart below it](assets/02-design/claude-design-play.png)
+<img src="assets/02-design/claude-design-play.png" width="800" alt="Play screen: read-outs above the wooden frame, grid-size control and restart below it">
 
-![Settings sheet over a blurred backdrop: sound, numbered tiles, timer and an artwork select](assets/02-design/claude-design-settings.png)
+<img src="assets/02-design/claude-design-settings.png" width="800" alt="Settings sheet over a blurred backdrop: sound, numbered tiles, timer and an artwork select">
 
-![Records screen: bests per grid size and an empty recent-solves list](assets/02-design/claude-design-records.png)
+<img src="assets/02-design/claude-design-records.png" width="800" alt="Records screen: bests per grid size and an empty recent-solves list">
 
 The first generation already had the two-material rule, the glass-on-wood board and the
 full screen set. What changed later was placement and affordance, not the look — sound
@@ -96,9 +96,9 @@ The canonical system in Figma:
 The finalized Setup screen, desktop and mobile — tiles scrambled into a solvable
 position, not the completed picture:
 
-![Setup screen in Figma at desktop size, board showing a scrambled sailboat](assets/02-design/figma-screens-setup-desktop.png)
+<img src="assets/02-design/figma-screens-setup-desktop.png" width="700" alt="Setup screen in Figma at desktop size, board showing a scrambled sailboat">
 
-![Setup screen in Figma at mobile size, board showing a scrambled sailboat](assets/02-design/figma-screens-setup-mobile.png)
+<img src="assets/02-design/figma-screens-setup-mobile.png" width="254" alt="Setup screen in Figma at mobile size, board showing a scrambled sailboat">
 
 ## Decisions
 
