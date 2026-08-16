@@ -1,4 +1,4 @@
-# 05 — Component set
+# 04 — Component set
 
 **Status:** Not started
 
@@ -8,7 +8,7 @@ Build the components the puzzle needs. Document each one in Storybook.
 
 ## Screenshots
 
-_Add Storybook shots to `assets/05-component-set/`._
+_Add Storybook shots to `assets/04-component-set/`._
 
 ## Decisions
 

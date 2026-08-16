@@ -7,11 +7,10 @@ How this sliding puzzle got built, phase by phase. Each milestone documents the 
 | #   | Milestone                                            | Status      |
 | --- | ---------------------------------------------------- | ----------- |
 | 01  | [Task manager](01-task-manager.md)                   | Done        |
-| 02  | [Design system in Claude](02-design-system.md)       | Done        |
-| 03  | [Figma refinement](03-figma-refinement.md)           | In progress |
-| 04  | [Project setup](04-project-setup.md)                 | Done        |
-| 05  | [Component set](05-component-set.md)                 | Not started |
-| 06  | [Puzzle implementation](06-puzzle-implementation.md) | Not started |
+| 02  | [Design](02-design.md)                               | Done        |
+| 03  | [Project setup](03-project-setup.md)                 | Done        |
+| 04  | [Component set](04-component-set.md)                 | Not started |
+| 05  | [Puzzle implementation](05-puzzle-implementation.md) | Not started |
 
 ## Writing a milestone
 

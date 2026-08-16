@@ -1,4 +1,4 @@
-# 06 — Puzzle implementation
+# 05 — Puzzle implementation
 
 **Status:** Not started
 
@@ -8,7 +8,7 @@ Wire the components into a playable puzzle. Shuffle, slide, count moves, detect 
 
 ## Screenshots
 
-_Add gameplay shots to `assets/06-puzzle-implementation/`. Cover the start state, a mid-slide frame, and the win state._
+_Add gameplay shots to `assets/05-puzzle-implementation/`. Cover the start state, a mid-slide frame, and the win state._
 
 ## Decisions
 
