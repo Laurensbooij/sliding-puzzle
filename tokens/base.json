@@ -1,0 +1,43 @@
+{
+  "color": {
+    "$type": "color",
+    "slate": {
+      "50": { "$value": "#f8fafc" },
+      "200": { "$value": "#e2e8f0" },
+      "500": { "$value": "#64748b" },
+      "800": { "$value": "#1e293b" },
+      "900": { "$value": "#0f172a" }
+    },
+    "white": { "$value": "#ffffff" }
+  },
+  "space": {
+    "$type": "dimension",
+    "1": { "$value": "0.25rem" },
+    "2": { "$value": "0.5rem" },
+    "3": { "$value": "0.75rem" },
+    "4": { "$value": "1rem" },
+    "6": { "$value": "1.5rem" },
+    "8": { "$value": "2rem" }
+  },
+  "radius": {
+    "$type": "dimension",
+    "sm": { "$value": "0.25rem" },
+    "md": { "$value": "0.5rem" },
+    "lg": { "$value": "1rem" }
+  },
+  "text": {
+    "$type": "dimension",
+    "sm": { "$value": "0.875rem" },
+    "md": { "$value": "1rem" },
+    "lg": { "$value": "1.25rem" },
+    "xl": { "$value": "2rem" }
+  },
+  "font": {
+    "weight": {
+      "$type": "fontWeight",
+      "regular": { "$value": 400 },
+      "medium": { "$value": 500 },
+      "semibold": { "$value": 600 }
+    }
+  }
+}

@@ -1,0 +1,7 @@
+# Vendored skill assets — hash-tracked by skills-lock.json, must stay byte-identical
+.agents/
+pnpm-lock.yaml
+dist
+coverage
+storybook-static
+src/styles/tokens.css

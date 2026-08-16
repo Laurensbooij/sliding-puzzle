@@ -1,0 +1,43 @@
+import type { Board, CellIndex, Move, TileId, TilePlacement } from './types'
+
+/** Thrown by every stub below until the implementation phase lands. */
+const notImplemented = (fn: string): never => {
+	throw new Error(`engine/${fn} is not implemented yet`)
+}
+
+/** Creates a solved board of the given dimensions, gap in the last cell. */
+export const createBoard = (_rows: number, _cols: number): Board => notImplemented('createBoard')
+
+/**
+ * Generates a starting board by walking from the solved board: a run of random
+ * legal moves, never immediately undoing the previous one, re-walked if it
+ * lands back on solved. Solvable by construction — see ADR-0002.
+ *
+ * The walk length is derived from the board's dimensions and governs
+ * difficulty; keep it as one named constant here, not at call sites.
+ */
+export const shuffle = (_board: Board, _random: () => number): Board => notImplemented('shuffle')
+
+/**
+ * The moves produced by pressing the given cell: empty when the cell does not
+ * share a row or column with the gap, otherwise one move per tile in the run
+ * between the pressed cell and the gap (multi-slide, counted per tile).
+ */
+export const movesForCell = (_board: Board, _cell: CellIndex): readonly Move[] =>
+	notImplemented('movesForCell')
+
+/** Applies one legal move and returns the resulting board. */
+export const applyMove = (_board: Board, _move: Move): Board => notImplemented('applyMove')
+
+/** Tiles currently able to move, i.e. sharing a row or column with the gap. */
+export const movableTiles = (_board: Board): readonly TileId[] => notImplemented('movableTiles')
+
+/** True when every tile sits in its home cell. */
+export const isSolved = (_board: Board): boolean => notImplemented('isSolved')
+
+/**
+ * Derives the render projection: one entry per tile in stable tile order, so
+ * DOM order never changes across moves and tiles animate by transform alone.
+ */
+export const toPlacements = (_board: Board): readonly TilePlacement[] =>
+	notImplemented('toPlacements')

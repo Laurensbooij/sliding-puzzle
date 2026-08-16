@@ -1,0 +1,29 @@
+# Local history is scratch, pushed history is public: `pnpm cp` commits (subject
+# "CP") may exist locally but must be squashed or reworded before they leave the
+# machine. See CLAUDE.md § Git workflow.
+ZERO=0000000000000000000000000000000000000000
+
+while read -r _local_ref local_oid _remote_ref remote_oid; do
+	# Branch deletion — nothing to check.
+	[ "$local_oid" = "$ZERO" ] && continue
+
+	if [ "$remote_oid" = "$ZERO" ]; then
+		# New branch: check every commit not already on the remote.
+		range=$(git rev-list "$local_oid" --not --remotes)
+	else
+		range=$(git rev-list "$remote_oid..$local_oid")
+	fi
+
+	[ -z "$range" ] && continue
+
+	cp_commits=$(echo "$range" | xargs git show -s --no-show-signature --format='%h %s' 2>/dev/null | grep -E ' CP\b' || true)
+
+	if [ -n "$cp_commits" ]; then
+		echo "✖ Push rejected: CP (checkpoint) commits must not leave this machine." >&2
+		echo "$cp_commits" >&2
+		echo "Squash or reword them first (e.g. git rebase -i)." >&2
+		exit 1
+	fi
+done
+
+exit 0

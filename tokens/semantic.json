@@ -1,0 +1,29 @@
+{
+  "color": {
+    "$type": "color",
+    "page": {
+      "background": { "$value": "{color.slate.50}" },
+      "text": { "$value": "{color.slate.900}" }
+    },
+    "tile": {
+      "surface": { "$value": "{color.white}" },
+      "text": { "$value": "{color.slate.800}" },
+      "border": { "$value": "{color.slate.200}" }
+    },
+    "frame": {
+      "surface": { "$value": "{color.slate.800}" }
+    }
+  },
+  "shadow": {
+    "tile": {
+      "$type": "shadow",
+      "$value": {
+        "color": "#0f172a33",
+        "offsetX": "0px",
+        "offsetY": "2px",
+        "blur": "8px",
+        "spread": "0px"
+      }
+    }
+  }
+}
