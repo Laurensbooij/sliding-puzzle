@@ -7,9 +7,7 @@ import { describe, expect, it } from 'vitest'
  * The strings below are data — they are piped to the hook as JSON and never
  * executed. Requires bash and jq, both present on CI runners.
  */
-const HOOK_PATH = fileURLToPath(
-	new URL('../../.claude/hooks/block-dangerous-git.sh', import.meta.url),
-)
+const HOOK_PATH = fileURLToPath(new URL('./block-dangerous-git.sh', import.meta.url))
 
 const classify = (command) => {
 	const result = spawnSync('bash', [HOOK_PATH], {

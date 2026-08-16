@@ -13,6 +13,7 @@ and load automatically as path-scoped rules when you touch matching files.
 - **Lint** — `pnpm lint` (ESLint + Stylelint) · **Fix** — `pnpm lint:fix`
 - **Typecheck** — `pnpm typecheck` · **Test** — `pnpm test` · **Build** — `pnpm build`
 - **Tokens** — `pnpm tokens` (rebuilds `src/styles/tokens.css` from `tokens/*.json`)
+- **Messages** — `pnpm i18n:extract` (rebuilds `src/lib/i18n/locales/en.json`)
 - **Storybook** — `pnpm storybook`
 
 Formatting is automatic — a PostToolUse hook runs Prettier on every file you edit
@@ -30,6 +31,12 @@ Most conventions are lint-enforced (including the custom
 - **Colocate by default; promote on the 2nd consumer**: component-local →
   `src/features/<feature>/` → `src/components/`. Never create a shared bucket
   pre-emptively.
+- **Imports flow one way** (ADR-0007): `engine → lib → features → app`. Features
+  never import each other. Aliased modules are reached only by their alias —
+  `@engine`, `@i18n`, `@messages`, `@testing` — never the long `@/...` form.
+- **Never import `react-intl`** (ADR-0008): all localization goes through the
+  `@i18n` facade. Messages live in `translation-messages.ts` beside their
+  component; regenerate `en.json` with `pnpm i18n:extract`.
 - **Query by accessible identity in tests** (ADR-0005); `getByTestId` only where no
   accessible identity exists. Testids stay **mandatory** on interactive and
   state-bearing elements.

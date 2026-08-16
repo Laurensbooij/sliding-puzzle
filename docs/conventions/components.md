@@ -12,6 +12,13 @@ paths:
 - Arrow-function component typed **`: FC<ComponentNameProps>`** (`import type { FC }
 from 'react'`). Props type named exactly **`ComponentNameProps`**, exported
   (lint-enforced: `sliding-puzzle/props-type-naming`).
+- **The props type lives in the component file, directly above the component** — a
+  deliberate exception to keeping types in `types.ts` (lint-enforced:
+  `sliding-puzzle/props-type-in-component-file`). A component's props are its
+  signature: putting them one file away costs a jump for the one thing every reader
+  needs first, and a props type has exactly one consumer by definition, so the
+  colocation ladder would never promote it anyway. `types.ts` stays the home for
+  view-model and helper types the component uses but does not expose.
 - Extend the underlying native element's props when wrapping one. Destructure props in
   the signature with inline defaults.
 - Keep components presentational: game logic lives in the engine, lifecycle in the game
@@ -27,8 +34,24 @@ from 'react'`). Props type named exactly **`ComponentNameProps`**, exported
   `index.ts` barrel. Private sub-components live under its `components/`, are full
   components recursively, and are never exported from the folder's barrel.
 - Local hooks → `hooks/use-x/` (hook + spec). Local helpers → `utils/`. Local
-  constants → unprefixed `constants.ts`. Naming: `PascalCase.tsx` components,
-  `kebab-case` everything else (lint-enforced: `check-file`).
+  constants → unprefixed `constants.ts`. Local messages →
+  `translation-messages.ts` (see [i18n.md](./i18n.md)). Naming:
+  `PascalCase.tsx` components, `kebab-case` everything else (lint-enforced:
+  `check-file`). PascalCase marks a _component_ — a helper that merely contains
+  JSX stays kebab-case.
+- **Each component folder keeps an `index.ts` barrel.** That is one file
+  re-exporting one component plus its testids — an entry point, not the
+  whole-subtree re-export that `setup-ts-deep-modules` warns against. Do not
+  add barrels that re-export a directory tree.
+
+## Imports
+
+- Reach aliased modules by their alias only — `@engine`, `@i18n`, `@messages`,
+  `@testing`. The long `@/...` spelling for those targets is a lint error, and
+  everything else uses `@/*`. See
+  [ADR-0007](../adr/0007-module-boundaries-and-import-aliases.md).
+- **Features never import other features.** Compose them at the app level.
+  Shared components and `src/lib/` may not import features either.
 
 ## Test ids
 

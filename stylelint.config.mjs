@@ -18,6 +18,7 @@ export default {
 				'stroke',
 				'font-family',
 				'font-size',
+				'font-weight',
 				'border-radius',
 				'box-shadow',
 			],

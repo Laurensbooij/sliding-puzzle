@@ -1,3 +1,4 @@
+import { I18nProvider } from '@i18n'
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 
@@ -10,6 +11,8 @@ if (!rootElement) throw new Error('Root element #root is missing from index.html
 
 createRoot(rootElement).render(
 	<StrictMode>
-		<App />
+		<I18nProvider>
+			<App />
+		</I18nProvider>
 	</StrictMode>,
 )

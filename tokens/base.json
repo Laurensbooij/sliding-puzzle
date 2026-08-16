@@ -31,5 +31,13 @@
     "md": { "$value": "1rem" },
     "lg": { "$value": "1.25rem" },
     "xl": { "$value": "2rem" }
+  },
+  "font": {
+    "weight": {
+      "$type": "fontWeight",
+      "regular": { "$value": 400 },
+      "medium": { "$value": 500 },
+      "semibold": { "$value": 600 }
+    }
   }
 }

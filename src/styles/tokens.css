@@ -24,6 +24,9 @@
   --text-md: 1rem;
   --text-lg: 1.25rem;
   --text-xl: 2rem;
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
   --shadow-tile: 0px 2px 8px 0px #0f172a33;
   --color-page-background: var(--color-slate-50);
   --color-page-text: var(--color-slate-900);

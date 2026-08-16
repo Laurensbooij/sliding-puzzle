@@ -39,7 +39,7 @@ What the ADRs don't record:
   `@storybook/addon-vitest` in a real browser tests the accessibility tree far better
   than jsdom's approximation. It also drags Playwright into CI for a project with no
   E2E. Reverted to jsdom plus RTL specs; the addon is additive and can land later.
-- **The custom lint plugin shrank from twelve candidate rules to four.** Everything else
+- **The custom lint plugin shrank from twelve candidate rules to a handful.** Everything else
   — arrow functions, file naming, a11y, Testing Library hygiene, the engine's import
   boundary — was already covered by maintained plugins or plain config.
 - **One convention turned out impossible to enforce as asked.** A pre-commit hook cannot

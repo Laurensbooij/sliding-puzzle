@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    // The single declaration of the module aliases. Both the app and the
+    // tooling configs extend this, and Vite/Vitest/Storybook read it through
+    // `resolve.tsconfigPaths`. See ADR-0007.
+    //
+    // A named alias means "a stable module with a public API you may depend
+    // on". Everything else stays on @/*.
+    "paths": {
+      "@/*": ["./src/*"],
+      "@engine": ["./src/engine"],
+      "@i18n": ["./src/lib/i18n"],
+      "@messages": ["./src/lib/i18n/translation-messages"],
+      "@testing": ["./src/testing"]
+    }
+  }
+}

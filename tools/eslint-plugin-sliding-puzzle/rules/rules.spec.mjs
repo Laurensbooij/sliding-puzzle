@@ -4,6 +4,7 @@ import { afterAll, describe, it } from 'vitest'
 
 import assignBeforeAssert from './assign-before-assert.mjs'
 import noInlineTestid from './no-inline-testid.mjs'
+import propsTypeInComponentFile from './props-type-in-component-file.mjs'
 import propsTypeNaming from './props-type-naming.mjs'
 import testidsInConstantsFile from './testids-in-constants-file.mjs'
 
@@ -85,6 +86,41 @@ ruleTester.run('props-type-naming', propsTypeNaming, {
 			code: 'export const Tile: FC<BoardProps> = (props) => null',
 			filename: 'Tile.tsx',
 			errors: [{ messageId: 'wrongName' }],
+		},
+	],
+})
+
+ruleTester.run('props-type-in-component-file', propsTypeInComponentFile, {
+	valid: [
+		{
+			code: 'export interface TileProps { tile: number }',
+			filename: '/src/components/Tile/Tile.tsx',
+		},
+		{
+			code: 'export type TileProps = { tile: number }',
+			filename: '/src/components/Tile/Tile.tsx',
+		},
+		{
+			// Non-props types are exactly what types.ts is still for.
+			code: 'export interface BoardView { cells: number[] }',
+			filename: '/src/components/Board/types.ts',
+		},
+	],
+	invalid: [
+		{
+			code: 'export interface TileProps { tile: number }',
+			filename: '/src/components/Tile/types.ts',
+			errors: [{ messageId: 'wrongFile' }],
+		},
+		{
+			code: 'export type TileProps = { tile: number }',
+			filename: '/src/components/Tile/types.ts',
+			errors: [{ messageId: 'wrongFile' }],
+		},
+		{
+			code: 'export interface TileProps { tile: number }',
+			filename: '/src/components/Tile/constants.ts',
+			errors: [{ messageId: 'wrongFile' }],
 		},
 	],
 })

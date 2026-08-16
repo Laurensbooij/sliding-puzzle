@@ -5,15 +5,21 @@ export default defineConfig({
 	test: {
 		projects: [
 			{
-				// Engine rules + lint-rule specs: pure functions, no DOM (ADR-0001).
+				resolve: { tsconfigPaths: true },
+				// `.spec.ts` means no DOM: engine rules, catalogues, lint rules, hooks.
 				test: {
-					name: 'engine',
+					name: 'node',
 					environment: 'node',
-					include: ['src/engine/**/*.spec.ts', 'tools/**/*.spec.mjs'],
+					include: [
+						'src/**/*.spec.ts',
+						'tools/**/*.spec.mjs',
+						'.claude/hooks/**/*.spec.mjs',
+					],
 				},
 			},
 			{
 				plugins: [react()],
+				resolve: { tsconfigPaths: true },
 				test: {
 					name: 'components',
 					environment: 'jsdom',

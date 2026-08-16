@@ -22,6 +22,19 @@ jobs:
       - run: pnpm test
       - run: pnpm build
 
+      # Generated files must match their sources. Both are committed (nothing in
+      # CI can regenerate them on demand), so drift is invisible without a check.
+      - name: Design tokens are up to date
+        run: |
+          pnpm tokens
+          git diff --exit-code --stat src/styles/tokens.css \
+            || { echo '::error::tokens.css is stale — run `pnpm tokens` and commit the result.'; exit 1; }
+      - name: Extracted messages are up to date
+        run: |
+          pnpm i18n:extract
+          git diff --exit-code --stat src/lib/i18n/locales/en.json \
+            || { echo '::error::en.json is stale — run `pnpm i18n:extract` and commit the result.'; exit 1; }
+
   chromatic:
     # Visual regression via Chromatic; needs full history for TurboSnap.
     if: github.event_name == 'pull_request'

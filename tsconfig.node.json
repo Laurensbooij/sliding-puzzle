@@ -1,9 +1,12 @@
 {
+  "extends": "./tsconfig.paths.json",
   "compilerOptions": {
     "target": "ES2023",
-    "lib": ["ES2023"],
+    "lib": ["ES2023", "DOM"],
     "module": "ESNext",
+    "jsx": "react-jsx",
     "types": ["node", "vite/client"],
+    "resolveJsonModule": true,
     "skipLibCheck": true,
 
     "moduleResolution": "bundler",
@@ -18,5 +21,11 @@
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true
   },
-  "include": ["vite.config.ts", "vitest.config.ts", ".storybook/**/*.ts", "scripts/**/*.mjs"]
+  "include": [
+    "vite.config.ts",
+    "vitest.config.ts",
+    ".storybook/**/*.ts",
+    ".storybook/**/*.tsx",
+    "scripts/**/*.mjs"
+  ]
 }

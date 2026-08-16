@@ -3,12 +3,12 @@
 Four trees, split by purpose rather than audience. Humans and agents read the same
 files — see [ADR-0004](adr/0004-conventions-split-by-purpose-not-audience.md).
 
-| Tree                           | Holds                                                        | Reach for it when                                   |
-| ------------------------------ | ------------------------------------------------------------ | --------------------------------------------------- |
-| [`adr/`](adr/)                 | Why a decision was made, and what was rejected               | You want to change something and need the reasoning |
-| [`conventions/`](conventions/) | The rules that follow — engine, components, testing, styling | You are writing code                                |
-| [`journey/`](journey/)         | How the project got built, phase by phase, with screenshots  | You are documenting or showcasing a phase           |
-| [`agents/`](agents/)           | How agent skills consume this repo                           | You are configuring the issue tracker or triage     |
+| Tree                           | Holds                                                              | Reach for it when                                   |
+| ------------------------------ | ------------------------------------------------------------------ | --------------------------------------------------- |
+| [`adr/`](adr/)                 | Why a decision was made, and what was rejected                     | You want to change something and need the reasoning |
+| [`conventions/`](conventions/) | The rules that follow — engine, components, testing, styling, i18n | You are writing code                                |
+| [`journey/`](journey/)         | How the project got built, phase by phase, with screenshots        | You are documenting or showcasing a phase           |
+| [`agents/`](agents/)           | How agent skills consume this repo                                 | You are configuring the issue tracker or triage     |
 
 Two files sit at the repo root and belong to this set:
 

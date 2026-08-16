@@ -24,7 +24,7 @@ type Story = StoryObj<typeof meta>
 
 export const Movable: Story = {}
 
-export const Blocked: Story = {
+export const NotMovable: Story = {
 	args: { movable: false },
 }
 
