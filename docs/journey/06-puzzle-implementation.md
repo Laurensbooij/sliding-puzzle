@@ -12,7 +12,7 @@ _Add gameplay shots to `assets/06-puzzle-implementation/`. Cover the start state
 
 ## Decisions
 
-_Record the board state model, the solvability check, and how grid size scales._
+_Record the board state model, how shuffling guarantees solvability, and how grid size scales._
 
 ## Next
 

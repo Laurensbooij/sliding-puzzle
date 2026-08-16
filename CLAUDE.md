@@ -1,14 +1,64 @@
 # sliding-puzzle
 
+A sliding puzzle game: React 19 + TypeScript + Vite. Pure engine under `src/engine/`,
+XState game machine, CSS Modules + generated design tokens.
+
+Read [CONTEXT.md](CONTEXT.md) for the domain vocabulary (Board, Tile, Gap, Move, …) and
+use it exactly — "puzzle" is banned as a code term. Decisions with rationale live in
+[docs/adr/](docs/adr/). Detailed conventions live in [docs/conventions/](docs/conventions/)
+and load automatically as path-scoped rules when you touch matching files.
+
+## Commands
+
+- **Lint** — `pnpm lint` (ESLint + Stylelint) · **Fix** — `pnpm lint:fix`
+- **Typecheck** — `pnpm typecheck` · **Test** — `pnpm test` · **Build** — `pnpm build`
+- **Tokens** — `pnpm tokens` (rebuilds `src/styles/tokens.css` from `tokens/*.json`)
+- **Storybook** — `pnpm storybook`
+
+Formatting is automatic — a PostToolUse hook runs Prettier on every file you edit
+(tabs in code, 2-space JSON/YAML/MD, single quotes, no semicolons, 100 cols). Don't
+hand-format.
+
+## Must-follow rules
+
+Most conventions are lint-enforced (including the custom
+`tools/eslint-plugin-sliding-puzzle` rules) — trust the linter. The ones it can't check:
+
+- **The engine is pure** (ADR-0001): no React/XState/DOM imports under `src/engine/` —
+  anything it needs is an argument. Components stay presentational; lifecycle lives in
+  the game machine.
+- **Colocate by default; promote on the 2nd consumer**: component-local →
+  `src/features/<feature>/` → `src/components/`. Never create a shared bucket
+  pre-emptively.
+- **Query by accessible identity in tests** (ADR-0005); `getByTestId` only where no
+  accessible identity exists. Testids stay **mandatory** on interactive and
+  state-bearing elements.
+- **WCAG 2.2 AA** is a design constraint: tiles carry accessible names, moves are
+  announced, everything is keyboard-operable.
+- **Never edit `src/styles/tokens.css`** — it is generated (ADR-0006); change
+  `tokens/*.json` and run `pnpm tokens`.
+
+To add or change a convention, use the `/update-conventions` skill.
+
+## Git workflow
+
+- Conventional Commits (`<type>(<scope>): <desc>`); branch names `<type>/<short-desc>`.
+- **Checkpoint commits**: `pnpm cp` creates a hook-bypassing commit with subject `CP`.
+  Local history is scratch, pushed history is public — the pre-push hook rejects any
+  push containing `CP` commits; squash or reword them first.
+- Never push, hard-reset, or force-clean — a PreToolUse hook blocks these.
+
 ## Agent skills
 
 ### Issue tracker
 
-Issues live in the Sliding puzzle Linear workspace (team `Sliding puzzle`, key `SLI`), driven via the Linear MCP tools. See `docs/agents/issue-tracker.md`.
+Issues live in the Sliding puzzle Linear workspace (team `Sliding puzzle`, key `SLI`),
+driven via the Linear MCP tools. See `docs/agents/issue-tracker.md`.
 
 ### Triage labels
 
-The five canonical triage roles, each label string equal to its name. See `docs/agents/triage-labels.md`.
+The five canonical triage roles, each label string equal to its name. See
+`docs/agents/triage-labels.md`.
 
 ### Domain docs
 
