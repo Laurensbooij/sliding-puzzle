@@ -87,11 +87,11 @@ The canonical system in Figma:
 
 ![Foundations page: nine documentation cards in a row, from base tokens to borders](assets/02-design/figma-foundations.png)
 
-![Base tokens card: five colour ramps with hex values per step](assets/02-design/figma-base-tokens.png)
+<img src="assets/02-design/figma-base-tokens.png" width="933" alt="Base tokens card: five colour ramps with hex values per step">
 
 ![Tile component: six states from rest to not-movable on a wooden strip](assets/02-design/figma-tile-states.png)
 
-<img src="assets/02-design/figma-button-grid.png" width="400" alt="Button page: variants-by-states grid with every variant in five states">
+<img src="assets/02-design/figma-button-grid.png" width="533" alt="Button page: variants-by-states grid with every variant in five states">
 
 The finalized Setup screen, desktop and mobile — tiles scrambled into a solvable
 position, not the completed picture:
