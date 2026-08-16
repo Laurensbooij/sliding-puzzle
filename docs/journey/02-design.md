@@ -2,6 +2,8 @@
 
 **Status:** Done
 
+**Figma file:** [Slider puzzle](https://www.figma.com/design/r5wlPxDsJnLjZGJcrvmj9s/Slider-puzzle?node-id=4-3&t=UuGmFAnJnpKF6UKG-1) — the canonical design system: tokens, components, and screens.
+
 ## Goal
 
 Take a written brief to an implementable design: a token set, a component library, and
@@ -140,6 +142,6 @@ set phase builds them in code, consuming tokens by export and reading specs from
 
 ## References
 
-- Figma file: [Slider puzzle](https://www.figma.com/design/r5wlPxDsJnLjZGJcrvmj9s/Slider-puzzle)
+- Figma file: [Slider puzzle](https://www.figma.com/design/r5wlPxDsJnLjZGJcrvmj9s/Slider-puzzle?node-id=4-3&t=UuGmFAnJnpKF6UKG-1)
 - [ADR-0006 — tokens generated from Figma](../adr/0006-tokens-generated-from-figma-by-manual-export.md)
 - [CONTEXT.md](../../CONTEXT.md) — the domain vocabulary the design follows
