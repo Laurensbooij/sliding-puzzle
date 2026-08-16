@@ -17,6 +17,17 @@ the blocker is licensing, not effort.
 - **Figma REST API + CI rebuild.** Rejected on plan availability, not on merit. Revisit
   if the account ever changes.
 
+## Provenance (amended after the design phase)
+
+The token values were first authored in a Claude design system generated from the
+written brief, then transferred to Figma and restructured into variable collections.
+**Figma is canonical from that transfer on.** Claude design remains in use as a
+prototyping surface; its changes sync into Figma before anything downstream consumes
+them. See [the design milestone](../journey/02-design.md) for the full loop.
+
+The repo's `tokens/*.json` still hold pre-design placeholder values. Do not hand-edit
+them toward the design — the first Figma export replaces them wholesale.
+
 ## Consequences
 
 - `tokens.css` is committed rather than gitignored, since nothing in CI can regenerate
