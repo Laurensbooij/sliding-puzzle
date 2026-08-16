@@ -69,13 +69,13 @@ both tools serve as reference, with Figma canonical for the design system.
 
 The first state Claude design produced from the brief, before any refinement:
 
-<img src="assets/02-design/claude-design-setup.png" width="800" alt="Setup screen: pitch, grid-size control, artwork picker, and a wooden board preview with glass tiles">
+<img src="assets/02-design/claude-design-setup.png" width="450" alt="Setup screen: pitch, grid-size control, artwork picker, and a wooden board preview with glass tiles">
 
-<img src="assets/02-design/claude-design-play.png" width="800" alt="Play screen: read-outs above the wooden frame, grid-size control and restart below it">
+<img src="assets/02-design/claude-design-play.png" width="450" alt="Play screen: read-outs above the wooden frame, grid-size control and restart below it">
 
-<img src="assets/02-design/claude-design-settings.png" width="800" alt="Settings sheet over a blurred backdrop: sound, numbered tiles, timer and an artwork select">
+<img src="assets/02-design/claude-design-settings.png" width="450" alt="Settings sheet over a blurred backdrop: sound, numbered tiles, timer and an artwork select">
 
-<img src="assets/02-design/claude-design-records.png" width="800" alt="Records screen: bests per grid size and an empty recent-solves list">
+<img src="assets/02-design/claude-design-records.png" width="450" alt="Records screen: bests per grid size and an empty recent-solves list">
 
 The first generation already had the two-material rule, the glass-on-wood board and the
 full screen set. What changed later was placement and affordance, not the look — sound
@@ -91,7 +91,7 @@ The canonical system in Figma:
 
 ![Tile component: six states from rest to not-movable on a wooden strip](assets/02-design/figma-tile-states.png)
 
-![Button page: variants-by-states grid with every variant in five states](assets/02-design/figma-button-grid.png)
+<img src="assets/02-design/figma-button-grid.png" width="400" alt="Button page: variants-by-states grid with every variant in five states">
 
 The finalized Setup screen, desktop and mobile — tiles scrambled into a solvable
 position, not the completed picture:
