@@ -25,6 +25,8 @@ describe('movesForCell', () => {
 		['the cell shares neither row nor column with the gap', gapCentre, 0],
 		['the pressed cell is the gap itself', gapCentre, 4],
 		['the cell is diagonal to the gap on a non-square board', gapWideBoard, 6],
+		['the cell lies beyond the board yet aligns with the gap column', gapCentre, 10],
+		['the cell index is negative', gapCentre, -3],
 	])('produces no moves when %s', (_case, board, cell) => {
 		const moves = movesForCell(board, cell)
 		expect(moves).toEqual([])

@@ -31,6 +31,9 @@ export const shuffle = (_board: Board, _random: () => number): Board => notImple
  * between the pressed cell and the gap (multi-slide, counted per tile).
  */
 export const movesForCell = (board: Board, cell: CellIndex): readonly Move[] => {
+	if (cell < 0 || cell >= board.cells.length) {
+		return []
+	}
 	const gap = gapCell(board)
 	const sameRow = rowOf(board, cell) === rowOf(board, gap)
 	const sameCol = colOf(board, cell) === colOf(board, gap)
@@ -61,14 +64,10 @@ export const applyMove = (board: Board, move: Move): Board => ({
 })
 
 /** Tiles currently able to move, i.e. sharing a row or column with the gap. */
-export const movableTiles = (board: Board): readonly TileId[] => {
-	const gap = gapCell(board)
-	return board.cells.filter(
-		(tile, cell): tile is TileId =>
-			tile !== GAP &&
-			(rowOf(board, cell) === rowOf(board, gap) || colOf(board, cell) === colOf(board, gap)),
+export const movableTiles = (board: Board): readonly TileId[] =>
+	board.cells.flatMap((tile, cell) =>
+		tile !== GAP && movesForCell(board, cell).length > 0 ? [tile] : [],
 	)
-}
 
 /** True when every tile sits in its home cell. */
 export const isSolved = (_board: Board): boolean => notImplemented('isSolved')
