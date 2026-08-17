@@ -2,6 +2,7 @@
 paths:
   - 'src/components/**'
   - 'src/features/**'
+  - 'src/source-images/**'
   - 'src/App.tsx'
 ---
 
@@ -66,6 +67,23 @@ from 'react'`). Props type named exactly **`ComponentNameProps`**, exported
   `@fontsource` fonts. No animation library — motion is CSS over tokens.
 - A UI library needs both: a genuinely large ARIA pattern **and** no native
   element for it. Pick the library when that day comes, not before.
+
+## Source images
+
+None of this is machine-checked — guard it in review.
+
+- **Source images are born shared in `src/source-images/`.** The game feature renders
+  them; the Setup screen will enumerate them. Same rationale as ADR-0009.
+- **Import only through the typed registry** — `src/source-images/index.ts` exports a
+  `SourceImageName` union and a `Record<SourceImageName, string>` of Vite static
+  imports. Never hard-code an asset path: a missing artwork must be a type error,
+  not a 404.
+- **Never serve assets from `public/`.** Vite imports give hashed URLs and dead-asset
+  detection; `public/` gives neither.
+- **A Tile shows its fragment with a full-board `<img alt="" draggable="false">`** —
+  sized `boardDimension × 100%`, offset by the tile's home-cell percentages. No
+  build-time slicing: one cached asset serves every tile, and any board dimension
+  works.
 
 ## Storybook
 
