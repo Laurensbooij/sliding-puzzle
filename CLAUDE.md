@@ -46,6 +46,9 @@ Most conventions are lint-enforced (including the custom
   announced, everything is keyboard-operable.
 - **Never edit `src/styles/tokens.css`** — it is generated (ADR-0006); change
   `tokens/*.json` and run `pnpm tokens`.
+- **No runtime UI or animation libraries** (ADR-0011): primitives are hand-rolled
+  on native elements and platform APIs; the only design-driven packages are
+  `lucide-react` and `@fontsource` fonts.
 
 To add or change a convention, use the `/update-conventions` skill.
 

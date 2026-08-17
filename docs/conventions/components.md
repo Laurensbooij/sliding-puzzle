@@ -57,6 +57,16 @@ from 'react'`). Props type named exactly **`ComponentNameProps`**, exported
 - **Features never import other features.** Compose them at the app level.
   Shared components and `src/lib/` may not import features either.
 
+## Dependencies
+
+- **Platform first — no runtime UI libraries** (ADR-0011). Primitives build on
+  native elements (`<dialog>`, checkbox, radios, `<select>`) and platform APIs
+  (popover, anchor positioning). Not machine-checked — guard it in review.
+- Design-driven packages are limited to `lucide-react` (icons) and
+  `@fontsource` fonts. No animation library — motion is CSS over tokens.
+- A UI library needs both: a genuinely large ARIA pattern **and** no native
+  element for it. Pick the library when that day comes, not before.
+
 ## Storybook
 
 - **Every shared component ships colocated stories** (`ComponentName.stories.tsx`)
