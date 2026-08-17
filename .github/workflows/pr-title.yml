@@ -1,0 +1,19 @@
+name: PR title
+
+# Squash merges take the PR title as the commit subject on main
+# (squash_merge_commit_title=PR_TITLE), so the title must be a Conventional Commit.
+on:
+  pull_request:
+    types: [opened, edited, reopened]
+
+jobs:
+  conventional-title:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Title is a Conventional Commit
+        env:
+          TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          pattern='^(build|chore|ci|docs|feat|fix|perf|refactor|revert|style|test)(\([a-z0-9-]+\))?!?: .+'
+          echo "$TITLE" | grep -qE "$pattern" \
+            || { echo "::error::PR title must be a Conventional Commit (it becomes the squash commit subject on main): <type>(<scope>)?: <desc>"; exit 1; }
