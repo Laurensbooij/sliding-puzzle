@@ -8,6 +8,7 @@
     // on". Everything else stays on @/*.
     "paths": {
       "@/*": ["./src/*"],
+      "@components/*": ["./src/components/*"],
       "@engine": ["./src/engine"],
       "@i18n": ["./src/lib/i18n"],
       "@messages": ["./src/lib/i18n/translation-messages"],

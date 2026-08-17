@@ -30,10 +30,12 @@ Most conventions are lint-enforced (including the custom
   the game machine.
 - **Colocate by default; promote on the 2nd consumer**: component-local →
   `src/features/<feature>/` → `src/components/`. Never create a shared bucket
-  pre-emptively.
-- **Imports flow one way** (ADR-0007): `engine → lib → features → app`. Features
-  never import each other. Aliased modules are reached only by their alias —
-  `@engine`, `@i18n`, `@messages`, `@testing` — never the long `@/...` form.
+  pre-emptively. One exception (ADR-0009): components defined in the Figma design
+  system are born shared in `src/components/`.
+- **Imports flow one way** (ADR-0007): `engine → lib → components → features → app`.
+  Features never import each other. Aliased modules are reached only by their alias —
+  `@engine`, `@i18n`, `@messages`, `@testing`, `@components/<Name>` — never the long
+  `@/...` form.
 - **Never import `react-intl`** (ADR-0008): all localization goes through the
   `@i18n` facade. Messages live in `translation-messages.ts` beside their
   component; regenerate `en.json` with `pnpm i18n:extract`.

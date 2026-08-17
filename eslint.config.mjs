@@ -32,6 +32,10 @@ const aliasSpellingPatterns = [
 		message: 'Import the i18n facade as `@i18n`, or global messages as `@messages`.',
 	},
 	{ group: ['@/testing', '@/testing/*'], message: 'Import test helpers as `@testing`.' },
+	{
+		group: ['@/components', '@/components/*'],
+		message: 'Import shared components as `@components/<Name>`.',
+	},
 ]
 
 // react-intl is wrapped by the facade so consumers depend on our surface, not
@@ -84,6 +88,7 @@ export default tseslint.config(
 			'sliding-puzzle/testids-in-constants-file': 'error',
 			'sliding-puzzle/props-type-naming': 'error',
 			'sliding-puzzle/props-type-in-component-file': 'error',
+			'sliding-puzzle/stories-file-required': 'error',
 		},
 	},
 	{
