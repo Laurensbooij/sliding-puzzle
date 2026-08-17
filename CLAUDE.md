@@ -43,7 +43,8 @@ Most conventions are lint-enforced (including the custom
 - **WCAG 2.2 AA** is a design constraint: tiles carry accessible names, moves are
   announced, everything is keyboard-operable.
 - **Never edit `src/styles/tokens.css`** — it is generated (ADR-0006); change
-  `tokens/*.json` and run `pnpm tokens`.
+  `tokens/manual/*.json` (hand-owned tier) or re-export `tokens/figma/*.json`
+  from Figma via TokensBrücke (ADR-0010), then run `pnpm tokens`.
 
 To add or change a convention, use the `/update-conventions` skill.
 

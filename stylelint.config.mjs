@@ -40,6 +40,15 @@ export default {
 			{ severity: 'error' },
 		],
 		'unit-disallowed-list': [],
+		// Durations come from motion tokens; a literal 200ms bypasses the
+		// reduced-motion collapse in motion-preferences.css.
+		'declaration-property-value-disallowed-list': [
+			{ '/^(transition|animation)/': ['/\\d+m?s(?![a-z-])/'] },
+			{
+				message:
+					'Use a motion token (var(--dur-…), var(--ease-…)) instead of a literal duration.',
+			},
+		],
 		// CSS Modules camelCase class names, so styles.iconWrapper dot-access works.
 		'selector-class-pattern': [
 			'^[a-z][a-zA-Z0-9]*$',
@@ -55,6 +64,7 @@ export default {
 				'declaration-no-important': null,
 				'scale-unlimited/declaration-strict-value': null,
 				'property-no-vendor-prefix': null,
+				'declaration-property-value-disallowed-list': null,
 			},
 		},
 	],
