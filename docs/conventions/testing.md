@@ -12,6 +12,9 @@ Two Vitest projects, split by file extension: **`.spec.ts` runs in node** (engin
 rules, catalogues, lint rules, hooks — no DOM) and **`.spec.tsx` runs in jsdom**
 with Testing Library. Specs are colocated.
 
+Accessibility gates and the per-component a11y acceptance criteria live in
+[accessibility.md](accessibility.md).
+
 ## Rendering
 
 Render through **`renderWithProviders`** from `@testing`, never RTL's `render`
