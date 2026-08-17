@@ -16,6 +16,8 @@ jobs:
           node-version-file: .nvmrc
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      # The storybook Vitest project scans stories in real Chromium (a11y gate).
+      - run: pnpm exec playwright install chromium --with-deps
       - run: pnpm format:check
       - run: pnpm lint
       - run: pnpm typecheck

@@ -30,9 +30,6 @@ Four automated layers. Each catches what the previous one can't.
   token change that breaks contrast fails CI.
 - **Chromatic** — baseline a11y regression tracking on PRs; flags new violations.
 
-> **Status**: the story-scan layer is decided but not yet wired — it lands as an
-> implementation-backlog ticket. Delete this callout when it does.
-
 **Deferred / rejected:**
 
 - **Token-level contrast script** (fg/bg pair manifest + colorjs.io) — deferred.

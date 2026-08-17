@@ -9,6 +9,13 @@ const preview: Preview = {
 			// Fail stories on WCAG violations rather than just warning — AA is a
 			// baseline requirement here, not a nice-to-have.
 			test: 'error',
+			config: {
+				rules: [
+					// axe ships target-size (SC 2.5.8) disabled by default; it is the
+					// only automatable WCAG 2.2 check, so opt in.
+					{ id: 'target-size', enabled: true },
+				],
+			},
 		},
 	},
 	globalTypes: {

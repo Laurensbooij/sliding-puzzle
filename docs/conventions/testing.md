@@ -8,9 +8,11 @@ paths:
 
 # Testing conventions
 
-Two Vitest projects, split by file extension: **`.spec.ts` runs in node** (engine
-rules, catalogues, lint rules, hooks — no DOM) and **`.spec.tsx` runs in jsdom**
-with Testing Library. Specs are colocated.
+Three Vitest projects. Two split by file extension: **`.spec.ts` runs in node**
+(engine rules, catalogues, lint rules, hooks — no DOM) and **`.spec.tsx` runs in
+jsdom** with Testing Library. Specs are colocated. The third, **`storybook`**, runs
+every story in headless Chromium and fails on axe violations — see
+[accessibility.md](accessibility.md).
 
 Accessibility gates and the per-component a11y acceptance criteria live in
 [accessibility.md](accessibility.md).
