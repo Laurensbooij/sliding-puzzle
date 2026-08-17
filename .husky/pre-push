@@ -1,11 +1,17 @@
 # Local history is scratch, pushed history is public: `pnpm cp` commits (subject
 # "CP") may exist locally but must be squashed or reworded before they leave the
-# machine. See CLAUDE.md § Git workflow.
+# machine. Direct pushes to main are rejected — main only moves through merged
+# PRs. See CLAUDE.md § Git workflow.
 ZERO=0000000000000000000000000000000000000000
 
-while read -r _local_ref local_oid _remote_ref remote_oid; do
+while read -r _local_ref local_oid remote_ref remote_oid; do
 	# Branch deletion — nothing to check.
 	[ "$local_oid" = "$ZERO" ] && continue
+
+	if [ "$remote_ref" = "refs/heads/main" ]; then
+		echo "✖ Push rejected: main is not pushed directly — open a PR and merge it there." >&2
+		exit 1
+	fi
 
 	if [ "$remote_oid" = "$ZERO" ]; then
 		# New branch: check every commit not already on the remote.

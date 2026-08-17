@@ -59,7 +59,9 @@ To add or change a convention, use the `/update-conventions` skill.
 - **Checkpoint commits**: `pnpm cp` creates a hook-bypassing commit with subject `CP`.
   Local history is scratch, pushed history is public — the pre-push hook rejects any
   push containing `CP` commits; squash or reword them first.
-- Never push, hard-reset, or force-clean — a PreToolUse hook blocks these.
+- Feature branches may be pushed; **main is never pushed directly** — the
+  pre-push hook rejects it, main moves through merged PRs only. Hard-resets,
+  force-cleans, and force-pushes stay blocked by a PreToolUse hook.
 
 ## Agent skills
 
