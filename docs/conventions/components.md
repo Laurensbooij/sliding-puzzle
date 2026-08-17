@@ -29,6 +29,10 @@ from 'react'`). Props type named exactly **`ComponentNameProps`**, exported
 - **Colocate by default; promote on the 2nd consumer.** Tiers: component-local →
   feature (`src/features/<feature>/`) → shared (`src/components/`). Don't skip tiers
   "just in case".
+- **Exception — design-system components are born shared.** A component defined in
+  the Figma design system starts in `src/components/`; its consumers are designed
+  screens, not speculation ([ADR-0009](../adr/0009-design-system-components-are-born-shared.md)).
+  Game-domain components (Board, Tile, Frame) stay in the game feature.
 - A trivial component is flat colocated files. Once it grows satellites (hook, helper,
   constants, sub-component) it graduates to a `ComponentName/` folder with an
   `index.ts` barrel. Private sub-components live under its `components/`, are full
@@ -47,11 +51,32 @@ from 'react'`). Props type named exactly **`ComponentNameProps`**, exported
 ## Imports
 
 - Reach aliased modules by their alias only — `@engine`, `@i18n`, `@messages`,
-  `@testing`. The long `@/...` spelling for those targets is a lint error, and
-  everything else uses `@/*`. See
+  `@testing`, and shared components as `@components/<Name>`. The long `@/...`
+  spelling for those targets is a lint error, and everything else uses `@/*`. See
   [ADR-0007](../adr/0007-module-boundaries-and-import-aliases.md).
 - **Features never import other features.** Compose them at the app level.
   Shared components and `src/lib/` may not import features either.
+
+## Dependencies
+
+- **Platform first — no runtime UI libraries** (ADR-0011). Primitives build on
+  native elements (`<dialog>`, checkbox, radios, `<select>`) and platform APIs
+  (popover, anchor positioning). Not machine-checked — guard it in review.
+- Design-driven packages are limited to `lucide-react` (icons) and
+  `@fontsource` fonts. No animation library — motion is CSS over tokens.
+- A UI library needs both: a genuinely large ARIA pattern **and** no native
+  element for it. Pick the library when that day comes, not before.
+
+## Storybook
+
+- **Every shared component ships colocated stories** (`ComponentName.stories.tsx`)
+  covering each designed variant (lint-enforced:
+  `sliding-puzzle/stories-file-required`).
+- Storybook is the **visual-acceptance surface**: a component is done when its
+  stories match the Figma design system's component set. Figma is the source of
+  truth; the Claude Design prototypes are input, not canon.
+- Feature components may have stories (Tile does); only the shared tier requires
+  them.
 
 ## Test ids
 

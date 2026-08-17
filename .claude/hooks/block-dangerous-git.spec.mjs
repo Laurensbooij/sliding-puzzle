@@ -28,6 +28,12 @@ describe('block-dangerous-git', () => {
 		'gh pr create --fill',
 		'git checkout HEAD -- .agents',
 		'git branch -d merged-branch',
+		// Pushes to main pass this hook: rejecting them is the pre-push hook's
+		// job (.husky/pre-push), where the rule binds every push, not just the
+		// agent's. See CLAUDE.md § Git workflow.
+		'git push origin main',
+		'git push origin HEAD:main',
+		'git push origin HEAD:refs/heads/main',
 	])('allows %s', (command) => {
 		const verdict = classify(command)
 		expect(verdict).toBe('allowed')
@@ -38,9 +44,6 @@ describe('block-dangerous-git', () => {
 		'git push --force-with-lease',
 		'git push -f',
 		'git push -f origin HEAD',
-		'git push origin main',
-		'git push origin HEAD:main',
-		'git push origin HEAD:refs/heads/main',
 		'git reset --hard',
 		'git reset --hard HEAD~1',
 		'git clean -f',

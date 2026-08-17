@@ -6,7 +6,10 @@ import assignBeforeAssert from './assign-before-assert.mjs'
 import noInlineTestid from './no-inline-testid.mjs'
 import propsTypeInComponentFile from './props-type-in-component-file.mjs'
 import propsTypeNaming from './props-type-naming.mjs'
+import storiesFileRequired from './stories-file-required.mjs'
 import testidsInConstantsFile from './testids-in-constants-file.mjs'
+
+const FIXTURES = new URL('../fixtures/', import.meta.url).pathname
 
 RuleTester.afterAll = afterAll
 RuleTester.describe = describe
@@ -160,6 +163,47 @@ ruleTester.run('assign-before-assert', assignBeforeAssert, {
 			code: 'await userEvent.click(within(board).getByRole("button"))',
 			filename: 'Tile.spec.tsx',
 			errors: [{ messageId: 'assignFirst' }],
+		},
+	],
+})
+
+ruleTester.run('stories-file-required', storiesFileRequired, {
+	valid: [
+		{
+			code: 'export const WithStories = () => null',
+			filename: `${FIXTURES}src/components/WithStories/WithStories.tsx`,
+		},
+		// Outside the shared tier the rule does not apply.
+		{
+			code: 'export const Tile = () => null',
+			filename: '/repo/src/features/game/components/Tile/Tile.tsx',
+		},
+		// Stories and spec files themselves are exempt.
+		{
+			code: 'export default {}',
+			filename: `${FIXTURES}src/components/NoStories/NoStories.stories.tsx`,
+		},
+		{
+			code: 'it("renders", () => {})',
+			filename: `${FIXTURES}src/components/NoStories/NoStories.spec.tsx`,
+		},
+		// Private sub-components are exempt.
+		{
+			code: 'export const Inner = () => null',
+			filename: `${FIXTURES}src/components/NoStories/components/Inner/Inner.tsx`,
+		},
+	],
+	invalid: [
+		{
+			code: 'export const NoStories = () => null',
+			filename: `${FIXTURES}src/components/NoStories/NoStories.tsx`,
+			errors: [{ messageId: 'missingStories' }],
+		},
+		// Flat shared component without stories.
+		{
+			code: 'export const Flat = () => null',
+			filename: `${FIXTURES}src/components/Flat.tsx`,
+			errors: [{ messageId: 'missingStories' }],
 		},
 	],
 })

@@ -1,9 +1,10 @@
 # Module boundaries are named aliases, enforced in one direction
 
-Code flows one way — `engine → lib → features → app` — and features never import
-one another. Four modules carry a named import alias (`@engine`, `@i18n`,
-`@messages`, `@testing`); everything else uses `@/*`. An aliased module may
-**only** be reached through its alias; the long `@/...` spelling is a lint error.
+Code flows one way — `engine → lib → components → features → app` — and features
+never import one another. Four modules carry a named import alias (`@engine`,
+`@i18n`, `@messages`, `@testing`), plus the glob alias `@components/*`;
+everything else uses `@/*`. An aliased module may **only** be reached through
+its alias; the long `@/...` spelling is a lint error.
 
 Recorded because the alias set looks arbitrary without its rule, and because a
 reader will otherwise add `@features` or `@components` and quietly undo the
@@ -13,10 +14,15 @@ boundary.
 
 A named alias means **"this is a stable module with a public API you may depend
 on"**. That is why `@features` does not exist: cross-feature imports are banned,
-so making them ergonomic would work against the boundary. `@components` does not
-exist while the shared tier is empty — an alias to an empty folder is an
-invitation to fill it, which is the pre-emptive shared bucket the promotion
-ladder exists to prevent.
+so making them ergonomic would work against the boundary.
+
+**Amended (design-system implementation):** this ADR originally withheld
+`@components` "while the shared tier is empty — an alias to an empty folder is
+an invitation to fill it". That condition ended when the Figma design system
+made the shared tier's contents a design fact rather than a speculation;
+[ADR-0009](./0009-design-system-components-are-born-shared.md) records the
+decision and adds `@components/*` as a glob alias (per-component modules, no
+tree barrel).
 
 ## Considered options
 

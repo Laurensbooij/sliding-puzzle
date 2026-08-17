@@ -30,10 +30,12 @@ Most conventions are lint-enforced (including the custom
   the game machine.
 - **Colocate by default; promote on the 2nd consumer**: component-local →
   `src/features/<feature>/` → `src/components/`. Never create a shared bucket
-  pre-emptively.
-- **Imports flow one way** (ADR-0007): `engine → lib → features → app`. Features
-  never import each other. Aliased modules are reached only by their alias —
-  `@engine`, `@i18n`, `@messages`, `@testing` — never the long `@/...` form.
+  pre-emptively. One exception (ADR-0009): components defined in the Figma design
+  system are born shared in `src/components/`.
+- **Imports flow one way** (ADR-0007): `engine → lib → components → features → app`.
+  Features never import each other. Aliased modules are reached only by their alias —
+  `@engine`, `@i18n`, `@messages`, `@testing`, `@components/<Name>` — never the long
+  `@/...` form.
 - **Never import `react-intl`** (ADR-0008): all localization goes through the
   `@i18n` facade. Messages live in `translation-messages.ts` beside their
   component; regenerate `en.json` with `pnpm i18n:extract`.
@@ -43,7 +45,11 @@ Most conventions are lint-enforced (including the custom
 - **WCAG 2.2 AA** is a design constraint: tiles carry accessible names, moves are
   announced, everything is keyboard-operable.
 - **Never edit `src/styles/tokens.css`** — it is generated (ADR-0006); change
-  `tokens/*.json` and run `pnpm tokens`.
+  `tokens/manual/*.json` (hand-owned tier) or re-export `tokens/figma/*.json`
+  from Figma via TokensBrücke (ADR-0010), then run `pnpm tokens`.
+- **No runtime UI or animation libraries** (ADR-0011): primitives are hand-rolled
+  on native elements and platform APIs; the only design-driven packages are
+  `lucide-react` and `@fontsource` fonts.
 
 To add or change a convention, use the `/update-conventions` skill.
 
@@ -53,7 +59,9 @@ To add or change a convention, use the `/update-conventions` skill.
 - **Checkpoint commits**: `pnpm cp` creates a hook-bypassing commit with subject `CP`.
   Local history is scratch, pushed history is public — the pre-push hook rejects any
   push containing `CP` commits; squash or reword them first.
-- Never push, hard-reset, or force-clean — a PreToolUse hook blocks these.
+- Feature branches may be pushed; **main is never pushed directly** — the
+  pre-push hook rejects it, main moves through merged PRs only. Hard-resets,
+  force-cleans, and force-pushes stay blocked by a PreToolUse hook.
 
 ## Agent skills
 
