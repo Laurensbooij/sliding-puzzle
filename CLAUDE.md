@@ -56,6 +56,8 @@ To add or change a convention, use the `/update-conventions` skill.
 ## Git workflow
 
 - Conventional Commits (`<type>(<scope>): <desc>`); branch names `<type>/<short-desc>`.
+- PRs **squash-merge**; the PR title becomes the commit subject on main, so PR
+  titles are Conventional Commits too (CI-checked by `pr-title.yml`).
 - **Checkpoint commits**: `pnpm cp` creates a hook-bypassing commit with subject `CP`.
   Local history is scratch, pushed history is public — the pre-push hook rejects any
   push containing `CP` commits; squash or reword them first.
