@@ -4,7 +4,9 @@ import StyleDictionary from 'style-dictionary'
 // the export stays a manual plugin click because the Variables REST API is
 // Enterprise-only (ADR-0006). Rebuild with `pnpm tokens`.
 const sd = new StyleDictionary({
-	source: ['tokens/*.json'],
+	// Flat files are the pre-design placeholders; figma/ and manual/ are the
+	// two source tiers from ADR-0010.
+	source: ['tokens/*.json', 'tokens/**/*.json'],
 	platforms: {
 		css: {
 			transformGroup: 'css',

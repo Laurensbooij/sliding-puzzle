@@ -28,6 +28,12 @@ them. See [the design milestone](../journey/02-design.md) for the full loop.
 The repo's `tokens/*.json` still hold pre-design placeholder values. Do not hand-edit
 them toward the design — the first Figma export replaces them wholesale.
 
+**Amended (token architecture):** the export covers what Figma can express;
+values it cannot hold (material gradients, easings, composed shorthands) live in
+a hand-owned tier. "Replaces wholesale" now scopes to `tokens/figma/` only. The
+plugin is TokensBrücke. See
+[ADR-0010](./0010-two-tier-token-sources.md).
+
 ## Consequences
 
 - `tokens.css` is committed rather than gitignored, since nothing in CI can regenerate

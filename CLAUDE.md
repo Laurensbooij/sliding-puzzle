@@ -45,7 +45,8 @@ Most conventions are lint-enforced (including the custom
 - **WCAG 2.2 AA** is a design constraint: tiles carry accessible names, moves are
   announced, everything is keyboard-operable.
 - **Never edit `src/styles/tokens.css`** — it is generated (ADR-0006); change
-  `tokens/*.json` and run `pnpm tokens`.
+  `tokens/manual/*.json` (hand-owned tier) or re-export `tokens/figma/*.json`
+  from Figma via TokensBrücke (ADR-0010), then run `pnpm tokens`.
 - **No runtime UI or animation libraries** (ADR-0011): primitives are hand-rolled
   on native elements and platform APIs; the only design-driven packages are
   `lucide-react` and `@fontsource` fonts.
