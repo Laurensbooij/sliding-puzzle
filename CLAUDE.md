@@ -31,7 +31,8 @@ Most conventions are lint-enforced (including the custom
 - **Colocate by default; promote on the 2nd consumer**: component-local →
   `src/features/<feature>/` → `src/components/`. Never create a shared bucket
   pre-emptively. One exception (ADR-0009): components defined in the Figma design
-  system are born shared in `src/components/`.
+  system are born shared in `src/components/`. Source images are likewise born
+  shared in `src/source-images/`, imported only via its typed registry.
 - **Imports flow one way** (ADR-0007): `engine → lib → components → features → app`.
   Features never import each other. Aliased modules are reached only by their alias —
   `@engine`, `@i18n`, `@messages`, `@testing`, `@components/<Name>` — never the long
