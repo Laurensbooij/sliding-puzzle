@@ -11,8 +11,7 @@ const preview: Preview = {
 			test: 'error',
 			config: {
 				rules: [
-					// axe ships target-size (SC 2.5.8) disabled by default; it is the
-					// only automatable WCAG 2.2 check, so opt in.
+					// Off by default in axe — opt in per docs/conventions/accessibility.md.
 					{ id: 'target-size', enabled: true },
 				],
 			},
