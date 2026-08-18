@@ -44,16 +44,20 @@ const meta = {
 export default meta
 type Story = StoryObj<typeof meta>
 
-/** Movable and untouched: the bead sits at 40%, which is how you know it can move. */
-export const Selectable: Story = {}
+/** Figma `State=selectable`: the bead sits at 40%, which is how you know it can move. */
+export const Movable: Story = {}
 
-/** A tile that cannot move shows no bead at all — that silence is the affordance. */
+/**
+ * Figma `State=not movable`, and `State=rest` with it — the two are drawn
+ * identically, because a tile that cannot move shows no bead at all and that
+ * silence is the whole affordance.
+ */
 export const NotMovable: Story = {
 	args: { movable: false },
 }
 
-/** Hover is neutral: the glass brightens and the bead swells, no hue is added. */
-export const HoverSelectable: Story = {
+/** Figma `State=hover selectable`: the glass brightens and the bead swells, no hue is added. */
+export const Hovered: Story = {
 	play: async ({ canvasElement }) => {
 		const canvas = within(canvasElement)
 		const tileButton = canvas.getByRole('button')
@@ -61,7 +65,7 @@ export const HoverSelectable: Story = {
 	},
 }
 
-/** Press sinks the tile in place: warm inner shadow, scale .985, no shadow growth. */
+/** Figma `State=pressed`: warm inner shadow, scale .985, no translation, no shadow growth. */
 export const Pressed: Story = {
 	play: async ({ canvasElement }) => {
 		const canvas = within(canvasElement)
@@ -70,8 +74,8 @@ export const Pressed: Story = {
 	},
 }
 
-/** Keyboard focus draws the on-wood ring outside the tile, so nothing obscures it. */
-export const Focus: Story = {
+/** Figma `State=focus`: the on-wood ring draws outside the tile, so nothing obscures it. */
+export const Focused: Story = {
 	// Focused directly rather than by Tab: the preview iframe puts Storybook's
 	// own controls ahead of the story in the tab order.
 	play: ({ canvasElement }) => {

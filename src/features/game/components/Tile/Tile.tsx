@@ -2,19 +2,12 @@ import { SOURCE_IMAGES } from '@/source-images'
 import type { SourceImageName } from '@/source-images'
 import type { TileId } from '@engine'
 import { useTranslate } from '@i18n'
-import type { CSSProperties, FC } from 'react'
+import type { FC } from 'react'
 
 import styles from './Tile.module.css'
 import { TILE_TESTIDS } from './constants'
 import { tileMessages } from './translation-messages'
-
-/** The home-cell geometry the fragment `<img>` is sized and offset by. */
-interface FragmentStyle extends CSSProperties {
-	'--fragment-cols': number
-	'--fragment-rows': number
-	'--fragment-col': number
-	'--fragment-row': number
-}
+import type { FragmentStyle } from './types'
 
 export interface TileProps {
 	/** The tile's identity — its home cell index. Rendered as the 1-based label. */
@@ -91,7 +84,7 @@ export const Tile: FC<TileProps> = ({
 				/>
 			</span>
 			<span className={styles.sheen} />
-			<span className={styles.bead} data-testid={`${base}${TILE_TESTIDS.BEAD_SUFFIX}`} />
+			<span className={styles.bead} />
 			<span className={styles.edge} />
 			{showLabel && (
 				<span className={styles.label} data-testid={`${base}${TILE_TESTIDS.LABEL_SUFFIX}`}>

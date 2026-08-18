@@ -45,6 +45,9 @@
 	position: absolute;
 	inset: 0;
 	overflow: hidden;
+
+	/* Layer opacities and the press scale are Figma component-set values with
+	   no variable behind them — they belong to the Tile, not the token tiers. */
 	opacity: 0.9;
 	pointer-events: none;
 }
@@ -92,7 +95,8 @@
 }
 
 .edge {
-	--tile-edge: var(--glass-inner), var(--glass-edge-light);
+	--tile-edge-base: var(--glass-inner), var(--glass-edge-light);
+	--tile-edge: var(--tile-edge-base);
 
 	position: absolute;
 	inset: 0;
@@ -130,11 +134,11 @@
 
 .tile[aria-disabled='false']:hover .edge,
 .tile[aria-disabled='false']:focus-visible .edge {
-	--tile-edge: var(--material-glass-glow-hover), var(--glass-inner), var(--glass-edge-light);
+	--tile-edge: var(--material-glass-glow-hover), var(--tile-edge-base);
 }
 
 .tile[aria-disabled='false']:active .edge {
-	--tile-edge: var(--material-glass-glow-press), var(--glass-inner), var(--glass-edge-light);
+	--tile-edge: var(--material-glass-glow-press), var(--tile-edge-base);
 }
 
 /* Press sinks the tile in place: no translation, no shadow growth. */
