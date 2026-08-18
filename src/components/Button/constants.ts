@@ -1,7 +1,5 @@
 import type { IconSize } from '@components/Icon'
 
-import type { ButtonSize } from './Button'
-
 export const BUTTON_TESTIDS = {
 	BASE: 'button',
 	ICON_START_SUFFIX: '-icon-start',
@@ -27,4 +25,4 @@ export const BUTTON_ICON_SIZES = {
 	sm: 'sm',
 	md: 'md',
 	lg: 'md',
-} as const satisfies Record<ButtonSize, IconSize>
+} as const satisfies Record<(typeof BUTTON_SIZES)[number], IconSize>

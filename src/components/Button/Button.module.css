@@ -55,15 +55,18 @@
 }
 
 /* Press drops the pill 1px and shrinks it a hair, on top of whatever colour the
-   variant moved to. Both ride `--transition-control`, so the reduced-motion
-   collapse in motion-preferences.css takes them with it. */
+   variant moved to.
+
+   The token-layer collapse does not reach this one: `--transition-control` runs
+   on `--dur-fast`, which motion-preferences.css deliberately keeps live because
+   a sub-150ms colour fade carries no movement. This transform does carry
+   movement, so under `prefers-reduced-motion` it is the reset's blanket
+   `transition-duration` kill switch that snaps it — the safety net doing the
+   work the collapse cannot. Fighting either from here is what styling.md rules
+   out, so the press stays declared once and the net catches it. */
 .button:enabled:active {
 	transform: translateY(1px) scale(0.985);
 }
-
-/* Every variant states hover and press as `:enabled:` rather than leaving them
-   to source order: `:hover` still matches a disabled control, which would light
-   it up under the pointer while it refuses the click. */
 
 /* The filled variants sit one ramp step below the design's own fills. White on
    `--accent` measures 4.47:1 and white on `--danger` 3.81:1, both short of the
@@ -72,8 +75,14 @@
    Stepping the whole ramp down keeps three distinct states: what the design
    calls hover becomes rest, its press becomes hover, and press takes the next
    step. Bound to the ramp primitives, because a rest colour named
-   `--accent-hover` would lie about what it is. The real fix belongs in the
-   token tier — see the note on SLI-22. */
+   `--accent-hover` would lie about what it is. This is a workaround at the
+   component tier: the real fix is the token tier moving `--accent` and
+   `--danger` to steps that clear AA, which would let this file go back to the
+   semantic names.
+
+   Every variant below states hover and press as `:enabled:` rather than leaving
+   them to source order: `:hover` still matches a disabled control, which would
+   light it up under the pointer while it refuses the click. */
 .primary {
 	background-color: var(--teal-700);
 	box-shadow: var(--shadow-1);

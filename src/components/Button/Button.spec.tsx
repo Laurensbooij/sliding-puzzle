@@ -23,12 +23,15 @@ const renderComponent = ({ children = LABEL, ...props }: Partial<ButtonProps> = 
  *
  * - Announcements — N/A: the button carries no state of its own to announce. A
  *   consumer whose action changes something announces that change at its source.
- * - Focus (SC 2.4.11) and target size (SC 2.5.8) are geometry, so the story layer
- *   proves them in real Chromium: nothing clips the ring, and the smallest size
- *   is a 32px control. What a spec can assert — that focus lands on the button
- *   and never on a disabled one — is asserted below.
- * - Reduced motion — carried at the token layer: every transition here rides
- *   `--transition-control` (ADR-0010).
+ * - Target size (SC 2.5.8) — the story layer proves it in real Chromium, where
+ *   axe's `target-size` rule is on and the smallest size is a 32px control.
+ * - Focus (SC 2.4.11) — no axe rule covers "obscured", so this one is a review
+ *   determination: the ring draws outside the pill and nothing in the
+ *   stylesheet clips it. What a spec can assert — that focus lands on the
+ *   button and never on a disabled one — is asserted below.
+ * - Reduced motion — the colour transitions collapse at the token layer, but the
+ *   press transform does not, because `--dur-fast` deliberately stays live. The
+ *   reset's blanket kill switch snaps it instead; see Button.module.css.
  */
 describe('Button', () => {
 	it('is a button named by its children', () => {
