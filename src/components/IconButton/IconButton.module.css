@@ -1,0 +1,115 @@
+/* Square by construction: one control-height token drives both axes, so a size
+   is stated once. A plain `border` works on the bordered variants because Figma
+   counts its inside strokes in layout — the box reads the same on both sides
+   and there is nothing to compensate for (docs/conventions/styling.md). */
+.button {
+	display: grid;
+	place-items: center;
+	border: none;
+	border-radius: var(--radius-md);
+	padding: 0;
+	background-color: transparent;
+	transition: var(--transition-control);
+	cursor: pointer;
+}
+
+.sm {
+	width: var(--control-height-sm);
+	height: var(--control-height-sm);
+}
+
+.md {
+	width: var(--control-height-md);
+	height: var(--control-height-md);
+}
+
+.lg {
+	width: var(--control-height-lg);
+	height: var(--control-height-lg);
+}
+
+/* The focus ring pair Figma draws — a 2px ring on a 2px page-coloured spacer —
+   is one outline at a positive offset. The spacer is a Figma-side device for
+   `outline-offset`, which it has no property for; it is never a second element.
+   Nothing here clips overflow, so the ring is never obscured (SC 2.4.11). */
+.button:focus-visible {
+	outline: 2px solid var(--focus-ring);
+	outline-offset: 2px;
+}
+
+.button:disabled {
+	opacity: var(--state-disabled-opacity);
+	cursor: default;
+}
+
+/* Each variant states hover and press for an enabled control only. `:hover`
+   still matches a disabled button, which would otherwise paint a control that
+   cannot be used. */
+.solid {
+	background-color: var(--accent);
+	color: var(--text-on-accent);
+}
+
+.solid:enabled:hover {
+	background-color: var(--accent-hover);
+}
+
+.solid:enabled:active {
+	background-color: var(--accent-press);
+}
+
+.outline {
+	border: 1px solid var(--border-default);
+	background-color: var(--surface-card);
+	color: var(--text-strong);
+}
+
+.outline:enabled:hover {
+	border-color: var(--border-strong);
+	background-color: var(--surface-sunken);
+}
+
+.outline:enabled:active {
+	border-color: var(--border-strong);
+	background-color: var(--state-press-tint);
+}
+
+.ghost {
+	color: var(--text-body);
+}
+
+.ghost:enabled:hover {
+	background-color: var(--state-hover-tint);
+}
+
+.ghost:enabled:active {
+	background-color: var(--state-press-tint);
+}
+
+/* The wood variant's three fills are raw alpha in Figma, not variables — there
+   is no `surface/on-wood-*` path to mirror, and inventing one in the hand-owned
+   tier would name a token the export does not have (ADR-0010). They are the
+   ink colour at 14/24/34%, so they are derived from it here instead: the same
+   values, still traceable to the one token the design does bind. */
+.onWood {
+	border: 1px solid var(--border-on-wood);
+	background-color: color-mix(in srgb, var(--text-on-wood) 14%, transparent);
+	color: var(--text-on-wood);
+}
+
+/* On the frame the ring is the wood-safe ink and sits tight against the box —
+   the design drops the page-coloured spacer there, because there is no page
+   colour to spacer with. Stated before the state rules below so specificity
+   climbs down the file. */
+.onWood:focus-visible {
+	outline-color: var(--focus-ring-on-wood);
+	outline-offset: 1px;
+}
+
+.onWood:enabled:hover {
+	background-color: color-mix(in srgb, var(--text-on-wood) 24%, transparent);
+}
+
+.onWood:enabled:active {
+	background-color: color-mix(in srgb, var(--text-on-wood) 34%, transparent);
+}
