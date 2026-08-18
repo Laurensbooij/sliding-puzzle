@@ -3,11 +3,23 @@ import { expect, userEvent, waitFor, within } from 'storybook/test'
 
 import { Tooltip } from './Tooltip'
 import styles from './Tooltip.stories.module.css'
+import { TOOLTIP_TESTIDS } from './constants'
 
-/** Stands in for the IconButton this tooltip will label in real UI. */
-const TriggerButton = () => (
-	<button type="button" className={styles.trigger}>
+/**
+ * Stands in for the IconButton this tooltip will label in real UI: icon-only,
+ * carrying the same name the chip shows. The chip is then the sighted half of
+ * a name AT already has, and stays out of the accessibility tree.
+ */
+const IconTrigger = () => (
+	<button type="button" className={styles.trigger} aria-label="Records">
 		i
+	</button>
+)
+
+/** A trigger already named by its own text, so the chip describes it instead. */
+const TextTrigger = () => (
+	<button type="button" className={`${styles.trigger} ${styles.textTrigger}`}>
+		Stats
 	</button>
 )
 
@@ -15,12 +27,13 @@ type Canvas = ReturnType<typeof within>
 
 /**
  * Waits out the entry fade, so the story settles on the open state a reviewer
- * and axe should see. Mid-transition the tooltip is still at opacity 0, which
- * is neither.
+ * and axe should see. Mid-transition the chip is still at opacity 0, which is
+ * neither. Found by testid rather than role, because the chip has no role at
+ * all when it is hidden from assistive tech.
  */
 const settleOpen = async (canvas: Canvas) => {
-	const tooltip = await canvas.findByRole('tooltip')
-	await waitFor(() => expect(tooltip).toBeVisible())
+	const chip = await canvas.findByTestId(TOOLTIP_TESTIDS.BASE)
+	await waitFor(() => expect(chip).toBeVisible())
 }
 
 const openOnHover = async ({ canvasElement }: { canvasElement: HTMLElement }) => {
@@ -35,7 +48,7 @@ const meta = {
 	component: Tooltip,
 	args: {
 		content: 'Records',
-		children: <TriggerButton />,
+		children: <IconTrigger />,
 	},
 	decorators: [
 		(Story) => (
@@ -69,6 +82,15 @@ export const Bottom: Story = {
 
 export const Left: Story = {
 	args: { placement: 'left' },
+	play: openOnHover,
+}
+
+/**
+ * The secondary wiring: a trigger with a name of its own gets the chip as an
+ * `aria-describedby` description rather than a hidden duplicate.
+ */
+export const Describing: Story = {
+	args: { content: 'Your best solve', children: <TextTrigger /> },
 	play: openOnHover,
 }
 

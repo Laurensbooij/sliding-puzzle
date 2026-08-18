@@ -15,11 +15,11 @@
 	width: max-content;
 	max-width: 18rem;
 
-	/* Figma: "Four placements, each offset 6px from the control." The spacing
-	   ramp steps 4 → 8 with no 6, so compose it rather than invent an alias. */
-	--tooltip-offset: calc(var(--space-1) + var(--space-05));
+	/* Uniform gap from the trigger, whatever the placement. The bridge below
+	   reads the same custom property — they must match or a dead strip opens up
+	   between chip and trigger. */
+	--tooltip-offset: var(--space-2);
 
-	/* Uniform gap from the trigger, whatever the placement. */
 	margin: var(--tooltip-offset);
 
 	/* The popover UA sheet sets overflow: auto, which would clip the hover

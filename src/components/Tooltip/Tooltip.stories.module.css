@@ -25,3 +25,8 @@
 	min-height: 12rem;
 	background-color: var(--surface-page);
 }
+
+.textTrigger {
+	width: auto;
+	padding: 0 var(--space-3);
+}

@@ -50,7 +50,7 @@ describe('Tooltip', () => {
 		expect(tooltip).toBeVisible()
 	})
 
-	it('describes the trigger while open, and stops describing it once closed', async () => {
+	it('describes a trigger that has no name of its own, and stops once closed', async () => {
 		const user = userEvent.setup()
 		renderTooltip()
 
@@ -59,6 +59,56 @@ describe('Tooltip', () => {
 		expect(trigger).toHaveAccessibleDescription(CONTENT)
 
 		await user.unhover(trigger)
+		expect(trigger).not.toHaveAccessibleDescription()
+	})
+
+	it('stays out of the accessibility tree when the trigger already carries the same name', async () => {
+		const user = userEvent.setup()
+		renderWithProviders(
+			<Tooltip content={CONTENT}>
+				<button type="button" aria-label={CONTENT} />
+			</Tooltip>,
+		)
+
+		const trigger = screen.getByRole('button', { name: CONTENT })
+		await user.hover(trigger)
+
+		// The chip repeats a name AT already has; describing with it too would
+		// announce the same words twice.
+		const chip = screen.getByTestId(TOOLTIP_TESTIDS.BASE)
+		const announced = screen.queryByRole('tooltip')
+		expect(chip).toBeVisible()
+		expect(announced).not.toBeInTheDocument()
+		expect(trigger).not.toHaveAccessibleDescription()
+	})
+
+	it('describes a named trigger anyway when asked to', async () => {
+		const user = userEvent.setup()
+		renderWithProviders(
+			<Tooltip content={CONTENT} describesTrigger>
+				<button type="button" aria-label={TRIGGER_NAME} />
+			</Tooltip>,
+		)
+
+		const trigger = screen.getByRole('button', { name: TRIGGER_NAME })
+		await user.hover(trigger)
+
+		const announced = screen.getByRole('tooltip', { name: CONTENT })
+		expect(announced).toBeVisible()
+		expect(trigger).toHaveAccessibleDescription(CONTENT)
+	})
+
+	it('can be told to stay silent for a trigger that has no name of its own', async () => {
+		const user = userEvent.setup()
+		renderWithProviders(
+			<Tooltip content={CONTENT} describesTrigger={false}>
+				<button type="button">{TRIGGER_NAME}</button>
+			</Tooltip>,
+		)
+
+		const trigger = screen.getByRole('button', { name: TRIGGER_NAME })
+		await user.hover(trigger)
+
 		expect(trigger).not.toHaveAccessibleDescription()
 	})
 

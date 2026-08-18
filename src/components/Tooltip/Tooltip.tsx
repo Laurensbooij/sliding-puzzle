@@ -10,15 +10,27 @@ export type TooltipPlacement = 'top' | 'right' | 'bottom' | 'left'
 /** The subset of trigger props the tooltip reads and augments. */
 export interface TooltipTriggerProps {
 	'aria-describedby'?: string
+	'aria-label'?: string
 	title?: string
 }
 
 export interface TooltipProps {
-	/** Supplementary content shown while the trigger is hovered or focused. */
+	/** Content shown while the trigger is hovered or focused. */
 	content: ReactNode
 	/** Which side of the trigger the tooltip sits on. */
 	placement?: TooltipPlacement
-	/** The trigger. Gains `aria-describedby` for as long as the tooltip is open. */
+	/**
+	 * Whether the chip describes the trigger via `aria-describedby`.
+	 *
+	 * Defaults to whether the trigger lacks an `aria-label` of its own. A
+	 * trigger that has one is already named — the chip repeats that name for
+	 * sighted users, and describing with it too makes a screen reader announce
+	 * the same words twice, so the chip is hidden from assistive tech instead.
+	 * Set it explicitly when the trigger takes its name some other way, such as
+	 * a wrapper that applies `aria-label` internally.
+	 */
+	describesTrigger?: boolean
+	/** The trigger. Loses its native `title`; may gain `aria-describedby`. */
 	children: ReactElement<TooltipTriggerProps>
 	/** Overrides the BASE testid. */
 	dataTestId?: string
@@ -26,7 +38,7 @@ export interface TooltipProps {
 
 /**
  * Names the control it wraps, on hover *and* on keyboard focus. One flat dark
- * chip, no arrow, offset 6px from the trigger on all four placements.
+ * chip, no arrow, offset --space-2 from the trigger on all four placements.
  *
  * Built on the popover API and CSS anchor positioning (ADR-0011): the top layer
  * frees it from every ancestor's overflow and stacking context, so no portal is
@@ -36,15 +48,22 @@ export interface TooltipProps {
  * persistent (nothing times it out).
  *
  * Not a toggletip, and never the trigger's only label: the design has it name
- * icon-only controls whose `aria-label` already carries that name, so the chip
- * is the sighted half of a label AT already has. It must never hold help copy,
- * error text, or anything a user has to read to proceed.
+ * icon-only controls whose `aria-label` already carries that name, so by
+ * default the chip is the sighted half of a label AT already has, and stays out
+ * of the accessibility tree. It must never hold help copy, error text, or
+ * anything a user has to read to proceed.
  *
  * One deliberate deviation from Figma, which asks that the chip "never takes
  * pointer events": it has to, or WCAG 1.4.13 Hoverable fails. See the bridge in
  * the stylesheet.
  */
-export const Tooltip: FC<TooltipProps> = ({ content, placement = 'top', children, dataTestId }) => {
+export const Tooltip: FC<TooltipProps> = ({
+	content,
+	placement = 'top',
+	describesTrigger,
+	children,
+	dataTestId,
+}) => {
 	// Hover and focus are tracked apart, because either alone keeps the tooltip
 	// up: collapsing them into one "open" flag would let the pointer wandering
 	// off close a tooltip the keyboard is still holding open. `isDismissed`
@@ -85,10 +104,10 @@ export const Tooltip: FC<TooltipProps> = ({ content, placement = 'top', children
 		return () => document.removeEventListener('keydown', dismiss)
 	}, [isOpen])
 
+	const describes = describesTrigger ?? children.props['aria-label'] === undefined
 	const ownDescribedBy = children.props['aria-describedby']
-	const describedBy = isOpen
-		? [ownDescribedBy, tooltipId].filter(Boolean).join(' ')
-		: ownDescribedBy
+	const describedBy =
+		isOpen && describes ? [ownDescribedBy, tooltipId].filter(Boolean).join(' ') : ownDescribedBy
 
 	return (
 		<span
@@ -110,8 +129,9 @@ export const Tooltip: FC<TooltipProps> = ({ content, placement = 'top', children
 			{cloneElement(children, { 'aria-describedby': describedBy, title: undefined })}
 			<span
 				ref={popoverRef}
-				id={tooltipId}
-				role="tooltip"
+				id={describes ? tooltipId : undefined}
+				role={describes ? 'tooltip' : undefined}
+				aria-hidden={describes ? undefined : true}
 				popover="manual"
 				className={styles.tooltip}
 				data-placement={placement}
