@@ -19,24 +19,45 @@ const options = [
 
 const [first, second, third] = options
 
-const renderControl = (overrides: Partial<SegmentedControlProps> = {}) => {
-	const onChange = vi.fn<SegmentedControlProps['onChange']>()
+/**
+ * Renders one SegmentedControl per props object — pass nothing for a single
+ * control on its defaults. Each gets its own `onChange` spy; `onChange` is the
+ * first one, `onChanges` the full list for cases rendering several controls.
+ */
+const renderComponent = (...controls: Partial<SegmentedControlProps>[]) => {
+	// The first case is bound on its own so `onChange` stays defined without an
+	// index lookup, which `noUncheckedIndexedAccess` would widen to undefined.
+	const [firstProps = {}, ...restProps] = controls
+	const primary = { props: firstProps, onChange: vi.fn<SegmentedControlProps['onChange']>() }
+	const cases = [
+		primary,
+		...restProps.map((props) => ({
+			props,
+			onChange: vi.fn<SegmentedControlProps['onChange']>(),
+		})),
+	]
+
 	const view = renderWithProviders(
-		<SegmentedControl
-			label={GROUP_LABEL}
-			options={options}
-			value="3"
-			onChange={onChange}
-			{...overrides}
-		/>,
+		<>
+			{cases.map(({ props, onChange }, index) => (
+				<SegmentedControl
+					key={index}
+					label={GROUP_LABEL}
+					options={options}
+					value={first.value}
+					onChange={onChange}
+					{...props}
+				/>
+			))}
+		</>,
 	)
 
-	return { ...view, onChange }
+	return { ...view, onChange: primary.onChange, onChanges: cases.map((one) => one.onChange) }
 }
 
 describe('SegmentedControl', () => {
 	it('is a group named by its label, holding one radio per option', () => {
-		renderControl()
+		renderComponent()
 
 		const group = screen.getByRole('group', { name: GROUP_LABEL })
 		const radios = screen.getAllByRole('radio')
@@ -45,7 +66,7 @@ describe('SegmentedControl', () => {
 	})
 
 	it('names each radio after its option label and checks the selected one', () => {
-		renderControl({ value: '4' })
+		renderComponent({ value: '4' })
 
 		const selected = screen.getByRole('radio', { name: second.label })
 		const unselected = screen.getByRole('radio', { name: first.label })
@@ -55,7 +76,7 @@ describe('SegmentedControl', () => {
 
 	it('reports the option value when a segment is clicked', async () => {
 		const user = userEvent.setup()
-		const { onChange } = renderControl()
+		const { onChange } = renderComponent()
 
 		const secondSegment = screen.getByRole('radio', { name: second.label })
 		await user.click(secondSegment)
@@ -65,7 +86,7 @@ describe('SegmentedControl', () => {
 
 	it('takes a single tab stop, landing on the selected segment', async () => {
 		const user = userEvent.setup()
-		renderControl({ value: '4' })
+		renderComponent({ value: '4' })
 
 		const selected = screen.getByRole('radio', { name: second.label })
 		const firstSegment = screen.getByRole('radio', { name: first.label })
@@ -89,7 +110,7 @@ describe('SegmentedControl', () => {
 		['{ArrowLeft}', '3', '5'],
 	])('moves selection with %s from %s to %s', async (key, from, to) => {
 		const user = userEvent.setup()
-		const { onChange } = renderControl({ value: from })
+		const { onChange } = renderComponent({ value: from })
 
 		await user.tab()
 		await user.keyboard(key)
@@ -99,7 +120,7 @@ describe('SegmentedControl', () => {
 
 	it('selects the focused segment with Space', async () => {
 		const user = userEvent.setup()
-		const { onChange } = renderControl({ value: '3' })
+		const { onChange } = renderComponent({ value: '3' })
 
 		const thirdSegment = screen.getByRole('radio', { name: third.label })
 		thirdSegment.focus()
@@ -109,7 +130,7 @@ describe('SegmentedControl', () => {
 	})
 
 	it('announces selection through the native radio state, not a live region', () => {
-		renderControl({ value: '5' })
+		renderComponent({ value: '5' })
 
 		const selected = screen.getByRole('radio', { name: third.label, checked: true })
 		const statusRegion = screen.queryByRole('status')
@@ -124,7 +145,7 @@ describe('SegmentedControl', () => {
 
 	it('disables every segment together and keeps them out of the tab order', async () => {
 		const user = userEvent.setup()
-		const { onChange } = renderControl({ disabled: true })
+		const { onChange } = renderComponent({ disabled: true })
 
 		const radios = screen.getAllByRole('radio')
 		await user.tab()
@@ -137,12 +158,7 @@ describe('SegmentedControl', () => {
 	})
 
 	it('groups its radios under a name of its own, so two controls never interfere', () => {
-		renderWithProviders(
-			<>
-				<SegmentedControl label="First" options={options} value="3" onChange={vi.fn()} />
-				<SegmentedControl label="Second" options={options} value="4" onChange={vi.fn()} />
-			</>,
-		)
+		renderComponent({ label: 'First' }, { label: 'Second', value: second.value })
 
 		const firstGroupRadios = screen.getAllByRole('radio', { name: first.label })
 		const [firstName, secondName] = firstGroupRadios.map((radio) => radio.getAttribute('name'))
@@ -153,7 +169,7 @@ describe('SegmentedControl', () => {
 
 	it('exposes a testid per segment and lets a consumer override the base', () => {
 		const overrideTestId = 'setup-board-size'
-		renderControl({ dataTestId: overrideTestId })
+		renderComponent({ dataTestId: overrideTestId })
 
 		const group = screen.getByTestId(overrideTestId)
 		const segment = screen.getByTestId(
