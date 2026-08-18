@@ -20,18 +20,17 @@
 }
 
 .track {
-	/* Figma strokes the outline inside the 40px track, so a real border would
-	   push the control to 42. An inset ring draws the same line for free.
-	   Composed in a custom property because Stylelint's strict-value takes a
-	   single var(), not a var inside a longer shadow value. */
-	--segmented-control-ring: inset 0 0 0 1px var(--border-subtle);
-
 	display: flex;
 	gap: var(--space-1);
 	padding: var(--space-1);
 	border-radius: var(--radius-pill);
 	background-color: var(--surface-sunken);
-	box-shadow: var(--segmented-control-ring);
+
+	/* Figma strokes this line inside the 40px track, so a real border would push
+	   the control to 42. An outline takes no space, and the negative offset puts
+	   it where Figma draws it. Outlines follow border-radius, so the pill holds. */
+	outline: 1px solid var(--border-subtle);
+	outline-offset: -1px;
 }
 
 /* No overflow clipping anywhere on the track: the focus ring of an edge segment
