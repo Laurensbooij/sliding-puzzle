@@ -33,7 +33,7 @@ export const ICON_TESTIDS = {
 } as const
 
 /** Steps of the icon scale, smallest first. */
-export const ICON_SIZES = ['sm', 'md', 'lg', 'xl'] as const
+export const ICON_SIZES = ['xs', 'sm', 'md', 'lg', 'xl'] as const
 
 /**
  * The designed set: the 26 stock Lucide glyphs the design system draws from

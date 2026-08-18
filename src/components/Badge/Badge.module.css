@@ -14,8 +14,8 @@
 	display: grid;
 	flex-shrink: 0;
 	place-items: center;
-	inline-size: 0.8125rem;
-	block-size: 0.8125rem;
+	inline-size: var(--space-3);
+	block-size: var(--space-3);
 }
 
 .icon > * {

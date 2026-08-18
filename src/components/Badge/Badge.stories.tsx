@@ -1,5 +1,5 @@
+import { Icon } from '@components/Icon'
 import type { Meta, StoryObj } from '@storybook/react-vite'
-import { Check } from 'lucide-react'
 
 import { Badge } from './Badge'
 import type { BadgeTone } from './Badge'
@@ -41,7 +41,7 @@ export const WithIcon: Story = {
 	render: (args) => (
 		<div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
 			{tones.map((tone) => (
-				<Badge key={tone} {...args} tone={tone} icon={<Check />} />
+				<Badge key={tone} {...args} tone={tone} icon={<Icon name="check" size="xs" />} />
 			))}
 		</div>
 	),

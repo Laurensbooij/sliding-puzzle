@@ -1,5 +1,5 @@
+import { Icon } from '@components/Icon'
 import type { Meta, StoryObj } from '@storybook/react-vite'
-import { Footprints } from 'lucide-react'
 
 import { StatCard } from './StatCard'
 
@@ -9,7 +9,7 @@ const meta = {
 	args: {
 		label: 'Moves',
 		value: '042',
-		icon: <Footprints />,
+		icon: <Icon name="footprints" size="xs" />,
 		tone: 'default',
 	},
 } satisfies Meta<typeof StatCard>

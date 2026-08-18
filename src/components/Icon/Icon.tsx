@@ -6,7 +6,7 @@ import { ICON_GLYPHS, ICON_SIZES, ICON_TESTIDS } from './constants'
 /** A glyph from the designed Lucide set — see `ICON_GLYPHS`. */
 export type IconName = keyof typeof ICON_GLYPHS
 
-/** A step on the icon scale: sm 16 · md 20 · lg 24 · xl 32. */
+/** A step on the icon scale: xs 12 · sm 16 · md 20 · lg 24 · xl 32. */
 export type IconSize = (typeof ICON_SIZES)[number]
 
 export interface IconProps extends Omit<
