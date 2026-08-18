@@ -7,6 +7,22 @@ import type { Preview } from '@storybook/react-vite'
 
 const preview: Preview = {
 	parameters: {
+		// Baseline for storybook-addon-pseudo-states. The addon only clears a
+		// forced state when the story it moves to declares one, so a story with
+		// no `pseudo` parameter at all inherits whatever was forced last — a
+		// hovered segment stays hovered as you click down the sidebar. Declaring
+		// every state empty here means each story always carries a full,
+		// definitive instruction and stories override only the keys they need.
+		pseudo: {
+			hover: [],
+			active: [],
+			focusVisible: [],
+			focusWithin: [],
+			focus: [],
+			visited: [],
+			link: [],
+			target: [],
+		},
 		a11y: {
 			// Fail stories on WCAG violations rather than just warning — AA is a
 			// baseline requirement here, not a nice-to-have.

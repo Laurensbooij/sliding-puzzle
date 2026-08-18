@@ -34,6 +34,29 @@ class, no IDs, no `!important` (element selectors belong to the global reset onl
   `pnpm tokens` → commit JSON + regenerated `tokens.css` together. CI fails on
   drift between the two.
 
+## Borders and control sizing
+
+- **Draw borders with `border`.** Never fake one that takes no space — no inset
+  `box-shadow` ring, no negative `outline-offset`. Figma counts its inside
+  strokes in layout (`strokesIncludedInLayout`, which it documents as behaving
+  like `box-sizing: border-box`), so both sides already agree on the box and
+  there is nothing to compensate for. The old mismatch — a frame reading 40 in
+  Figma and rendering 42 — is gone.
+- `outline` stays for **focus rings only**, always at a positive offset.
+- **Control heights come from `--control-height-sm|md|lg`** — the same
+  `control-height/*` variables the Figma components bind their height to. State
+  the height once on the outer element and let inner parts fill it
+  (`align-items: stretch`) rather than restating a number.
+- A Figma **`focus spacer`** layer fakes `outline-offset`, which Figma has no
+  property for. Implement the pair as one `outline` plus `outline-offset`, never
+  as a second element.
+
+Stylelint guards the first rule, not proves it: it rejects a literal or `calc()`
+negative `outline-offset`, and an `inset` shadow composed in `box-shadow` or a
+custom property. A value routed through a variable resolves too late to check.
+Control heights are review-guarded only — no rule can tell a control's height
+from any other height.
+
 ## Fonts
 
 - Typefaces (Outfit, Public Sans, IBM Plex Mono) are **self-hosted via

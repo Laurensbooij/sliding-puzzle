@@ -40,13 +40,30 @@ export default {
 			{ severity: 'error' },
 		],
 		'unit-disallowed-list': [],
-		// Durations come from motion tokens; a literal 200ms bypasses the
-		// reduced-motion collapse in motion-preferences.css.
+		// Three literals that quietly bypass the design system. Durations because
+		// a literal 200ms escapes the reduced-motion collapse in
+		// motion-preferences.css; the other two because they fake a border that
+		// takes no space — which nothing here needs any more, since Figma counts
+		// its inside strokes in layout and a plain `border` already agrees with the
+		// design on both sides. Matched on the value so the message can name the
+		// actual mistake.
 		'declaration-property-value-disallowed-list': [
-			{ '/^(transition|animation)/': ['/\\d+m?s(?![a-z-])/'] },
 			{
-				message:
-					'Use a motion token (var(--dur-…), var(--ease-…)) instead of a literal duration.',
+				'/^(transition|animation)/': ['/\\d+m?s(?![a-z-])/'],
+				'outline-offset': ['/^-/', '/^calc\\(\\s*-/'],
+				// `inset` followed by a length is a hand-composed shadow. Aliasing a
+				// token (var(--inset-frame)) or using the clip-path shape (inset(50%))
+				// never puts a number straight after the word, so both stay legal.
+				'/^(--|box-shadow$)/': ['/(^|\\s)inset\\s+[-.0-9]/'],
+			},
+			{
+				message: (property) => {
+					if (property === 'outline-offset')
+						return 'A negative outline-offset fakes an inside border. Use `border` — Figma counts its inside strokes in layout.'
+					if (property === 'box-shadow' || property.startsWith('--'))
+						return `Composing an inset shadow in ${property} fakes a border. Use \`border\` — Figma counts its inside strokes in layout, so nothing needs compensating.`
+					return 'Use a motion token (var(--dur-…), var(--ease-…)) instead of a literal duration.'
+				},
 			},
 		],
 		// CSS Modules camelCase class names, so styles.iconWrapper dot-access works.
