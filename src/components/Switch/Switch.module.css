@@ -1,0 +1,113 @@
+.root {
+	/* Figma: track 44×26, knob 20 inset 3, travelling 18 to the on position. No
+	   size tokens exist for control geometry, so the numbers live here. */
+	--switch-track-width: 2.75rem;
+	--switch-track-height: 1.625rem;
+	--switch-knob-size: 1.25rem;
+	--switch-knob-inset: 0.1875rem;
+	--switch-knob-travel: 1.125rem;
+
+	/* A page-coloured spacer between the track and the focus ring, so the ring
+	   reads as a ring rather than a thicker track. */
+	--switch-focus-spacer: 0 0 0 var(--border-width-strong) var(--surface-page);
+
+	display: inline-flex;
+	align-items: center;
+	gap: var(--space-3);
+	cursor: pointer;
+}
+
+/* A description grows the row downwards; the track stays on the label's line. */
+.root:has(.description) {
+	align-items: flex-start;
+}
+
+.root:has(.track:disabled) {
+	cursor: default;
+	opacity: var(--state-disabled-opacity);
+}
+
+.control {
+	position: relative;
+	display: flex;
+	flex: none;
+}
+
+.track {
+	width: var(--switch-track-width);
+	height: var(--switch-track-height);
+	margin: 0;
+	border-radius: var(--radius-pill);
+	background-color: var(--border-default);
+	transition: var(--transition-control);
+	appearance: none;
+	cursor: inherit;
+}
+
+.track:checked {
+	background-color: var(--accent);
+}
+
+.track:focus-visible {
+	outline: var(--border-width-strong) solid var(--focus-ring);
+	outline-offset: 2px;
+	box-shadow: var(--switch-focus-spacer);
+}
+
+.track:enabled:hover,
+.track:enabled:active {
+	background-color: var(--border-strong);
+}
+
+.track:enabled:checked:hover,
+.track:enabled:checked:active {
+	background-color: var(--accent-hover);
+}
+
+.knob {
+	position: absolute;
+	inset-block-start: var(--switch-knob-inset);
+	inset-inline-start: var(--switch-knob-inset);
+	width: var(--switch-knob-size);
+	height: var(--switch-knob-size);
+	border-radius: var(--radius-pill);
+	background-color: var(--white);
+	box-shadow: var(--shadow-1);
+
+	/* Movement, so it rides a duration token that collapses under reduced
+	   motion (ADR-0010) rather than the always-live --dur-fast. */
+	transition: transform var(--dur-slide) var(--ease-standard);
+	pointer-events: none;
+}
+
+.track:checked ~ .knob {
+	transform: translateX(var(--switch-knob-travel));
+}
+
+/* Pressing shrinks the knob where it stands — it never slides on press. */
+.track:enabled:active ~ .knob {
+	transform: scale(0.9);
+}
+
+.track:enabled:checked:active ~ .knob {
+	transform: translateX(var(--switch-knob-travel)) scale(0.9);
+}
+
+.text {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-05);
+}
+
+.label {
+	font-family: var(--family-ui);
+	font-size: var(--font-size-sm);
+	font-weight: var(--weight-semibold);
+	line-height: var(--leading-normal);
+	color: var(--text-strong);
+}
+
+.description {
+	font: var(--body-sm);
+	color: var(--text-muted);
+}
