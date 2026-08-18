@@ -3,23 +3,25 @@ import type { Meta, StoryObj } from '@storybook/react-vite'
 import { expect, userEvent, waitFor, within } from 'storybook/test'
 
 import { IconButton } from './IconButton'
-import type { IconButtonVariant } from './IconButton'
 import styles from './IconButton.stories.module.css'
 import { ICON_BUTTON_SIZES, ICON_BUTTON_TESTIDS, ICON_BUTTON_VARIANTS } from './constants'
 
 const TOOLTIP_TESTID = `${ICON_BUTTON_TESTIDS.BASE}${ICON_BUTTON_TESTIDS.TOOLTIP_SUFFIX}`
 
 /**
- * The pointer-transient states the Figma grid draws, forced rather than
- * simulated — synthetic events never match a CSS pseudo-class. Focus is absent
- * on purpose: it is real DOM focus below, so `:focus-visible` actually matches.
- * Disabled is an attribute, not a pseudo-class the addon can force.
+ * The states the Figma grid draws, as the forced pseudo-classes they are —
+ * forced rather than simulated, because synthetic events never match a CSS
+ * pseudo-class. Disabled is an attribute, which the addon cannot force.
+ *
+ * `focusVisible` is forced here so one story can show all four rings at once.
+ * That is the cost of collapsing the grid: a real tab can only land on one
+ * button. `TooltipOnFocus` keeps the honest check, moving actual DOM focus.
  */
 const PSEUDO_BY_STATE = {
 	default: {},
 	hover: { hover: true },
 	pressed: { active: true },
-	focus: {},
+	focus: { focusVisible: true },
 	disabled: {},
 } as const
 
@@ -34,12 +36,9 @@ const meta = {
 		variant: 'solid',
 		size: 'md',
 	},
-	// onWood is the only variant allowed on the frame, so it is the only one
-	// shown against it — the wood follows the variant rather than each story
-	// restating its own backdrop.
 	decorators: [
-		(Story, context) => (
-			<div className={cx(styles.canvas, context.args.variant === 'onWood' && styles.wood)}>
+		(Story) => (
+			<div className={styles.canvas}>
 				<Story />
 			</div>
 		),
@@ -49,52 +48,42 @@ const meta = {
 export default meta
 type Story = StoryObj<typeof meta>
 
-/** One cell of the Figma Variant × State grid. */
-const gridStory = (variant: IconButtonVariant, state: IconButtonState): Story => ({
-	args: { variant, disabled: state === 'disabled' },
+/**
+ * One column of the Figma Variant × State grid: every variant in a single
+ * state. One row per variant, so onWood can carry the wood — it is the only
+ * variant allowed on the frame, and the only one judged against it.
+ */
+const stateStory = (state: IconButtonState): Story => ({
+	args: { disabled: state === 'disabled' },
 	parameters: { pseudo: PSEUDO_BY_STATE[state] },
-	// Tabbing rather than .focus(), so :focus-visible actually matches.
-	play: state === 'focus' ? async () => await userEvent.tab() : undefined,
+	render: (args) => (
+		<div className={styles.grid}>
+			{ICON_BUTTON_VARIANTS.map((variant) => (
+				<div key={variant} className={cx(styles.row, variant === 'onWood' && styles.wood)}>
+					<IconButton {...args} variant={variant} />
+				</div>
+			))}
+		</div>
+	),
 })
 
-export const Solid: Story = gridStory('solid', 'default')
-export const SolidHovered: Story = gridStory('solid', 'hover')
-export const SolidPressed: Story = gridStory('solid', 'pressed')
-export const SolidFocused: Story = gridStory('solid', 'focus')
-export const SolidDisabled: Story = gridStory('solid', 'disabled')
-
-export const Outline: Story = gridStory('outline', 'default')
-export const OutlineHovered: Story = gridStory('outline', 'hover')
-export const OutlinePressed: Story = gridStory('outline', 'pressed')
-export const OutlineFocused: Story = gridStory('outline', 'focus')
-export const OutlineDisabled: Story = gridStory('outline', 'disabled')
-
-export const Ghost: Story = gridStory('ghost', 'default')
-export const GhostHovered: Story = gridStory('ghost', 'hover')
-export const GhostPressed: Story = gridStory('ghost', 'pressed')
-export const GhostFocused: Story = gridStory('ghost', 'focus')
-export const GhostDisabled: Story = gridStory('ghost', 'disabled')
-
-export const OnWood: Story = gridStory('onWood', 'default')
-export const OnWoodHovered: Story = gridStory('onWood', 'hover')
-export const OnWoodPressed: Story = gridStory('onWood', 'pressed')
-export const OnWoodFocused: Story = gridStory('onWood', 'focus')
-export const OnWoodDisabled: Story = gridStory('onWood', 'disabled')
+export const Default: Story = stateStory('default')
+export const Hovered: Story = stateStory('hover')
+export const Pressed: Story = stateStory('pressed')
+export const Focused: Story = stateStory('focus')
+export const Disabled: Story = stateStory('disabled')
 
 /**
  * Every size in every variant: sm 32 · md 40 · lg 48, all past the 24px floor.
- * The grid above fixes size at md, so this is where a 1px border on a 32px box
+ * The state stories fix size at md, so this is where a 1px border on a 32px box
  * gets looked at — the pairing most likely to go wrong and least likely to show
  * at md.
  */
 export const Sizes: Story = {
-	render: ({ size: _size, variant: _variant, ...args }) => (
-		<div className={styles.sizeGrid}>
+	render: (args) => (
+		<div className={styles.grid}>
 			{ICON_BUTTON_VARIANTS.map((variant) => (
-				<div
-					key={variant}
-					className={cx(styles.sizeRow, variant === 'onWood' && styles.wood)}
-				>
+				<div key={variant} className={cx(styles.row, variant === 'onWood' && styles.wood)}>
 					{ICON_BUTTON_SIZES.map((size) => (
 						<IconButton key={size} {...args} variant={variant} size={size} />
 					))}
@@ -147,8 +136,9 @@ export const TooltipOnHover: Story = {
 }
 
 /**
- * The same chip on keyboard focus, alongside the focus ring — the pair a
- * keyboard user sees, and evidence the chip never covers the ring (SC 2.4.11).
+ * The same chip on real keyboard focus — tabbing rather than forcing the
+ * pseudo-class, so `:focus-visible` actually matches. Shows the chip beside the
+ * ring, which is the evidence that it never covers it (SC 2.4.11).
  */
 export const TooltipOnFocus: Story = {
 	decorators: withTooltipRoom,

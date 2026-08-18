@@ -20,14 +20,15 @@
 	padding-top: var(--space-12);
 }
 
-.sizeGrid {
+.grid {
 	display: grid;
 	gap: var(--space-3);
+	justify-items: start;
 }
 
 /* Each variant gets its own row so onWood can carry the wood behind it while
    the rest stay on the page. */
-.sizeRow {
+.row {
 	display: flex;
 	gap: var(--space-4);
 	align-items: center;
