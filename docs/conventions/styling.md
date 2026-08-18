@@ -34,6 +34,30 @@ class, no IDs, no `!important` (element selectors belong to the global reset onl
   `pnpm tokens` → commit JSON + regenerated `tokens.css` together. CI fails on
   drift between the two.
 
+## Borders and control sizing
+
+Figma has **stroke alignment**, which CSS has no equivalent for, and it used to
+ignore strokes when sizing auto-layout frames. That mismatch is why a bordered
+frame could read 40 in Figma and render 42 in the browser. It is settled now:
+every bordered component in the file sets `strokesIncludedInLayout`, which Figma
+documents as behaving like `box-sizing: border-box`. Both sides agree.
+
+- **Draw borders with `border`.** Never fake one that takes no space — no inset
+  `box-shadow` ring, no `outline` with a negative `outline-offset`. There is
+  nothing left to compensate for, and the fakes cost you a real border's
+  behaviour (lint-enforced: Stylelint's `declaration-property-value-disallowed-list`
+  rejects a negative `outline-offset` and an `inset` shadow composed in a custom
+  property).
+- `outline` stays for **focus rings only**, always at a positive offset.
+- **Control heights come from `--control-height-sm|md|lg`** — the same
+  `control-height/*` variables the Figma components bind their height to. A
+  control states its height once, on the outer element; inner parts fill it
+  (`align-items: stretch`) rather than restating a number. Not machine-checked —
+  guard it in review.
+- A Figma **`focus spacer`** layer is a design-file device for faking
+  `outline-offset`; it has no counterpart in CSS. Implement the pair as one
+  `outline` plus `outline-offset`, never as a second element.
+
 ## Fonts
 
 - Typefaces (Outfit, Public Sans, IBM Plex Mono) are **self-hosted via

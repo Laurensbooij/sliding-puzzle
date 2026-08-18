@@ -40,13 +40,27 @@ export default {
 			{ severity: 'error' },
 		],
 		'unit-disallowed-list': [],
-		// Durations come from motion tokens; a literal 200ms bypasses the
-		// reduced-motion collapse in motion-preferences.css.
+		// Three literals that quietly bypass the design system. Durations because
+		// a literal 200ms escapes the reduced-motion collapse in
+		// motion-preferences.css; the other two because they fake a border that
+		// takes no space — which nothing here needs any more, since Figma counts
+		// its inside strokes in layout and a plain `border` already agrees with the
+		// design on both sides. Matched on the value so the message can name the
+		// actual mistake.
 		'declaration-property-value-disallowed-list': [
-			{ '/^(transition|animation)/': ['/\\d+m?s(?![a-z-])/'] },
 			{
-				message:
-					'Use a motion token (var(--dur-…), var(--ease-…)) instead of a literal duration.',
+				'/^(transition|animation)/': ['/\\d+m?s(?![a-z-])/'],
+				'outline-offset': ['/^-/'],
+				'/^--/': ['/\\binset\\b/'],
+			},
+			{
+				message: (property) => {
+					if (property.startsWith('--'))
+						return `Composing an inset shadow in ${property} fakes a border. Use \`border\` — Figma counts its inside strokes in layout, so nothing needs compensating.`
+					if (property === 'outline-offset')
+						return 'A negative outline-offset fakes an inside border. Use `border` — Figma counts its inside strokes in layout.'
+					return 'Use a motion token (var(--dur-…), var(--ease-…)) instead of a literal duration.'
+				},
 			},
 		],
 		// CSS Modules camelCase class names, so styles.iconWrapper dot-access works.
