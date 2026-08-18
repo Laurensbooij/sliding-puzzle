@@ -1,0 +1,98 @@
+/*
+ * Layer order matches the Figma component set (Board / Frame): wood on the
+ * frame itself, the bevel blended over it, then the sunken well carrying the
+ * tiles. Figma's `edge` and well-inset layers are strokes and shadows rather
+ * than real boxes, so they are a border and a box-shadow here — one element
+ * each, per styling.md.
+ */
+
+.board {
+	position: relative;
+
+	/* Contains the bevel's soft-light blend, which would otherwise reach for
+	   whatever the board is composited over. */
+	isolation: isolate;
+	width: min(100%, var(--board-max));
+	padding: var(--frame-padding);
+	border: var(--material-frame-edge);
+	border-radius: var(--radius-frame);
+	background-image: var(--material-wood);
+	box-shadow: var(--shadow-frame);
+}
+
+.bevel {
+	position: absolute;
+	inset: 0;
+	border-radius: inherit;
+	background-image: var(--material-frame-bevel);
+	mix-blend-mode: soft-light;
+	pointer-events: none;
+}
+
+/*
+ * The sunken well. Deliberately not clipped: a tile's focus ring sits at a
+ * positive outline-offset, and `overflow: hidden` here would cut the ring off
+ * the outermost tiles (SC 2.4.11). Nothing overflows anyway — every tile is
+ * positioned inside the block below.
+ */
+.well {
+	position: relative;
+
+	/* Exact for a square board, which is the only shape Figma specifies; the
+	   gap terms make it approximate otherwise, and Tile keeps itself square. */
+	aspect-ratio: var(--board-cols) / var(--board-rows);
+	border-radius: var(--radius-sm);
+	background-image: var(--material-frame-well);
+	box-shadow: var(--inset-frame);
+}
+
+/*
+ * The tile block, inset from the well by exactly one tile-gap so the wood
+ * border reads the same width as the gaps between tiles (Figma usage note).
+ * Percentages inside it resolve against the block, not the well.
+ */
+.cells {
+	position: absolute;
+	inset: var(--tile-gap);
+}
+
+/*
+ * A cell is placed, not laid out: a move animates the same element from one
+ * cell to the next rather than moving it between grid tracks.
+ *
+ * Placed by `transform`, not by `left`/`top`. Those take a percentage of the
+ * tile block, so their computed value stays a `calc()` holding `--cell-col`,
+ * and a transition between two such values settles on the *old* substitution —
+ * the tile keeps the model's new cell in its custom property while rendering at
+ * the previous one. Percentages in `transform` resolve against the element's
+ * own box, so the value the transition interpolates is a plain length pair.
+ * `100%` here is therefore one tile, and `100% + gap` is the pitch.
+ */
+.cell,
+.gap {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: calc((100% - (var(--board-cols) - 1) * var(--tile-gap)) / var(--board-cols));
+	height: calc((100% - (var(--board-rows) - 1) * var(--tile-gap)) / var(--board-rows));
+	transform: translate(
+		calc(var(--cell-col) * (100% + var(--tile-gap))),
+		calc(var(--cell-row) * (100% + var(--tile-gap)))
+	);
+}
+
+.cell {
+	transition: var(--transition-tile);
+}
+
+/* The gap paints nothing — it is the well showing through. It exists so the
+   empty cell has a stable target, and is hidden from assistive tech. */
+
+.announcer {
+	position: absolute;
+	overflow: hidden;
+	clip-path: inset(50%);
+	width: 0.0625rem;
+	height: 0.0625rem;
+	white-space: nowrap;
+}

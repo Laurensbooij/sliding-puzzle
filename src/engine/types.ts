@@ -28,6 +28,12 @@ export interface Move {
 	readonly to: CellIndex
 }
 
+/**
+ * Where a tile travels when the keyboard names a move — never where the gap
+ * goes. See CONTEXT.md ("Direction") and ADR-0014.
+ */
+export type Direction = 'up' | 'down' | 'left' | 'right'
+
 /** A tile's position as the renderer consumes it: stable identity, current cell. */
 export interface TilePlacement {
 	readonly tile: TileId

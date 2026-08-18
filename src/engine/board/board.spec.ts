@@ -1,8 +1,17 @@
 import { describe, expect, it } from 'vitest'
 
-import type { Board, CellIndex, TileId } from '../types'
+import type { Board, CellIndex, Direction, Move, TileId } from '../types'
 import { GAP } from '../types'
-import { applyMove, createBoard, isSolved, movableTiles, movesForCell } from './board'
+import {
+	applyMove,
+	cellForDirection,
+	createBoard,
+	directionOfMove,
+	isSolved,
+	movableTiles,
+	movesForCell,
+	toPlacements,
+} from './board'
 
 const boardOf = (rows: number, cols: number, cells: readonly (TileId | typeof GAP)[]): Board => ({
 	rows,
@@ -153,5 +162,99 @@ describe('isSolved', () => {
 	])('is false when %s', (_case, board) => {
 		const solved = isSolved(board)
 		expect(solved).toBe(false)
+	})
+})
+
+describe('toPlacements', () => {
+	it('places every tile on its home cell when the board is solved', () => {
+		const placements = toPlacements(createBoard(3, 3))
+		expect(placements.every(({ cell, homeCell }) => cell === homeCell)).toBe(true)
+	})
+
+	it('produces one placement per tile, leaving the gap unrepresented', () => {
+		const placements = toPlacements(gapCentre)
+		expect(placements).toHaveLength(gapCentre.cells.length - 1)
+	})
+
+	it('reports the cell a tile currently occupies, not its home cell', () => {
+		const placements = toPlacements(gapTopRight)
+		const tileFive = placements.find(({ tile }) => tile === 5)
+		expect(tileFive).toEqual({ tile: 5, cell: 1, homeCell: 5 })
+	})
+
+	it('keeps tile order stable across a move, so the DOM never reorders', () => {
+		const before = toPlacements(gapCentre).map(({ tile }) => tile)
+		const after = toPlacements(applyMove(gapCentre, { tile: 1, from: 1, to: 4 })).map(
+			({ tile }) => tile,
+		)
+		expect(after).toEqual(before)
+	})
+
+	it('orders tiles by identity on a non-square board', () => {
+		const placements = toPlacements(gapWideBoard)
+		expect(placements.map(({ tile }) => tile)).toEqual([0, 1, 2, 3, 4, 5, 6])
+	})
+})
+
+describe('cellForDirection', () => {
+	// Model A (ADR-0014): the direction names where the tile travels, so the
+	// named cell always sits on the opposite side of the gap.
+	it.each<[Direction, CellIndex]>([
+		['right', 3],
+		['left', 5],
+		['down', 1],
+		['up', 7],
+	])('names the tile that travels %s into a centred gap', (direction, expected) => {
+		const cell = cellForDirection(gapCentre, direction)
+		expect(cell).toBe(expected)
+	})
+
+	it.each<[string, Board, Direction]>([
+		['the gap is against the top edge', gapTopRight, 'down'],
+		['the gap is against the right edge', gapTopRight, 'left'],
+		['the gap is against the right edge of a non-square board', gapWideBoard, 'left'],
+	])('names no cell when %s', (_case, board, direction) => {
+		const cell = cellForDirection(board, direction)
+		expect(cell).toBeNull()
+	})
+
+	it('never wraps across a row boundary', () => {
+		// Gap at cell 3 — row 1, column 0. Cell 2 is adjacent by index but sits
+		// in the row above, so no tile can travel right into this gap.
+		const gapRowStart = boardOf(3, 3, [0, 1, 2, GAP, 3, 4, 5, 6, 7])
+		const cell = cellForDirection(gapRowStart, 'right')
+		expect(cell).toBeNull()
+	})
+
+	it('names a cell that movesForCell agrees is playable', () => {
+		const cell = cellForDirection(gapWideBoard, 'right')
+		expect(cell).not.toBeNull()
+		expect(movesForCell(gapWideBoard, cell ?? -1)).toHaveLength(1)
+	})
+})
+
+describe('directionOfMove', () => {
+	it.each<[Direction, Move]>([
+		['right', { tile: 3, from: 3, to: 4 }],
+		['left', { tile: 4, from: 5, to: 4 }],
+		['down', { tile: 1, from: 1, to: 4 }],
+		['up', { tile: 6, from: 7, to: 4 }],
+	])('reads %s off the cells a tile moved between', (expected, move) => {
+		const direction = directionOfMove(gapCentre, move)
+		expect(direction).toBe(expected)
+	})
+
+	it('inverts cellForDirection for every direction', () => {
+		const directions: Direction[] = ['up', 'down', 'left', 'right']
+		directions.forEach((direction) => {
+			const cell = cellForDirection(gapCentre, direction)
+			const [move] = movesForCell(gapCentre, cell ?? -1)
+			expect(move && directionOfMove(gapCentre, move)).toBe(direction)
+		})
+	})
+
+	it('reads a column move on a non-square board, where the step is not the row length', () => {
+		const direction = directionOfMove(gapWideBoard, { tile: 3, from: 7, to: 3 })
+		expect(direction).toBe('up')
 	})
 })

@@ -1,10 +1,5 @@
-import type { Board, CellIndex, Move, TileId, TilePlacement } from '../types'
+import type { Board, CellIndex, Direction, Move, TileId, TilePlacement } from '../types'
 import { GAP } from '../types'
-
-/** Thrown by every stub below until the implementation phase lands. */
-const notImplemented = (fn: string): never => {
-	throw new Error(`engine/${fn} is not implemented yet`)
-}
 
 // Cell arithmetic, shared with ./shuffle. Engine-internal: `index.ts` is what
 // makes a name public, and these are not on it.
@@ -54,6 +49,21 @@ export const movesForCell = (board: Board, cell: CellIndex): readonly Move[] => 
 	return moves
 }
 
+/**
+ * The direction a move carried its tile — the inverse of `cellForDirection`,
+ * and what a move announcement is phrased with (ADR-0014).
+ */
+export const directionOfMove = (board: Board, move: Move): Direction => {
+	const step = move.to - move.from
+	if (step === board.cols) {
+		return 'down'
+	}
+	if (step === -board.cols) {
+		return 'up'
+	}
+	return step > 0 ? 'right' : 'left'
+}
+
 /** Applies one legal move and returns the resulting board. */
 export const applyMove = (board: Board, move: Move): Board => ({
 	...board,
@@ -74,7 +84,38 @@ export const isSolved = (board: Board): boolean =>
 
 /**
  * Derives the render projection: one entry per tile in stable tile order, so
- * DOM order never changes across moves and tiles animate by transform alone.
+ * DOM order never changes across moves and each tile animates from where it
+ * was to where it now is.
+ *
+ * `homeCell` equals `tile` by definition — a tile is named after its home cell
+ * — but the renderer reads a placement, not the identity rule, so it is spelled
+ * out rather than inferred at each call site.
  */
-export const toPlacements = (_board: Board): readonly TilePlacement[] =>
-	notImplemented('toPlacements')
+export const toPlacements = (board: Board): readonly TilePlacement[] =>
+	board.cells
+		.flatMap((tile, cell) => (tile === GAP ? [] : [{ tile, cell, homeCell: tile }]))
+		.sort((a, b) => a.tile - b.tile)
+
+/**
+ * The cell holding the tile that travels `direction` into the gap — the
+ * keyboard's half of a move (ADR-0014). The direction is the tile's, so the
+ * named cell lies on the *opposite* side of the gap: `right` names the tile to
+ * its left.
+ *
+ * Null when no such tile exists, which is the gap sitting against that edge.
+ */
+export const cellForDirection = (board: Board, direction: Direction): CellIndex | null => {
+	const gap = gapCell(board)
+	switch (direction) {
+		// Guarded by column, not by index: cell `gap - 1` exists at the start of
+		// every row but belongs to the row above.
+		case 'right':
+			return colOf(board, gap) > 0 ? gap - 1 : null
+		case 'left':
+			return colOf(board, gap) < board.cols - 1 ? gap + 1 : null
+		case 'down':
+			return rowOf(board, gap) > 0 ? gap - board.cols : null
+		case 'up':
+			return rowOf(board, gap) < board.rows - 1 ? gap + board.cols : null
+	}
+}
