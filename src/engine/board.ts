@@ -28,7 +28,6 @@ export const createBoard = (rows: number, cols: number): Board => {
  */
 const SHUFFLE_MOVES_PER_CELL = 20
 
-/** The cells orthogonally adjacent to the given one, i.e. one move away from it. */
 const neighbourCells = (board: Board, cell: CellIndex): readonly CellIndex[] => {
 	const row = rowOf(board, cell)
 	const col = colOf(board, cell)
@@ -49,11 +48,11 @@ const walk = (board: Board, random: () => number, steps: number): Board => {
 		)
 		// Only a board one cell wide can run out: everywhere else the gap has at
 		// least two neighbours and the no-undo rule excludes at most one.
-		const pressedCell = candidates[Math.floor(random() * candidates.length)]
-		if (pressedCell === undefined) {
+		const candidateCell = candidates[Math.floor(random() * candidates.length)]
+		if (candidateCell === undefined) {
 			break
 		}
-		const [move] = movesForCell(walked, pressedCell)
+		const [move] = movesForCell(walked, candidateCell)
 		if (move === undefined) {
 			break
 		}
@@ -72,6 +71,11 @@ const walk = (board: Board, random: () => number, steps: number): Board => {
  * difficulty; keep it as one named constant here, not at call sites.
  */
 export const shuffle = (board: Board, random: () => number): Board => {
+	// A board with a single cell is all gap: the walk can never leave solved, so
+	// re-walking it would spin forever.
+	if (board.cells.length < 2) {
+		return board
+	}
 	const steps = board.cells.length * SHUFFLE_MOVES_PER_CELL
 	let shuffled = walk(board, random, steps)
 	while (isSolved(shuffled)) {

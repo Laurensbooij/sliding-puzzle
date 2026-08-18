@@ -1,5 +1,5 @@
 import type { Board, CellIndex } from '@engine'
-import { GAP, applyMove, isSolved, movesForCell } from '@engine'
+import { GAP, isSolved, movesForCell } from '@engine'
 import { describe, expect, it } from 'vitest'
 import { createActor } from 'xstate'
 
@@ -40,10 +40,10 @@ const cellWithRun = (board: Board): CellIndex =>
 	board.cells.findIndex((_, cell) => movesForCell(board, cell).length > 1)
 
 describe('gameMachine', () => {
-	it('waits in setup on a solved board with nothing counted yet', () => {
+	it('waits idle on a solved board with nothing counted yet', () => {
 		const game = gameOf()
 		const { value, context } = game.getSnapshot()
-		expect(value).toBe('setup')
+		expect(value).toBe('idle')
 		expect(isSolved(context.board)).toBe(true)
 		expect(context.moveCount).toBe(0)
 	})
@@ -59,27 +59,33 @@ describe('gameMachine', () => {
 
 	it('ignores a press before the game has started', () => {
 		const game = gameOf()
-		const boardInSetup = game.getSnapshot().context.board
+		const boardWhenIdle = game.getSnapshot().context.board
 		game.send({ type: 'PRESS_CELL', cell: 0 })
 		const { value, context } = game.getSnapshot()
-		expect(value).toBe('setup')
-		expect(context.board).toEqual(boardInSetup)
+		expect(value).toBe('idle')
+		expect(context.board).toEqual(boardWhenIdle)
 	})
 
 	describe('pressing a cell', () => {
-		it('counts one move per tile of the run and applies them in order', () => {
+		it('counts one move per tile of the run and leaves the gap on the pressed cell', () => {
 			const game = gameOf({ rows: 4, cols: 4 })
 			game.send({ type: 'START' })
 			const boardBeforePress = game.getSnapshot().context.board
 			const pressedCell = cellWithRun(boardBeforePress)
-			const expectedMoves = movesForCell(boardBeforePress, pressedCell)
+			const runLength = movesForCell(boardBeforePress, pressedCell).length
 
 			game.send({ type: 'PRESS_CELL', cell: pressedCell })
 
 			const { context } = game.getSnapshot()
-			expect(expectedMoves.length).toBeGreaterThan(1)
-			expect(context.moveCount).toBe(expectedMoves.length)
-			expect(context.board).toEqual(expectedMoves.reduce(applyMove, boardBeforePress))
+			// A run of N tiles shifts every one of them by a cell and lands the gap
+			// on the pressed cell, so exactly N+1 cells change hands.
+			const cellsChanged = context.board.cells.filter(
+				(tile, cell) => tile !== boardBeforePress.cells[cell],
+			).length
+			expect(runLength).toBeGreaterThan(1)
+			expect(context.moveCount).toBe(runLength)
+			expect(context.board.cells[pressedCell]).toBe(GAP)
+			expect(cellsChanged).toBe(runLength + 1)
 		})
 
 		it('accumulates the move count across presses', () => {
@@ -169,7 +175,7 @@ describe('gameMachine', () => {
 			expect(context.moveCount).toBe(0)
 		})
 
-		it('starts a game straight from setup', () => {
+		it('deals the first game straight from idle', () => {
 			const game = gameOf()
 
 			game.send({ type: 'RESTART' })

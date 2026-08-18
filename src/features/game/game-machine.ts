@@ -27,11 +27,10 @@ export interface GameContext {
 }
 
 export type GameEvent =
-	/** Shuffles the board and begins play. */
 	| { type: 'START' }
 	/** Presses a cell; ignored unless it yields at least one move. */
 	| { type: 'PRESS_CELL'; cell: CellIndex }
-	/** Re-shuffles and plays again, from anywhere in the lifecycle. */
+	/** Deals a new game, from anywhere in the lifecycle. */
 	| { type: 'RESTART' }
 
 /**
@@ -42,7 +41,7 @@ export const elapsedMs = ({ startedAt, finishedAt, now }: GameContext): number =
 	startedAt === null ? 0 : (finishedAt ?? now()) - startedAt
 
 /**
- * The game lifecycle (ADR-0003): setup → playing → solved. The engine stays the
+ * The game lifecycle (ADR-0003): idle → playing → solved. The engine stays the
  * sole authority on legality — every guard and action here delegates to it.
  */
 export const gameMachine = setup({
@@ -52,7 +51,6 @@ export const gameMachine = setup({
 		input: {} as GameInput,
 	},
 	actions: {
-		/** Walks a fresh shuffle from the solved board of the current dimensions. */
 		shuffleBoard: assign({
 			board: ({ context }) =>
 				shuffle(createBoard(context.board.rows, context.board.cols), context.random),
@@ -79,7 +77,7 @@ export const gameMachine = setup({
 		random: input.random ?? Math.random,
 		now: input.now ?? Date.now,
 	}),
-	initial: 'setup',
+	initial: 'idle',
 	// Restarting is a lifecycle-wide escape hatch, so it lives above the states
 	// rather than being repeated in each of them. `reenter` makes it re-run
 	// `startClock` even when the game was already playing.
@@ -87,7 +85,7 @@ export const gameMachine = setup({
 		RESTART: { target: '.playing', actions: 'shuffleBoard', reenter: true },
 	},
 	states: {
-		setup: {
+		idle: {
 			on: {
 				START: { target: 'playing', actions: 'shuffleBoard' },
 			},
@@ -98,6 +96,8 @@ export const gameMachine = setup({
 			// action in this state, so no transition has to remember to look.
 			always: { guard: 'boardIsSolved', target: 'solved' },
 			on: {
+				// Inlined rather than named in `setup(…)` above: only a transition's
+				// own implementations see the event narrowed to PRESS_CELL.
 				PRESS_CELL: {
 					guard: ({ context, event }) =>
 						movesForCell(context.board, event.cell).length > 0,

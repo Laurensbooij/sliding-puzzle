@@ -211,6 +211,12 @@ describe('shuffle', () => {
 		expect(averageAtHome).toBeLessThan(2)
 	})
 
+	it('leaves a board of a single cell alone — a walk can never take it off solved', () => {
+		const singleCell = createBoard(1, 1)
+		const shuffled = shuffle(singleCell, randomFrom(1))
+		expect(shuffled).toEqual(singleCell)
+	})
+
 	it('is deterministic for a given random source', () => {
 		const first = shuffle(createBoard(3, 3), randomFrom(11))
 		const second = shuffle(createBoard(3, 3), randomFrom(11))
