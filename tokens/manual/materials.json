@@ -31,7 +31,7 @@
       "$value": "linear-gradient(125deg, rgba(255, 255, 255, 0.7) 0 16%, rgba(255, 255, 255, 0) 40%)"
     },
     "glass-border": {
-      "$value": "1px solid rgba(255, 255, 255, 0.68)"
+      "$value": "1px solid var(--material-glass-border-color)"
     },
     "glass-border-color": {
       "$value": "rgba(255, 255, 255, 0.68)"
@@ -59,7 +59,8 @@
     },
     "glass-bubble-size": {
       "$value": "38%"
-    }
+    },
+    "$description": "References inside these CSS strings are literal var() rather than DTCG {aliases}: Style Dictionary flattens mid-string aliases to static values at build time, and var() keeps them live in the cascade."
   },
   "art": {
     "ink": {

@@ -64,7 +64,12 @@ StyleDictionary.registerTransform({
 	name: 'fontWeight/figma-style-name',
 	type: 'value',
 	filter: (token) => token.path[0] === 'weight',
-	transform: (token) => WEIGHT_BY_STYLE_NAME[token.$value ?? token.value],
+	transform: (token) => {
+		const styleName = token.$value ?? token.value
+		const weight = WEIGHT_BY_STYLE_NAME[styleName]
+		if (weight === undefined) throw new Error(`Unmapped Figma weight style name: ${styleName}`)
+		return weight
+	},
 })
 
 // TokensBrücke reads opacity-scoped numbers as percentages and divides by 100;
@@ -93,6 +98,8 @@ StyleDictionary.registerTransform({
 		// unit and families their quotes (fontFamily/css).
 		const size = typeof fontSize === 'object' ? pxToRem(fontSize.value) : fontSize
 		const family = fontFamily.replaceAll("'", '')
+		if (typeof lineHeight !== 'string' || !lineHeight.endsWith('%'))
+			throw new Error(`Expected a percentage lineHeight in ${token.name}, got: ${lineHeight}`)
 		const leading = round(Number.parseFloat(lineHeight) / 100)
 		return `${fontWeight} ${size}/${leading} ${family}`
 	},

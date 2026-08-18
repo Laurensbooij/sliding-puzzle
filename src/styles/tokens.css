@@ -18,7 +18,7 @@
   --material-wood-grain-broad: repeating-linear-gradient(92deg, rgba(64, 39, 21, 0.16) 0 14px, rgba(216, 177, 132, 0.1) 14px 34px, rgba(64, 39, 21, 0.1) 34px 52px);
   --material-wood-figure: radial-gradient(120% 60% at 18% 30%, rgba(232, 207, 174, 0.42), transparent 60%), radial-gradient(90% 70% at 82% 78%, rgba(64, 39, 21, 0.38), transparent 62%);
   --material-wood-base: linear-gradient(165deg, var(--wood-500), var(--wood-700) 58%, var(--wood-900));
-  --material-glass-border: 1px solid rgba(255, 255, 255, 0.68);
+  --material-glass-border: 1px solid var(--material-glass-border-color);
   --material-glass-border-color: rgba(255, 255, 255, 0.68);
   --material-glass-blur: 14px;
   --material-glass-blur-heavy: 22px;
