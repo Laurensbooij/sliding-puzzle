@@ -23,7 +23,6 @@ const meta = {
 	args: {
 		board: midGame,
 		sourceImage: 'sailboat',
-		showLabels: false,
 	},
 	parameters: {
 		layout: 'centered',
@@ -52,11 +51,6 @@ export const Solved: Story = {
 	args: { board: createBoard(BOARD_ROWS, BOARD_COLS) },
 }
 
-/** The numbered assist turned on, for players who want position cues. */
-export const WithLabels: Story = {
-	args: { showLabels: true },
-}
-
 /** A different source image on the same arrangement. */
 export const AlternateSourceImage: Story = {
 	args: { sourceImage: 'bike' },
@@ -80,9 +74,10 @@ export const NonSquare: Story = {
 }
 
 /**
- * Playable — the only story that owns a board, so the slide and the live region
- * can be exercised by hand. Real lifecycle lives in the game machine (ADR-0003);
- * this is a story-local stand-in, not a pattern to copy.
+ * Playable — the only story that owns a board, and so the only one that
+ * announces: Board reports the board it is given, not the press it sent out, so
+ * a story with no state has nothing to report. Real lifecycle lives in the game
+ * machine (ADR-0003); this stand-in is not a pattern to copy.
  */
 export const Playable: Story = {
 	render: (args) => {

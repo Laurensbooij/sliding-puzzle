@@ -2,7 +2,6 @@ import type { Direction } from '@engine'
 
 export const BOARD_TESTIDS = {
 	BASE: 'board',
-	WELL_SUFFIX: '-well',
 	GAP_SUFFIX: '-gap',
 	TILE_SUFFIX: '-tile',
 	ANNOUNCER_SUFFIX: '-announcer',

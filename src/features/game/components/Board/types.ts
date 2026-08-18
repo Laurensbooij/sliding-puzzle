@@ -11,3 +11,12 @@ export interface WellStyle extends CSSProperties {
 	'--board-rows': number
 	'--board-cols': number
 }
+
+/**
+ * What the live region says, and which move said it. The counter is what makes
+ * two identical sentences two announcements rather than one.
+ */
+export interface Announcement {
+	text: string
+	move: number
+}

@@ -81,8 +81,14 @@
 	);
 }
 
+/*
+ * `--transition-cell-slide`, not `--transition-tile`: that token animates
+ * transform at `--dur-fast`, which is the Tile's press scale and which
+ * reduced motion deliberately keeps live. The slide is the designed
+ * 200ms `--ease-slide`, and it collapses with `--dur-slide` (ADR-0010).
+ */
 .cell {
-	transition: var(--transition-tile);
+	transition: var(--transition-cell-slide);
 }
 
 /* The gap paints nothing — it is the well showing through. It exists so the

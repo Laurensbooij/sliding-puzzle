@@ -1,34 +1,29 @@
 import type { SourceImageName } from '@/source-images'
 import type { Board as BoardModel, CellIndex } from '@engine'
 import {
-	GAP,
 	cellForDirection,
 	directionOfMove,
+	gapCell,
 	movableTiles,
+	movesBetween,
 	movesForCell,
 	toPlacements,
 } from '@engine'
 import { useTranslate } from '@i18n'
 import type { FC } from 'react'
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 
 import { Tile } from '../Tile'
 import styles from './Board.module.css'
 import { BOARD_TESTIDS, DIRECTION_BY_KEY } from './constants'
 import { boardMessages } from './translation-messages'
-import type { CellStyle, WellStyle } from './types'
+import type { Announcement, CellStyle, WellStyle } from './types'
 
 export interface BoardProps {
 	/** The arrangement to render. Board reads it; the game machine owns it. */
 	board: BoardModel
 	/** The artwork every tile carries one fragment of. */
 	sourceImage: SourceImageName
-	/**
-	 * Shows the numbered assist labels on every tile. Off by default: the board
-	 * Figma draws carries none, and a tile's accessible name is its `aria-label`
-	 * either way, so the labels are a visual assist rather than the affordance.
-	 */
-	showLabels?: boolean
 	/**
 	 * Called with the pressed cell — never with a move. Which tiles that press
 	 * relocates is the engine's business, and the machine's to apply.
@@ -37,6 +32,8 @@ export interface BoardProps {
 	/** Overrides the BASE testid. */
 	dataTestId?: string
 }
+
+const NO_ANNOUNCEMENT: Announcement = { text: '', move: 0 }
 
 /**
  * The board and its frame: a wooden surround, a sunken well, and one glass Tile
@@ -61,18 +58,30 @@ export interface BoardProps {
  * Tiles render in tile order rather than cell order, so a move animates the same
  * element from its old cell to its new one instead of remounting it elsewhere.
  */
-export const Board: FC<BoardProps> = ({
-	board,
-	sourceImage,
-	showLabels = false,
-	onCellPress,
-	dataTestId,
-}) => {
-	const [announcement, setAnnouncement] = useState('')
+export const Board: FC<BoardProps> = ({ board, sourceImage, onCellPress, dataTestId }) => {
+	const [announcement, setAnnouncement] = useState(NO_ANNOUNCEMENT)
+	const announcedBoard = useRef(board)
 	const { translate } = useTranslate()
 	const base = dataTestId ?? BOARD_TESTIDS.BASE
 	const movable = movableTiles(board)
 	const placements = toPlacements(board)
+
+	// Announced from the board that arrived, not from the press that asked for
+	// it: a press this component sends outward may never come back as a move —
+	// the machine ignores one outside `playing` — and a live region that reports
+	// intent rather than fact lies to the only people relying on it.
+	if (announcedBoard.current !== board) {
+		const [first, ...rest] = movesBetween(announcedBoard.current, board)
+		announcedBoard.current = board
+		if (first) {
+			const text = translate(boardMessages.moveAnnouncement, {
+				// Every move in a run shares a direction, so the first speaks for all.
+				count: rest.length + 1,
+				direction: directionOfMove(board, first),
+			})
+			setAnnouncement((previous) => ({ text, move: previous.move + 1 }))
+		}
+	}
 
 	const wellStyle: WellStyle = {
 		'--board-rows': board.rows,
@@ -85,20 +94,7 @@ export const Board: FC<BoardProps> = ({
 	})
 
 	const pressCell = (cell: CellIndex) => {
-		const moves = movesForCell(board, cell)
-		const [first] = moves
-		if (!first) return
-
-		// Phrased from the moves rather than from the key, so a pointer press and
-		// an arrow press read identically. Every move in a run shares a direction,
-		// so the first one speaks for all of them.
-		setAnnouncement(
-			translate(boardMessages.moveAnnouncement, {
-				count: moves.length,
-				direction: directionOfMove(board, first),
-			}),
-		)
-		onCellPress?.(cell)
+		if (movesForCell(board, cell).length > 0) onCellPress?.(cell)
 	}
 
 	return (
@@ -124,11 +120,7 @@ export const Board: FC<BoardProps> = ({
 			}}
 		>
 			<span className={styles.bevel} />
-			<div
-				className={styles.well}
-				data-testid={`${base}${BOARD_TESTIDS.WELL_SUFFIX}`}
-				style={wellStyle}
-			>
+			<div className={styles.well} style={wellStyle}>
 				<div className={styles.cells}>
 					{placements.map(({ tile, cell }) => (
 						<div key={tile} className={styles.cell} style={cellStyle(cell)}>
@@ -138,16 +130,18 @@ export const Board: FC<BoardProps> = ({
 								rows={board.rows}
 								cols={board.cols}
 								movable={movable.includes(tile)}
-								showLabel={showLabels}
+								// The board Figma draws carries no numbers; a tile's
+								// accessible name is its `aria-label` either way.
+								showLabel={false}
 								onPress={() => pressCell(cell)}
-								dataTestId={`${base}${BOARD_TESTIDS.TILE_SUFFIX}`}
+								dataTestId={`${base}${BOARD_TESTIDS.TILE_SUFFIX}-${tile}`}
 							/>
 						</div>
 					))}
 					<div
 						className={styles.gap}
 						data-testid={`${base}${BOARD_TESTIDS.GAP_SUFFIX}`}
-						style={cellStyle(board.cells.indexOf(GAP))}
+						style={cellStyle(gapCell(board))}
 						aria-hidden
 					/>
 				</div>
@@ -155,14 +149,17 @@ export const Board: FC<BoardProps> = ({
 			{/* `role="status"` already implies polite and atomic; both are spelled
 			    out because older screen readers honour the attributes and not the
 			    role, and the role is what gives tests an accessible query. */}
-			<div
-				className={styles.announcer}
-				data-testid={`${base}${BOARD_TESTIDS.ANNOUNCER_SUFFIX}`}
-				role="status"
-				aria-live="polite"
-				aria-atomic="true"
-			>
-				{announcement}
+			<div className={styles.announcer} role="status" aria-live="polite" aria-atomic="true">
+				{/* Keyed by move count, not by text. Two identical moves in a row
+				    produce the same sentence, and rewriting a live region with the
+				    string already in it mutates no DOM, so nothing is announced.
+				    Replacing the child node makes every move a fresh utterance. */}
+				<span
+					key={announcement.move}
+					data-testid={`${base}${BOARD_TESTIDS.ANNOUNCER_SUFFIX}`}
+				>
+					{announcement.text}
+				</span>
 			</div>
 		</div>
 	)

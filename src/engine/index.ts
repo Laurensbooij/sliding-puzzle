@@ -3,8 +3,10 @@ export {
 	cellForDirection,
 	createBoard,
 	directionOfMove,
+	gapCell,
 	isSolved,
 	movableTiles,
+	movesBetween,
 	movesForCell,
 	toPlacements,
 } from './board/board'

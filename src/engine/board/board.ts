@@ -1,8 +1,10 @@
 import type { Board, CellIndex, Direction, Move, TileId, TilePlacement } from '../types'
 import { GAP } from '../types'
 
-// Cell arithmetic, shared with ./shuffle. Engine-internal: `index.ts` is what
-// makes a name public, and these are not on it.
+// Cell arithmetic, shared with ./shuffle. `rowOf` and `colOf` stay
+// engine-internal — `index.ts` is what makes a name public, and they are not on
+// it. `gapCell` is public: a renderer has to place the gap, and reading
+// `cells` for it would go around `toPlacements` (engine.md).
 export const rowOf = (board: Board, cell: CellIndex): number => Math.floor(cell / board.cols)
 
 export const colOf = (board: Board, cell: CellIndex): number => cell % board.cols
@@ -95,6 +97,19 @@ export const toPlacements = (board: Board): readonly TilePlacement[] =>
 	board.cells
 		.flatMap((tile, cell) => (tile === GAP ? [] : [{ tile, cell, homeCell: tile }]))
 		.sort((a, b) => a.tile - b.tile)
+
+/**
+ * The moves that turned one board into another — one per tile that changed
+ * cell. Lets a renderer report what actually happened between two states
+ * rather than what it asked for.
+ */
+export const movesBetween = (before: Board, after: Board): readonly Move[] => {
+	const cellByTile = new Map(toPlacements(before).map(({ tile, cell }) => [tile, cell]))
+	return toPlacements(after).flatMap(({ tile, cell }) => {
+		const from = cellByTile.get(tile)
+		return from === undefined || from === cell ? [] : [{ tile, from, to: cell }]
+	})
+}
 
 /**
  * The cell holding the tile that travels `direction` into the gap — the

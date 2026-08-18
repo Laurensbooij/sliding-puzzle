@@ -7,8 +7,10 @@ import {
 	cellForDirection,
 	createBoard,
 	directionOfMove,
+	gapCell,
 	isSolved,
 	movableTiles,
+	movesBetween,
 	movesForCell,
 	toPlacements,
 } from './board'
@@ -256,5 +258,44 @@ describe('directionOfMove', () => {
 	it('reads a column move on a non-square board, where the step is not the row length', () => {
 		const direction = directionOfMove(gapWideBoard, { tile: 3, from: 7, to: 3 })
 		expect(direction).toBe('up')
+	})
+})
+
+describe('movesBetween', () => {
+	it('finds no moves between a board and itself', () => {
+		const moves = movesBetween(gapCentre, gapCentre)
+		expect(moves).toEqual([])
+	})
+
+	it('recovers the single move that separates two boards', () => {
+		const move = { tile: 3, from: 3, to: 4 }
+		const moves = movesBetween(gapCentre, applyMove(gapCentre, move))
+		expect(moves).toEqual([move])
+	})
+
+	it('recovers every move of a run, so a press is counted per tile', () => {
+		const gapRowStart = boardOf(2, 4, [GAP, 0, 1, 2, 3, 4, 5, 6])
+		const run = movesForCell(gapRowStart, 3)
+		const moves = movesBetween(gapRowStart, run.reduce(applyMove, gapRowStart))
+		expect([...moves].sort((a, b) => a.tile - b.tile)).toEqual(
+			[...run].sort((a, b) => a.tile - b.tile),
+		)
+	})
+
+	it('agrees with directionOfMove on the direction a run travelled', () => {
+		const after = movesForCell(gapCentre, 7).reduce(applyMove, gapCentre)
+		const [first] = movesBetween(gapCentre, after)
+		expect(first && directionOfMove(gapCentre, first)).toBe('up')
+	})
+})
+
+describe('gapCell', () => {
+	it.each<[string, Board, CellIndex]>([
+		['the centre', gapCentre, 4],
+		['a corner', gapTopRight, 2],
+		['a non-square board', gapWideBoard, 3],
+	])('reports the cell holding no tile when the gap is in %s', (_case, board, expected) => {
+		const cell = gapCell(board)
+		expect(cell).toBe(expected)
 	})
 })

@@ -28,6 +28,10 @@ class, no IDs, no `!important` (element selectors belong to the global reset onl
     The design prototype's CSS is the reference when updating this tier.
     Manual `material/*` entries deliberately override the export's same-named
     gradient styles: Figma's gradients lose their angles on export.
+    One composed `transition` cannot carry two durations for the same
+    property, so a component that animates `transform` on a different beat
+    than `--transition-tile` takes its own shorthand
+    (`--transition-cell-slide`) rather than overriding a leg locally.
 - **CSS variable names mirror Figma variable paths** (`space/3` → `--space-3`).
   Never invent a differently-named alias for an existing token.
 - Export workflow: run TokensBrücke in Figma → save into `tokens/figma/` →

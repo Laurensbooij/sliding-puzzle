@@ -1,10 +1,13 @@
 import type { Board as BoardModel, CellIndex, TileId } from '@engine'
-import { GAP } from '@engine'
+import { GAP, applyMove, movesForCell } from '@engine'
 import { createTranslate } from '@i18n'
+import type { RenderWithProvidersOptions } from '@testing'
 import { renderWithProviders } from '@testing'
 import type { RenderResult } from '@testing-library/react'
 import { screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import type { FC } from 'react'
+import { useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 
 import { tileMessages } from '../Tile/translation-messages'
@@ -33,8 +36,36 @@ const gapWideBoard = boardOf(2, 4, [GAP, 0, 1, 2, 3, 4, 5, 6])
 /** The accessible name Tile renders for a tile id — 1-based, as the user hears it. */
 const tileName = (tile: TileId): string => translate(tileMessages.label, { number: tile + 1 })
 
-const renderComponent = (props: Partial<BoardProps> = {}): RenderResult =>
-	renderWithProviders(<Board board={gapCentre} sourceImage="sailboat" {...props} />)
+/**
+ * Board announces the board it is handed, never the press it sent out, so any
+ * case about announcements needs something that actually applies the move. This
+ * is the game machine's job in the app; here it is the smallest honest stand-in.
+ */
+type StatefulBoardProps = Omit<BoardProps, 'onCellPress'>
+
+const StatefulBoard: FC<StatefulBoardProps> = ({ board: initial, ...props }) => {
+	const [board, setBoard] = useState(initial)
+	return (
+		<Board
+			{...props}
+			board={board}
+			onCellPress={(cell) =>
+				setBoard((current) => movesForCell(current, cell).reduce(applyMove, current))
+			}
+		/>
+	)
+}
+
+const renderComponent = (
+	{ stateful = false, ...props }: Partial<BoardProps> & { stateful?: boolean } = {},
+	options?: RenderWithProvidersOptions,
+): RenderResult => {
+	const merged = { board: gapCentre, sourceImage: 'sailboat', ...props } satisfies BoardProps
+	return renderWithProviders(
+		stateful ? <StatefulBoard {...merged} /> : <Board {...merged} />,
+		options,
+	)
+}
 
 describe('Board', () => {
 	it('exposes itself as a group named for its dimensions', () => {
@@ -56,14 +87,12 @@ describe('Board', () => {
 			const user = userEvent.setup()
 			renderComponent()
 
-			const reached: (string | null)[] = []
-			for (let step = 0; step < 4; step += 1) {
-				await user.tab()
-				reached.push(document.activeElement?.getAttribute('aria-label') ?? null)
-			}
-
 			// Tiles 1, 3, 4 and 6 are the movable ones; DOM order is tile order.
-			expect(reached).toEqual([tileName(1), tileName(3), tileName(4), tileName(6)])
+			for (const tile of [1, 3, 4, 6]) {
+				await user.tab()
+				const reached = screen.getByRole('button', { name: tileName(tile) })
+				expect(reached).toHaveFocus()
+			}
 		})
 
 		it.each<[string, string, CellIndex]>([
@@ -148,14 +177,14 @@ describe('Board', () => {
 
 	describe('move announcements', () => {
 		it('says nothing before the first move', () => {
-			renderComponent()
+			renderComponent({ stateful: true })
 			const announcer = screen.getByRole('status')
-			expect(announcer).toBeEmptyDOMElement()
+			expect(announcer).toHaveTextContent('')
 		})
 
 		it('announces a single move in the direction the tile travelled', async () => {
 			const user = userEvent.setup()
-			renderComponent()
+			renderComponent({ stateful: true })
 
 			const tile = screen.getByRole('button', { name: tileName(3) })
 			await user.click(tile)
@@ -168,7 +197,7 @@ describe('Board', () => {
 
 		it('announces a run as one utterance counting every tile it moved', async () => {
 			const user = userEvent.setup()
-			renderComponent({ board: gapWideBoard })
+			renderComponent({ board: gapWideBoard, stateful: true })
 
 			const farTile = screen.getByRole('button', { name: tileName(2) })
 			await user.click(farTile)
@@ -181,7 +210,7 @@ describe('Board', () => {
 
 		it('phrases an arrow press exactly as it phrases a pointer press', async () => {
 			const user = userEvent.setup()
-			renderComponent()
+			renderComponent({ stateful: true })
 
 			await user.tab()
 			await user.keyboard('{ArrowLeft}')
@@ -192,12 +221,46 @@ describe('Board', () => {
 			)
 		})
 
+		/**
+		 * Two identical moves in a row produce the same sentence. Rewriting a live
+		 * region with the text already in it mutates no DOM and announces nothing,
+		 * so the region has to replace its child rather than restate it.
+		 */
+		it('replaces the announced node when a move repeats its wording', async () => {
+			const user = userEvent.setup()
+			// Wide enough that ArrowLeft is legal twice running, so the second
+			// move produces the same sentence as the first.
+			renderComponent({ board: gapWideBoard, stateful: true })
+
+			const announcerId = `${BOARD_TESTIDS.BASE}${BOARD_TESTIDS.ANNOUNCER_SUFFIX}`
+
+			await user.tab()
+			await user.keyboard('{ArrowLeft}')
+			const firstNode = screen.getByTestId(announcerId)
+
+			await user.keyboard('{ArrowLeft}')
+			const secondNode = screen.getByTestId(announcerId)
+
+			expect(secondNode).toHaveTextContent(
+				translate(boardMessages.moveAnnouncement, { count: 1, direction: 'left' }),
+			)
+			expect(secondNode).not.toBe(firstNode)
+		})
+
+		it('stays silent when the press is never applied to a board', async () => {
+			const user = userEvent.setup()
+			renderComponent()
+
+			const tile = screen.getByRole('button', { name: tileName(3) })
+			await user.click(tile)
+
+			const announcer = screen.getByRole('status')
+			expect(announcer).toHaveTextContent('')
+		})
+
 		it('announces in the active locale', async () => {
 			const user = userEvent.setup()
-			// eslint-disable-next-line sliding-puzzle/render-through-render-component -- the helper takes props only; this case needs a render option
-			renderWithProviders(<Board board={gapCentre} sourceImage="sailboat" />, {
-				locale: 'nl',
-			})
+			renderComponent({ stateful: true }, { locale: 'nl' })
 
 			const { translate: translateDutch } = createTranslate('nl')
 			const tile = screen.getByRole('button', {
@@ -216,5 +279,11 @@ describe('Board', () => {
 		renderComponent()
 		const gap = screen.getByTestId(`${BOARD_TESTIDS.BASE}${BOARD_TESTIDS.GAP_SUFFIX}`)
 		expect(gap).toHaveAttribute('aria-hidden', 'true')
+	})
+
+	it('gives every tile its own testid, so a collection stays addressable', () => {
+		renderComponent()
+		const tile = screen.getByTestId(`${BOARD_TESTIDS.BASE}${BOARD_TESTIDS.TILE_SUFFIX}-3`)
+		expect(tile).toHaveAccessibleName(tileName(3))
 	})
 })
