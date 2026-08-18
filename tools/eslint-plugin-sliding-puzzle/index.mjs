@@ -2,6 +2,7 @@ import assignBeforeAssert from './rules/assign-before-assert.mjs'
 import noInlineTestid from './rules/no-inline-testid.mjs'
 import propsTypeInComponentFile from './rules/props-type-in-component-file.mjs'
 import propsTypeNaming from './rules/props-type-naming.mjs'
+import renderThroughRenderComponent from './rules/render-through-render-component.mjs'
 import specInModuleFolder from './rules/spec-in-module-folder.mjs'
 import storiesFileRequired from './rules/stories-file-required.mjs'
 import testidsInConstantsFile from './rules/testids-in-constants-file.mjs'
@@ -17,6 +18,7 @@ export default {
 		'props-type-naming': propsTypeNaming,
 		'props-type-in-component-file': propsTypeInComponentFile,
 		'assign-before-assert': assignBeforeAssert,
+		'render-through-render-component': renderThroughRenderComponent,
 		'stories-file-required': storiesFileRequired,
 		'spec-in-module-folder': specInModuleFolder,
 	},

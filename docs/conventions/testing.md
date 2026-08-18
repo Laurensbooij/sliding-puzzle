@@ -29,6 +29,40 @@ directly — components need the i18n provider, and the helper supplies the real
 message catalogues rather than mocks. Pass `{ locale: 'nl' }` to render under
 another locale.
 
+**Each `.spec.tsx` declares one top-level `renderComponent` helper that takes
+arguments, and only that helper calls `renderWithProviders`** (lint-enforced:
+`sliding-puzzle/render-through-render-component`). Cases vary by argument, not by
+rebuilding the JSX:
+
+```tsx
+const renderComponent = (
+  props: Partial<TileProps> = {},
+  options?: RenderWithProvidersOptions,
+): RenderResult => renderWithProviders(<Tile tile={0} {...props} />, options)
+
+it('reports its tile id when pressed while movable', async () => {
+  renderComponent({ tile: 3, movable: true, onPress })
+  // …
+})
+```
+
+Per-test render calls drift: each grows its own default props, so the component's
+baseline setup ends up restated once per case and one change to it touches every
+test. The helper states that baseline once.
+
+- **Shape it to the spec's real needs** — a props object is the common case, but a
+  variadic helper is right when cases legitimately render several instances of the
+  component. Thread render options through as a second parameter when a case needs
+  another locale.
+- **A case the helper genuinely cannot express** opts out with an
+  `eslint-disable-next-line sliding-puzzle/render-through-render-component`
+  carrying the reason. Reach for that only after trying to widen the helper —
+  widening it is usually the smaller change.
+
+The rule checks that the helper is declared at module top level, takes at least one
+parameter, and is the only caller of `renderWithProviders` — under any import alias.
+Whether its arguments are the _right_ ones stays a review judgement.
+
 ## Queries — accessible identity first (ADR-0005)
 
 - Query by **`getByRole` / `getByLabelText`** first. When `getByRole` fails, suspect

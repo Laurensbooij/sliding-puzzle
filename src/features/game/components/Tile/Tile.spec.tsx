@@ -2,6 +2,7 @@ import type { TileId } from '@engine'
 import { createTranslate } from '@i18n'
 import { renderWithProviders } from '@testing'
 import type { RenderWithProvidersOptions } from '@testing'
+import type { RenderResult } from '@testing-library/react'
 import { screen } from '@testing-library/react'
 import { userEvent } from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
@@ -22,8 +23,10 @@ const DEFAULT_PROPS = {
 	cols: 3,
 } satisfies TileProps
 
-const renderComponent = (props: Partial<TileProps> = {}, options?: RenderWithProvidersOptions) =>
-	renderWithProviders(<Tile {...DEFAULT_PROPS} {...props} />, options)
+const renderComponent = (
+	props: Partial<TileProps> = {},
+	options?: RenderWithProvidersOptions,
+): RenderResult => renderWithProviders(<Tile {...DEFAULT_PROPS} {...props} />, options)
 
 const fragmentImageOf = (testId: string = TILE_TESTIDS.BASE) =>
 	screen.getByTestId(`${testId}${TILE_TESTIDS.IMAGE_SUFFIX}`)
