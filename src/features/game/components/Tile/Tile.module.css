@@ -124,14 +124,16 @@
 
 .tile[aria-disabled='false']:hover .bead,
 .tile[aria-disabled='false']:focus-visible .bead,
-.tile[aria-disabled='false']:active .bead {
+.tile[aria-disabled='false']:active .bead,
+.tile[aria-disabled='false'][data-pressed] .bead {
 	opacity: 1;
 }
 
 /* Hover is neutral — the glass brightens, no hue is added. */
 .tile[aria-disabled='false']:hover .glass,
 .tile[aria-disabled='false']:focus-visible .glass,
-.tile[aria-disabled='false']:active .glass {
+.tile[aria-disabled='false']:active .glass,
+.tile[aria-disabled='false'][data-pressed] .glass {
 	background-image: var(--material-glass-fill-strong);
 }
 
@@ -140,12 +142,14 @@
 	--tile-edge: var(--material-glass-glow-hover), var(--tile-edge-base);
 }
 
-.tile[aria-disabled='false']:active .edge {
+.tile[aria-disabled='false']:active .edge,
+.tile[aria-disabled='false'][data-pressed] .edge {
 	--tile-edge: var(--material-glass-glow-press), var(--tile-edge-base);
 }
 
 /* Press sinks the tile in place: no translation, no shadow growth. */
-.tile[aria-disabled='false']:active {
+.tile[aria-disabled='false']:active,
+.tile[aria-disabled='false'][data-pressed] {
 	box-shadow: var(--shadow-tile-press);
 	transform: scale(0.985);
 }
