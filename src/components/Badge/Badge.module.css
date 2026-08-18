@@ -1,0 +1,54 @@
+.badge {
+	display: inline-flex;
+	gap: var(--space-1);
+	align-items: center;
+	padding: var(--space-1) var(--space-3);
+	border-radius: var(--radius-pill);
+	font: var(--label-caps);
+	letter-spacing: var(--tracking-wide);
+	text-transform: uppercase;
+	white-space: nowrap;
+}
+
+.icon {
+	display: grid;
+	flex-shrink: 0;
+	place-items: center;
+	inline-size: 0.8125rem;
+	block-size: 0.8125rem;
+}
+
+.icon > * {
+	inline-size: 100%;
+	block-size: 100%;
+}
+
+.neutral {
+	background-color: var(--ink-100);
+	color: var(--ink-700);
+}
+
+.accent {
+	background-color: var(--surface-accent-soft);
+	color: var(--teal-800);
+}
+
+.amber {
+	background-color: var(--surface-reward-soft);
+
+	/* Figma pairs this tint with amber/600, which lands at 2.5:1 — below AA for
+	   12px text. amber/800 is the nearest ramp step that clears 4.5:1. */
+	color: var(--amber-800);
+}
+
+.danger {
+	background-color: var(--surface-danger-soft);
+
+	/* rose/600 on this tint is 4.13:1 — just under AA. rose/700 clears it. */
+	color: var(--rose-700);
+}
+
+.inverse {
+	background-color: var(--surface-inverse);
+	color: var(--text-inverse);
+}

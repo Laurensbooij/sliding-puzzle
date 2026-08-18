@@ -1,0 +1,63 @@
+.statCard {
+	/* Inline so the card hugs its readout, with min-inline-size as the floor —
+	   a row of stats is laid out by the parent, not by stretched children. */
+	display: inline-flex;
+	flex-direction: column;
+	gap: var(--space-1);
+	align-items: flex-start;
+	min-inline-size: 5.75rem;
+	padding: var(--space-3) var(--space-4);
+	border-radius: var(--radius-md);
+}
+
+.label {
+	display: flex;
+	gap: var(--space-1);
+	align-items: center;
+	font: var(--label-caps);
+	letter-spacing: var(--tracking-caps);
+	text-transform: uppercase;
+	white-space: nowrap;
+
+	/* Figma specifies 70%, which drops the accent tone's label to 3.81:1 — below
+	   AA. 85% is the least mute that clears 4.5:1 in every tone. */
+	opacity: 0.85;
+}
+
+.icon {
+	display: grid;
+	flex-shrink: 0;
+	place-items: center;
+	inline-size: 0.75rem;
+	block-size: 0.75rem;
+}
+
+.icon > * {
+	inline-size: 100%;
+	block-size: 100%;
+}
+
+.value {
+	font: var(--counter);
+	font-variant-numeric: tabular-nums;
+	white-space: nowrap;
+}
+
+.default {
+	border: 1px solid var(--border-subtle);
+	background-color: var(--surface-card);
+	color: var(--text-strong);
+}
+
+.accent {
+	background-color: var(--surface-accent-soft);
+	color: var(--teal-800);
+}
+
+/* No token carries the on-wood fill — Figma leaves it an unbound 14% wash of
+   the on-wood ink, so it is mixed from that token rather than hard-coded. */
+.onWood {
+	border: 1px solid var(--border-on-wood);
+	background-color: color-mix(in srgb, var(--text-on-wood) 14%, transparent);
+	color: var(--text-on-wood);
+}
