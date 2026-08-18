@@ -1,5 +1,5 @@
-import type { Board, CellIndex, Move, TileId, TilePlacement } from './types'
-import { GAP } from './types'
+import type { Board, CellIndex, Move, TileId, TilePlacement } from '../types'
+import { GAP } from '../types'
 
 /** Thrown by every stub below until the implementation phase lands. */
 const notImplemented = (fn: string): never => {

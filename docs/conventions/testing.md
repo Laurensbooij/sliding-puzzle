@@ -17,6 +17,11 @@ every story with axe in headless Chromium. See
 Accessibility gates and the per-component a11y acceptance criteria live in
 [accessibility.md](accessibility.md).
 
+**A specced module lives in a folder named after it** (lint-enforced:
+`sliding-puzzle/spec-in-module-folder`): `board/board.ts` + `board/board.spec.ts`,
+`Tile/Tile.tsx` + `Tile/Tile.spec.tsx`. The pair is one unit; the folder keeps it
+one as satellites accumulate. Modules without a spec may stay flat.
+
 ## Rendering
 
 Render through **`renderWithProviders`** from `@testing`, never RTL's `render`

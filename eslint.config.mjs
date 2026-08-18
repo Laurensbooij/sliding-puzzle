@@ -238,6 +238,14 @@ export default tseslint.config(
 		},
 	},
 	{
+		// A specced module is a unit: module + spec share a folder named after it.
+		files: ['src/**/*.spec.{ts,tsx}'],
+		plugins: { 'sliding-puzzle': slidingPuzzle },
+		rules: {
+			'sliding-puzzle/spec-in-module-folder': 'error',
+		},
+	},
+	{
 		// Component files are PascalCase; every other source file is kebab-case.
 		files: ['src/**/*.{ts,tsx,js,jsx}'],
 		plugins: { 'check-file': checkFile },

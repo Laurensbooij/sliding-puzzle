@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest'
 
+import type { Board, CellIndex, TileId } from '../types'
+import { GAP } from '../types'
 import { applyMove, createBoard, isSolved, movableTiles, movesForCell } from './board'
-import type { Board, CellIndex, TileId } from './types'
-import { GAP } from './types'
 
 const boardOf = (rows: number, cols: number, cells: readonly (TileId | typeof GAP)[]): Board => ({
 	rows,

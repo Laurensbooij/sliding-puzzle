@@ -34,9 +34,10 @@ from 'react'`). Props type named exactly **`ComponentNameProps`**, exported
   the Figma design system starts in `src/components/`; its consumers are designed
   screens, not speculation ([ADR-0009](../adr/0009-design-system-components-are-born-shared.md)).
   Game-domain components (Board, Tile, Frame) stay in the game feature.
-- A trivial component is flat colocated files. Once it grows satellites (hook, helper,
-  constants, sub-component) it graduates to a `ComponentName/` folder with an
-  `index.ts` barrel. Private sub-components live under its `components/`, are full
+- A trivial component is flat colocated files. Once it grows satellites (spec, hook,
+  helper, constants, sub-component) it graduates to a `ComponentName/` folder with an
+  `index.ts` barrel — a specced module shares a folder named after it (lint-enforced:
+  `sliding-puzzle/spec-in-module-folder`). Private sub-components live under its `components/`, are full
   components recursively, and are never exported from the folder's barrel.
 - Local hooks → `hooks/use-x/` (hook + spec). Local helpers → `utils/`. Local
   constants → unprefixed `constants.ts`. Local messages →

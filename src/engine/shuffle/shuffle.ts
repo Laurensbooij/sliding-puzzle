@@ -1,5 +1,5 @@
-import { applyMove, colOf, gapCell, isSolved, movesForCell, rowOf } from './board'
-import type { Board, CellIndex, TileId } from './types'
+import { applyMove, colOf, gapCell, isSolved, movesForCell, rowOf } from '../board/board'
+import type { Board, CellIndex, TileId } from '../types'
 
 /**
  * Walk length per cell — the single difficulty dial, kept here rather than at

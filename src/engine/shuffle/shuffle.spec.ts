@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest'
 
-import { createBoard, isSolved } from './board'
+import { createBoard, isSolved } from '../board/board'
+import type { Board, TileId } from '../types'
+import { GAP } from '../types'
 import { shuffle } from './shuffle'
-import type { Board, TileId } from './types'
-import { GAP } from './types'
 
 /** Seeded PRNG (mulberry32) so shuffle runs are repeatable — the engine takes randomness as an argument. */
 const randomFrom = (seed: number): (() => number) => {
