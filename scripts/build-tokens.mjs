@@ -8,6 +8,24 @@ import StyleDictionary from 'style-dictionary'
 // The export stays a manual plugin click because the Variables REST API is
 // Enterprise-only (ADR-0006). Rebuild with `pnpm tokens`.
 
+// Figma lets a variable be both a value and a namespace: `accent` is a colour
+// and `accent/hover` is another. TokensBrücke nests the second inside the
+// first, and Style Dictionary stops at the value — silently dropping every
+// child. Hoisting them to siblings restores them under the name they would
+// have had anyway (`accent/hover` → `--accent-hover`).
+const hoistChildrenOfValuedTokens = (node) => {
+	for (const [key, value] of Object.entries(node)) {
+		if (key.startsWith('$') || !value || typeof value !== 'object') continue
+		hoistChildrenOfValuedTokens(value)
+		if (!('$value' in value)) continue
+		for (const [childKey, child] of Object.entries(value)) {
+			if (childKey.startsWith('$')) continue
+			delete value[childKey]
+			node[`${key}-${childKey}`] = child
+		}
+	}
+}
+
 // TokensBrücke wraps each file in its collection name (`Spacing.space.3`), but
 // CSS names must mirror the bare Figma variable path (`--space-3`, ADR-0010) —
 // strip the wrapper before the trees merge.
@@ -26,6 +44,7 @@ StyleDictionary.registerParser({
 			}
 		}
 		stripRefPrefixes(root)
+		hoistChildrenOfValuedTokens(root)
 		return root
 	},
 })
@@ -44,6 +63,12 @@ const FIGMA_UNITS_PER_GROUP = {
 }
 const round = (value) => Number(value.toFixed(5))
 const pxToRem = (value) => `${round(value / 16)}rem`
+// Hoisted children keep their group as a name prefix (`border-width-strong`),
+// so match on the prefix rather than the whole first path segment.
+const figmaUnitForGroup = (group) =>
+	Object.entries(FIGMA_UNITS_PER_GROUP).find(
+		([name]) => group === name || group.startsWith(`${name}-`),
+	)?.[1] ?? pxToRem
 
 StyleDictionary.registerTransform({
 	name: 'dimension/figma-units',
@@ -52,7 +77,7 @@ StyleDictionary.registerTransform({
 	transform: (token) => {
 		const raw = token.$value ?? token.value
 		const value = typeof raw === 'object' ? raw.value : Number.parseFloat(raw)
-		const restoreUnit = FIGMA_UNITS_PER_GROUP[token.path[0]] ?? pxToRem
+		const restoreUnit = figmaUnitForGroup(token.path[0])
 		return restoreUnit(value)
 	},
 })
