@@ -19,7 +19,8 @@ export const BUTTON_VARIANTS = ['primary', 'secondary', 'ghost', 'soft', 'danger
  * Figma draws 15 · 18 · 20; the icon scale (ADR-0010) offers 16 · 20 · 24, so md
  * and lg both land on 20. Rounding md down to 16 would cost the same 2px against
  * the design and flatten sm/md instead, and there is no `icon-size` variable
- * collection to mirror a literal 18 from.
+ * collection to mirror a literal 18 from. The design file is being snapped onto
+ * the scale in SLI-39; this map follows it once that lands.
  */
 export const BUTTON_ICON_SIZES = {
 	sm: 'sm',

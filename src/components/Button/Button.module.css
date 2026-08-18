@@ -78,7 +78,7 @@
    `--accent-hover` would lie about what it is. This is a workaround at the
    component tier: the real fix is the token tier moving `--accent` and
    `--danger` to steps that clear AA, which would let this file go back to the
-   semantic names.
+   semantic names. Tracked in SLI-38.
 
    Every variant below states hover and press as `:enabled:` rather than leaving
    them to source order: `:hover` still matches a disabled control, which would
