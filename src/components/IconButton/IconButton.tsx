@@ -1,7 +1,6 @@
 import { Icon } from '@components/Icon'
 import type { IconName } from '@components/Icon'
 import { Tooltip } from '@components/Tooltip'
-import type { TooltipPlacement } from '@components/Tooltip'
 import { cx } from '@css-utils'
 import type { ComponentPropsWithoutRef, FC } from 'react'
 
@@ -35,8 +34,6 @@ export interface IconButtonProps extends Omit<
 	variant?: IconButtonVariant
 	/** Square edge of the control. Defaults to `md` (40px). */
 	size?: IconButtonSize
-	/** Which side the tooltip sits on. Defaults to `top`. */
-	tooltipPlacement?: TooltipPlacement
 	/** Overrides the BASE testid for instances rendered in a collection. */
 	dataTestId?: string
 }
@@ -53,24 +50,22 @@ export interface IconButtonProps extends Omit<
  *
  * The smallest size is 32px square, comfortably past the 24px floor of WCAG SC
  * 2.5.8 — there is no compact variant that dips under it.
+ *
+ * Nothing here announces: the control carries no state of its own, so there is
+ * no change for a live region to report. Whatever it triggers owns that.
  */
 export const IconButton: FC<IconButtonProps> = ({
 	icon,
 	label,
 	variant = 'solid',
 	size = 'md',
-	tooltipPlacement = 'top',
 	dataTestId,
 	...buttonProps
 }) => {
 	const base = dataTestId ?? ICON_BUTTON_TESTIDS.BASE
 
 	return (
-		<Tooltip
-			content={label}
-			placement={tooltipPlacement}
-			dataTestId={`${base}${ICON_BUTTON_TESTIDS.TOOLTIP_SUFFIX}`}
-		>
+		<Tooltip content={label} dataTestId={`${base}${ICON_BUTTON_TESTIDS.TOOLTIP_SUFFIX}`}>
 			<button
 				{...buttonProps}
 				type="button"

@@ -19,3 +19,18 @@
 .withTooltipRoom {
 	padding-top: var(--space-12);
 }
+
+.sizeGrid {
+	display: grid;
+	gap: var(--space-3);
+}
+
+/* Each variant gets its own row so onWood can carry the wood behind it while
+   the rest stay on the page. */
+.sizeRow {
+	display: flex;
+	gap: var(--space-4);
+	align-items: center;
+	padding: var(--space-3);
+	border-radius: var(--radius-md);
+}

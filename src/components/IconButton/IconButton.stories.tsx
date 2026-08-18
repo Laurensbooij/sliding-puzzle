@@ -5,17 +5,21 @@ import { expect, userEvent, waitFor, within } from 'storybook/test'
 import { IconButton } from './IconButton'
 import type { IconButtonVariant } from './IconButton'
 import styles from './IconButton.stories.module.css'
-import { ICON_BUTTON_SIZES, ICON_BUTTON_TESTIDS } from './constants'
+import { ICON_BUTTON_SIZES, ICON_BUTTON_TESTIDS, ICON_BUTTON_VARIANTS } from './constants'
 
 const TOOLTIP_TESTID = `${ICON_BUTTON_TESTIDS.BASE}${ICON_BUTTON_TESTIDS.TOOLTIP_SUFFIX}`
 
-/** The states the Figma grid draws, as the forced pseudo-classes they are. */
+/**
+ * The pointer-transient states the Figma grid draws, forced rather than
+ * simulated — synthetic events never match a CSS pseudo-class. Focus is absent
+ * on purpose: it is real DOM focus below, so `:focus-visible` actually matches.
+ * Disabled is an attribute, not a pseudo-class the addon can force.
+ */
 const PSEUDO_BY_STATE = {
 	default: {},
 	hover: { hover: true },
 	pressed: { active: true },
-	focus: { focusVisible: true },
-	// Disabled is an attribute, not a pseudo-class the addon can force.
+	focus: {},
 	disabled: {},
 } as const
 
@@ -49,6 +53,8 @@ type Story = StoryObj<typeof meta>
 const gridStory = (variant: IconButtonVariant, state: IconButtonState): Story => ({
 	args: { variant, disabled: state === 'disabled' },
 	parameters: { pseudo: PSEUDO_BY_STATE[state] },
+	// Tabbing rather than .focus(), so :focus-visible actually matches.
+	play: state === 'focus' ? async () => await userEvent.tab() : undefined,
 })
 
 export const Solid: Story = gridStory('solid', 'default')
@@ -75,14 +81,26 @@ export const OnWoodPressed: Story = gridStory('onWood', 'pressed')
 export const OnWoodFocused: Story = gridStory('onWood', 'focus')
 export const OnWoodDisabled: Story = gridStory('onWood', 'disabled')
 
-/** The three control heights: sm 32 · md 40 · lg 48, all past the 24px floor. */
+/**
+ * Every size in every variant: sm 32 · md 40 · lg 48, all past the 24px floor.
+ * The grid above fixes size at md, so this is where a 1px border on a 32px box
+ * gets looked at — the pairing most likely to go wrong and least likely to show
+ * at md.
+ */
 export const Sizes: Story = {
-	render: (args) => (
-		<>
-			{ICON_BUTTON_SIZES.map((size) => (
-				<IconButton key={size} {...args} size={size} />
+	render: ({ size: _size, variant: _variant, ...args }) => (
+		<div className={styles.sizeGrid}>
+			{ICON_BUTTON_VARIANTS.map((variant) => (
+				<div
+					key={variant}
+					className={cx(styles.sizeRow, variant === 'onWood' && styles.wood)}
+				>
+					{ICON_BUTTON_SIZES.map((size) => (
+						<IconButton key={size} {...args} variant={variant} size={size} />
+					))}
+				</div>
 			))}
-		</>
+		</div>
 	),
 }
 
@@ -98,25 +116,33 @@ export const Row: Story = {
 	),
 }
 
+/** The chip opens into the top layer, so the canvas has to leave it room. */
+const withTooltipRoom: NonNullable<Story['decorators']> = [
+	(Story) => (
+		<div className={cx(styles.canvas, styles.withTooltipRoom)}>
+			<Story />
+		</div>
+	),
+]
+
+/** Waits out the entry fade, so the story settles on the state axe should see. */
+const settleOpen = async (canvas: ReturnType<typeof within>) => {
+	const chip = await canvas.findByTestId(TOOLTIP_TESTID)
+	await waitFor(() => expect(chip).toBeVisible())
+}
+
 /**
  * The label as the sighted user gets it. Real hover, not a forced pseudo-class:
  * the chip opens on a pointer event, which `pseudo` cannot fire.
  */
 export const TooltipOnHover: Story = {
-	decorators: [
-		(Story) => (
-			<div className={cx(styles.canvas, styles.withTooltipRoom)}>
-				<Story />
-			</div>
-		),
-	],
+	decorators: withTooltipRoom,
 	play: async ({ canvasElement }) => {
 		const canvas = within(canvasElement)
 		const button = canvas.getByRole('button')
 		await userEvent.hover(button)
 
-		const chip = await canvas.findByTestId(TOOLTIP_TESTID)
-		await waitFor(() => expect(chip).toBeVisible())
+		await settleOpen(canvas)
 	},
 }
 
@@ -125,20 +151,32 @@ export const TooltipOnHover: Story = {
  * keyboard user sees, and evidence the chip never covers the ring (SC 2.4.11).
  */
 export const TooltipOnFocus: Story = {
-	decorators: [
-		(Story) => (
-			<div className={cx(styles.canvas, styles.withTooltipRoom)}>
-				<Story />
-			</div>
-		),
-	],
+	decorators: withTooltipRoom,
 	play: async ({ canvasElement }) => {
 		const canvas = within(canvasElement)
 		const button = canvas.getByRole('button')
 		await userEvent.tab()
 
-		const chip = await canvas.findByTestId(TOOLTIP_TESTID)
 		await expect(button).toHaveFocus()
-		await waitFor(() => expect(chip).toBeVisible())
+		await settleOpen(canvas)
+	},
+}
+
+/**
+ * The label has to reach a user who cannot press the control — "why is this
+ * off?" is exactly when the name is worth reading. A disabled button is not
+ * focusable, so hover is the only way in, and browsers suppress its own pointer
+ * events: this story is the standing check that the chip still opens, because
+ * jsdom cannot answer it (the popover shim has no hit testing).
+ */
+export const TooltipWhileDisabled: Story = {
+	args: { disabled: true },
+	decorators: withTooltipRoom,
+	play: async ({ canvasElement }) => {
+		const canvas = within(canvasElement)
+		const button = canvas.getByRole('button')
+		await userEvent.hover(button)
+
+		await settleOpen(canvas)
 	},
 }

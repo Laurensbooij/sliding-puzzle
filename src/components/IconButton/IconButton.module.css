@@ -31,6 +31,9 @@
 /* The focus ring pair Figma draws — a 2px ring on a 2px page-coloured spacer —
    is one outline at a positive offset. The spacer is a Figma-side device for
    `outline-offset`, which it has no property for; it is never a second element.
+   Figma has to paint that gap the page colour because it cannot see through;
+   the offset shows whatever the control actually sits on, which is the same
+   thing on the page and the right thing anywhere else.
    Nothing here clips overflow, so the ring is never obscured (SC 2.4.11). */
 .button:focus-visible {
 	outline: 2px solid var(--focus-ring);
