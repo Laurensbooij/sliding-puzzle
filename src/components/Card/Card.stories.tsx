@@ -9,7 +9,7 @@ const SampleContent = () => (
 	<>
 		<h3 style={{ font: 'var(--heading)', color: 'var(--text-strong)' }}>Records</h3>
 		<p style={{ font: 'var(--body-sm)', color: 'var(--text-muted)' }}>
-			Solve a puzzle and it lands here.
+			Solve a board and it lands here.
 		</p>
 	</>
 )

@@ -1,26 +1,10 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
+import { Check } from 'lucide-react'
 
 import { Badge } from './Badge'
 import type { BadgeTone } from './Badge'
 
 const tones: BadgeTone[] = ['neutral', 'accent', 'amber', 'danger', 'inverse']
-
-/**
- * Stand-in for the design system's Icon component (a separate ticket): a Lucide
- * `check` glyph at the imported 24×24 / stroke-2 geometry, sized by Badge's slot.
- */
-const CheckGlyph = () => (
-	<svg
-		viewBox="0 0 24 24"
-		fill="none"
-		stroke="currentColor"
-		strokeWidth="2"
-		strokeLinecap="round"
-		strokeLinejoin="round"
-	>
-		<path d="M20 6 9 17l-5-5" />
-	</svg>
-)
 
 const meta = {
 	title: 'Components/Badge',
@@ -57,7 +41,7 @@ export const WithIcon: Story = {
 	render: (args) => (
 		<div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
 			{tones.map((tone) => (
-				<Badge key={tone} {...args} tone={tone} icon={<CheckGlyph />} />
+				<Badge key={tone} {...args} tone={tone} icon={<Check />} />
 			))}
 		</div>
 	),

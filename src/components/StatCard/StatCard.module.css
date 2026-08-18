@@ -20,8 +20,8 @@
 	white-space: nowrap;
 
 	/* Figma specifies 70%, which drops the accent tone's label to 3.81:1 — below
-	   AA. 85% is the least mute that clears 4.5:1 in every tone. */
-	opacity: 0.85;
+	   AA for 12px text. 80% is the least mute that clears 4.5:1 in every tone. */
+	opacity: 0.8;
 }
 
 .icon {

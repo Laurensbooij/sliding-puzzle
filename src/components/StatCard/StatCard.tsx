@@ -1,11 +1,14 @@
 import type { ComponentPropsWithoutRef, FC, ReactNode } from 'react'
+import { useId } from 'react'
 
 import styles from './StatCard.module.css'
 import { STAT_CARD_TESTIDS } from './constants'
 
 export type StatCardTone = 'default' | 'accent' | 'onWood'
 
-export interface StatCardProps extends ComponentPropsWithoutRef<'dl'> {
+// Content comes from `label` and `value`; `children` would be silently dropped
+// by the <dt>/<dd> pair, so it is not part of the API.
+export interface StatCardProps extends Omit<ComponentPropsWithoutRef<'dl'>, 'children'> {
 	/** What the statistic is — rendered as the uppercase micro-label. */
 	label: ReactNode
 	/** The statistic itself, set in tabular mono so a counter never jitters. */
@@ -22,8 +25,9 @@ export interface StatCardProps extends ComponentPropsWithoutRef<'dl'> {
  * A read-out for a single game statistic — moves, time, best.
  *
  * Modelled as a description list because that is what it is: the label is the
- * term, the value its definition. That pairing is what assistive technology
- * reads, so the value never arrives as a bare number.
+ * term, the value its definition. The value points back at its label with
+ * `aria-labelledby`, so a screen reader lands on "Moves, 042" rather than a
+ * bare number — `<dl>` itself exposes no role that could carry that name.
  */
 export const StatCard: FC<StatCardProps> = ({
 	label,
@@ -35,6 +39,7 @@ export const StatCard: FC<StatCardProps> = ({
 	...listProps
 }) => {
 	const base = dataTestId ?? STAT_CARD_TESTIDS.BASE
+	const labelId = useId()
 
 	return (
 		<dl
@@ -42,7 +47,11 @@ export const StatCard: FC<StatCardProps> = ({
 			data-testid={base}
 			{...listProps}
 		>
-			<dt className={styles.label} data-testid={`${base}${STAT_CARD_TESTIDS.LABEL_SUFFIX}`}>
+			<dt
+				className={styles.label}
+				id={labelId}
+				data-testid={`${base}${STAT_CARD_TESTIDS.LABEL_SUFFIX}`}
+			>
 				{icon && (
 					<span
 						className={styles.icon}
@@ -54,7 +63,11 @@ export const StatCard: FC<StatCardProps> = ({
 				)}
 				{label}
 			</dt>
-			<dd className={styles.value} data-testid={`${base}${STAT_CARD_TESTIDS.VALUE_SUFFIX}`}>
+			<dd
+				className={styles.value}
+				aria-labelledby={labelId}
+				data-testid={`${base}${STAT_CARD_TESTIDS.VALUE_SUFFIX}`}
+			>
 				{value}
 			</dd>
 		</dl>
