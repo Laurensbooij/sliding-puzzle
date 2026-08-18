@@ -10,23 +10,28 @@
 
 	/* The position area is only as wide as the trigger, and the UA's
 	   `width: fit-content` would collapse the text to that. Size to the content
-	   instead and let max-width do the wrapping. */
+	   instead. The design names icon-only controls, so a chip should never get
+	   near this width — it is a guard, not a designed wrapping state. */
 	width: max-content;
 	max-width: 18rem;
 
+	/* Figma: "Four placements, each offset 6px from the control." The spacing
+	   ramp steps 4 → 8 with no 6, so compose it rather than invent an alias. */
+	--tooltip-offset: calc(var(--space-1) + var(--space-05));
+
 	/* Uniform gap from the trigger, whatever the placement. */
-	margin: var(--space-2);
+	margin: var(--tooltip-offset);
 
 	/* The popover UA sheet sets overflow: auto, which would clip the hover
 	   bridge below back to the padding box and undo it. */
 	overflow: visible;
 	border: none;
-	border-radius: var(--radius-sm);
-	padding: var(--space-2) var(--space-3);
+	border-radius: var(--radius-xs);
+	padding: var(--space-1) var(--space-2);
 	background-color: var(--surface-inverse);
 	box-shadow: var(--shadow-2);
 	color: var(--text-inverse);
-	font: var(--body-sm);
+	font: var(--label);
 	position-anchor: var(--tooltip-anchor);
 	position-area: block-start center;
 	position-try-fallbacks: flip-block, flip-inline;
@@ -44,12 +49,15 @@
 		overlay var(--dur-fast) allow-discrete;
 }
 
-/* WCAG 1.4.13 hoverable: a transparent bridge across the margin gap, so the
-   pointer reaches the tooltip without ever leaving the anchor's subtree. */
+/* WCAG 1.4.13 hoverable: a transparent bridge across the offset gap, so the
+   pointer reaches the tooltip without ever leaving the anchor's subtree. This
+   is a deliberate deviation from Figma's "never takes pointer events" — a chip
+   the pointer cannot land on disappears the moment it leaves the trigger,
+   which fails Hoverable outright. Matched to the offset so no gap is left. */
 .tooltip::before {
 	content: '';
 	position: absolute;
-	inset: calc(-1 * var(--space-2));
+	inset: calc(-1 * var(--tooltip-offset));
 }
 
 .tooltip[data-placement='bottom'] {

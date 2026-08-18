@@ -10,6 +10,7 @@ export type TooltipPlacement = 'top' | 'right' | 'bottom' | 'left'
 /** The subset of trigger props the tooltip reads and augments. */
 export interface TooltipTriggerProps {
 	'aria-describedby'?: string
+	title?: string
 }
 
 export interface TooltipProps {
@@ -24,7 +25,8 @@ export interface TooltipProps {
 }
 
 /**
- * Supplementary text anchored to a trigger, shown on hover *and* on focus.
+ * Names the control it wraps, on hover *and* on keyboard focus. One flat dark
+ * chip, no arrow, offset 6px from the trigger on all four placements.
  *
  * Built on the popover API and CSS anchor positioning (ADR-0011): the top layer
  * frees it from every ancestor's overflow and stacking context, so no portal is
@@ -33,14 +35,14 @@ export interface TooltipProps {
  * from anywhere, since the pointer may hover while focus sits elsewhere), and
  * persistent (nothing times it out).
  *
- * Not a toggletip: the content is supplementary, never the trigger's only label.
+ * Not a toggletip, and never the trigger's only label: the design has it name
+ * icon-only controls whose `aria-label` already carries that name, so the chip
+ * is the sighted half of a label AT already has. It must never hold help copy,
+ * error text, or anything a user has to read to proceed.
  *
- * Unlike every other shared component, this one has **no Figma component set** —
- * the design file's pages run Button, IconButton, Badge, Card, StatCard,
- * SegmentedControl, Switch, Select, Dialog and stop. The surface, radius,
- * padding, type and shadow below are therefore derived from Foundations and the
- * system's own rule that anything which is not the frame or a tile is flat
- * chrome. Retrace them against the real component set once it lands (SLI-29).
+ * One deliberate deviation from Figma, which asks that the chip "never takes
+ * pointer events": it has to, or WCAG 1.4.13 Hoverable fails. See the bridge in
+ * the stylesheet.
  */
 export const Tooltip: FC<TooltipProps> = ({ content, placement = 'top', children, dataTestId }) => {
 	// Hover and focus are tracked apart, because either alone keeps the tooltip
@@ -103,7 +105,9 @@ export const Tooltip: FC<TooltipProps> = ({ content, placement = 'top', children
 				if (!isHovered) setIsDismissed(false)
 			}}
 		>
-			{cloneElement(children, { 'aria-describedby': describedBy })}
+			{/* The native title is dropped, not forwarded: leaving it would give the
+			    browser a second, unstyled bubble alongside this one. */}
+			{cloneElement(children, { 'aria-describedby': describedBy, title: undefined })}
 			<span
 				ref={popoverRef}
 				id={tooltipId}

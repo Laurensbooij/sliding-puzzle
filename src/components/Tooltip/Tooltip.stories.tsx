@@ -34,7 +34,7 @@ const meta = {
 	title: 'Components/Tooltip',
 	component: Tooltip,
 	args: {
-		content: 'Fewer moves is better',
+		content: 'Records',
 		children: <TriggerButton />,
 	},
 	decorators: [
@@ -49,7 +49,7 @@ const meta = {
 export default meta
 type Story = StoryObj<typeof meta>
 
-/** Resting state: the tooltip is out of the top layer and out of the a11y tree. */
+/** Resting state: the chip is out of the top layer and out of the a11y tree. */
 export const Closed: Story = {}
 
 export const Top: Story = {
@@ -69,14 +69,6 @@ export const Bottom: Story = {
 
 export const Left: Story = {
 	args: { placement: 'left' },
-	play: openOnHover,
-}
-
-/** Content past the max width wraps rather than stretching across the viewport. */
-export const LongContent: Story = {
-	args: {
-		content: 'Arrow keys pick the tile next to the gap, and Enter slides it into place.',
-	},
 	play: openOnHover,
 }
 

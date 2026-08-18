@@ -81,6 +81,19 @@ describe('Tooltip', () => {
 		expect(trigger).toHaveAccessibleDescription(`Randomises the tiles ${CONTENT}`)
 	})
 
+	it('strips the trigger of a native title, so only one chip ever shows', () => {
+		renderWithProviders(
+			<Tooltip content={CONTENT}>
+				<button type="button" title={CONTENT}>
+					{TRIGGER_NAME}
+				</button>
+			</Tooltip>,
+		)
+
+		const trigger = screen.getByRole('button', { name: TRIGGER_NAME })
+		expect(trigger).not.toHaveAttribute('title')
+	})
+
 	it('closes when the pointer leaves the trigger', async () => {
 		const user = userEvent.setup()
 		renderTooltip()
