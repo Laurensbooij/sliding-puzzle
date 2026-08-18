@@ -1,5 +1,5 @@
+import { GAP, createBoard, movableTiles } from '@engine'
 import type { Meta, StoryObj } from '@storybook/react-vite'
-import { userEvent, within } from 'storybook/test'
 
 import { Tile } from './Tile'
 
@@ -58,31 +58,17 @@ export const NotMovable: Story = {
 
 /** Figma `State=hover selectable`: the glass brightens and the bead swells, no hue is added. */
 export const Hovered: Story = {
-	play: async ({ canvasElement }) => {
-		const canvas = within(canvasElement)
-		const tileButton = canvas.getByRole('button')
-		await userEvent.hover(tileButton)
-	},
+	parameters: { pseudo: { hover: true } },
 }
 
 /** Figma `State=pressed`: warm inner shadow, scale .985, no translation, no shadow growth. */
 export const Pressed: Story = {
-	play: async ({ canvasElement }) => {
-		const canvas = within(canvasElement)
-		const tileButton = canvas.getByRole('button')
-		await userEvent.pointer({ keys: '[MouseLeft>]', target: tileButton })
-	},
+	parameters: { pseudo: { active: true } },
 }
 
 /** Figma `State=focus`: the on-wood ring draws outside the tile, so nothing obscures it. */
 export const Focused: Story = {
-	// Focused directly rather than by Tab: the preview iframe puts Storybook's
-	// own controls ahead of the story in the tab order.
-	play: ({ canvasElement }) => {
-		const canvas = within(canvasElement)
-		const tileButton = canvas.getByRole('button')
-		tileButton.focus()
-	},
+	parameters: { pseudo: { focusVisible: true } },
 }
 
 export const WithoutLabel: Story = {
@@ -90,16 +76,32 @@ export const WithoutLabel: Story = {
 }
 
 /**
- * Every tile of a solved board, each showing its own fragment of one shared
- * source image — the check that the home-cell offsets line up.
+ * A solved board with its gap in the bottom-right cell: each tile shows its own
+ * fragment of one shared source image, and only the tiles sharing the gap's row
+ * or column carry a bead, because only those can move.
  */
 export const SolvedBoard: Story = {
 	parameters: { panelColumns: BOARD_COLS },
-	render: (args) => (
-		<>
-			{Array.from({ length: BOARD_ROWS * BOARD_COLS }, (_, tile) => (
-				<Tile key={tile} {...args} tile={tile} showLabel={false} />
-			))}
-		</>
-	),
+	render: (args) => {
+		const board = createBoard(BOARD_ROWS, BOARD_COLS)
+		const movable = new Set(movableTiles(board))
+
+		return (
+			<>
+				{board.cells.map((tile, cell) =>
+					tile === GAP ? (
+						<div key={cell} />
+					) : (
+						<Tile
+							key={cell}
+							{...args}
+							tile={tile}
+							movable={movable.has(tile)}
+							showLabel={false}
+						/>
+					),
+				)}
+			</>
+		)
+	},
 }
