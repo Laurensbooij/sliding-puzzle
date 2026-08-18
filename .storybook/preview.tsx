@@ -9,6 +9,12 @@ const preview: Preview = {
 			// Fail stories on WCAG violations rather than just warning — AA is a
 			// baseline requirement here, not a nice-to-have.
 			test: 'error',
+			config: {
+				rules: [
+					// Off by default in axe — opt in per docs/conventions/accessibility.md.
+					{ id: 'target-size', enabled: true },
+				],
+			},
 		},
 	},
 	globalTypes: {

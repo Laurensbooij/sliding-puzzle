@@ -8,9 +8,11 @@ paths:
 
 # Testing conventions
 
-Two Vitest projects, split by file extension: **`.spec.ts` runs in node** (engine
-rules, catalogues, lint rules, hooks — no DOM) and **`.spec.tsx` runs in jsdom**
-with Testing Library. Specs are colocated.
+Three Vitest projects. Two split by file extension: **`.spec.ts` runs in node**
+(engine rules, catalogues, lint rules, hooks — no DOM) and **`.spec.tsx` runs in
+jsdom** with Testing Library. Specs are colocated. The third, **`storybook`**, scans
+every story with axe in headless Chromium. See
+[accessibility.md](accessibility.md).
 
 Accessibility gates and the per-component a11y acceptance criteria live in
 [accessibility.md](accessibility.md).
@@ -28,8 +30,8 @@ another locale.
   an accessibility bug before reaching for an escape hatch.
 - `getByTestId` only for elements with **no accessible identity** (decorative layers,
   the gap) — and then always via the `*_TESTIDS` constants, never a raw string.
-- Enforced by `eslint-plugin-testing-library`; stories are documentation and Chromatic
-  snapshots, not tests.
+- Enforced by `eslint-plugin-testing-library`. Stories carry documentation, Chromatic
+  snapshots, and axe scans — behavioural assertions live in specs, not stories.
 
 ## Style rules
 
