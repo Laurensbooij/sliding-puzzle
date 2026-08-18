@@ -23,6 +23,8 @@
 	block-size: 100%;
 }
 
+/* Each tinted tone pairs its surface with the matching `*-soft-text` token —
+   the ramp steps those resolve to are the ones that clear WCAG AA at 12px. */
 .neutral {
 	background-color: var(--ink-100);
 	color: var(--ink-700);
@@ -30,23 +32,17 @@
 
 .accent {
 	background-color: var(--surface-accent-soft);
-	color: var(--teal-800);
+	color: var(--accent-soft-text);
 }
 
 .amber {
 	background-color: var(--surface-reward-soft);
-
-	/* amber/600 on this tint is 2.51:1 — below AA for 12px text. amber/800 is the
-	   nearest ramp step that clears it, at 6.07:1. Figma corrected to match. */
-	color: var(--amber-800);
+	color: var(--reward-soft-text);
 }
 
 .danger {
 	background-color: var(--surface-danger-soft);
-
-	/* rose/600 on this tint is 4.13:1 — just under AA. rose/700 clears it at
-	   5.81:1. Figma corrected to match. */
-	color: var(--rose-700);
+	color: var(--danger-soft-text);
 }
 
 .inverse {

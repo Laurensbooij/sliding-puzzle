@@ -396,6 +396,14 @@
         "$extensions": {
           "mode": {}
         }
+      },
+      "soft-text": {
+        "$type": "color",
+        "$value": "{Primitives.rose.700}",
+        "$description": "",
+        "$extensions": {
+          "mode": {}
+        }
       }
     },
     "reward": {
@@ -408,6 +416,14 @@
       "deep": {
         "$type": "color",
         "$value": "{Primitives.amber.700}",
+        "$description": "",
+        "$extensions": {
+          "mode": {}
+        }
+      },
+      "soft-text": {
+        "$type": "color",
+        "$value": "{Primitives.amber.800}",
         "$description": "",
         "$extensions": {
           "mode": {}

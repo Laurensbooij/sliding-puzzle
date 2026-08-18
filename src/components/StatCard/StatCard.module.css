@@ -52,7 +52,7 @@
 
 .accent {
 	background-color: var(--surface-accent-soft);
-	color: var(--teal-800);
+	color: var(--accent-soft-text);
 }
 
 /* No token carries the on-wood fill — Figma leaves it an unbound 14% wash of
