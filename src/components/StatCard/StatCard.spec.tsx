@@ -11,7 +11,7 @@ import { STAT_CARD_TESTIDS } from './constants'
 const LABEL = 'Moves'
 const VALUE = '042'
 
-const tones: StatCardProps['tone'][] = ['default', 'accent', 'onWood']
+const tones: StatCardProps['tone'][] = ['neutral', 'accent', 'onWood']
 
 /**
  * The one render for every case. `label` and `value` are the component's only

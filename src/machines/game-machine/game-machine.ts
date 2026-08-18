@@ -105,6 +105,9 @@ export const gameMachine = setup({
 						const moves = movesForCell(context.board, event.cell)
 						return {
 							board: moves.reduce(applyMove, context.board),
+							// Tiles moved, not presses: CONTEXT.md defines a Move as the
+							// relocation of one tile into the gap, so a press that slides a
+							// row of three counts three. Deliberate — do not collapse to +1.
 							moveCount: context.moveCount + moves.length,
 						}
 					}),

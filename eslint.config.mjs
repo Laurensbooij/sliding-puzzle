@@ -75,7 +75,18 @@ const enginePurityPatterns = [
 
 export default tseslint.config(
 	{
-		ignores: ['dist', 'coverage', 'storybook-static', 'src/styles/tokens.css', '.agents'],
+		// `.claude/worktrees` holds whole checkouts of this repo — agent worktrees,
+		// each with its own `.agents` fixtures. Flat-config ignore globs are
+		// anchored at the config's directory, so the bare `.agents` entry only
+		// covers the top-level one; without this line ESLint lints every worktree.
+		ignores: [
+			'dist',
+			'coverage',
+			'storybook-static',
+			'src/styles/tokens.css',
+			'.agents',
+			'.claude/worktrees',
+		],
 	},
 	{
 		files: [

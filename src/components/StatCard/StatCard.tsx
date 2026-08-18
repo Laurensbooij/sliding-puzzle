@@ -1,10 +1,11 @@
+import { cx } from '@/lib/cx'
 import type { ComponentPropsWithoutRef, FC, ReactNode } from 'react'
 import { useId } from 'react'
 
 import styles from './StatCard.module.css'
 import { STAT_CARD_TESTIDS } from './constants'
 
-export type StatCardTone = 'default' | 'accent' | 'onWood'
+export type StatCardTone = 'neutral' | 'accent' | 'onWood'
 
 // Content comes from `label` and `value`; `children` would be silently dropped
 // by the <dt>/<dd> pair, so it is not part of the API.
@@ -33,7 +34,7 @@ export const StatCard: FC<StatCardProps> = ({
 	label,
 	value,
 	icon,
-	tone = 'default',
+	tone = 'neutral',
 	dataTestId,
 	className,
 	...listProps
@@ -43,7 +44,7 @@ export const StatCard: FC<StatCardProps> = ({
 
 	return (
 		<dl
-			className={[styles.statCard, styles[tone], className].filter(Boolean).join(' ')}
+			className={cx(styles.statCard, styles[tone], className)}
 			data-testid={base}
 			{...listProps}
 		>

@@ -8,27 +8,27 @@
 	flex-shrink: 0;
 }
 
-.icon[data-size='xs'] {
+.xs {
 	width: var(--space-3);
 	height: var(--space-3);
 }
 
-.icon[data-size='sm'] {
+.sm {
 	width: var(--space-4);
 	height: var(--space-4);
 }
 
-.icon[data-size='md'] {
+.md {
 	width: var(--space-5);
 	height: var(--space-5);
 }
 
-.icon[data-size='lg'] {
+.lg {
 	width: var(--space-6);
 	height: var(--space-6);
 }
 
-.icon[data-size='xl'] {
+.xl {
 	width: var(--space-8);
 	height: var(--space-8);
 }

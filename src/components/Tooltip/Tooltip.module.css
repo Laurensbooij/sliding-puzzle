@@ -60,15 +60,15 @@
 	inset: calc(-1 * var(--tooltip-offset));
 }
 
-.tooltip[data-placement='bottom'] {
+.bottom {
 	position-area: block-end center;
 }
 
-.tooltip[data-placement='left'] {
+.left {
 	position-area: center inline-start;
 }
 
-.tooltip[data-placement='right'] {
+.right {
 	position-area: center inline-end;
 }
 

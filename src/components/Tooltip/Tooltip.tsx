@@ -1,3 +1,4 @@
+import { cx } from '@/lib/cx'
 import type { CSSProperties, FC, ReactElement, ReactNode } from 'react'
 import { cloneElement, useEffect, useId, useLayoutEffect, useRef, useState } from 'react'
 
@@ -133,8 +134,7 @@ export const Tooltip: FC<TooltipProps> = ({
 				role={describes ? 'tooltip' : undefined}
 				aria-hidden={describes ? undefined : true}
 				popover="manual"
-				className={styles.tooltip}
-				data-placement={placement}
+				className={cx(styles.tooltip, styles[placement])}
 				data-testid={dataTestId ?? TOOLTIP_TESTIDS.BASE}
 			>
 				{content}

@@ -1,3 +1,4 @@
+import { cx } from '@/lib/cx'
 import type { ComponentPropsWithoutRef, FC, ReactNode } from 'react'
 
 import styles from './Badge.module.css'
@@ -33,7 +34,7 @@ export const Badge: FC<BadgeProps> = ({
 
 	return (
 		<span
-			className={[styles.badge, styles[tone], className].filter(Boolean).join(' ')}
+			className={cx(styles.badge, styles[tone], className)}
 			data-testid={base}
 			{...spanProps}
 		>

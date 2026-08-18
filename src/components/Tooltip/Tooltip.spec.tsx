@@ -276,19 +276,29 @@ describe('Tooltip', () => {
 		expect(onClick).toHaveBeenCalledOnce()
 	})
 
-	it.each<TooltipPlacement>(['top', 'right', 'bottom', 'left'])(
-		'renders on the %s of its trigger',
-		async (placement) => {
-			const user = userEvent.setup()
-			renderComponent({ placement })
+	// Placement is a CSS-module class, not a data attribute
+	// (docs/conventions/components.md), and the class names are hashed — so the
+	// assertion is that the four placements are told apart in the DOM at all.
+	// Which side each one lands on is `position-area`, which jsdom cannot
+	// compute; the stories carry that half.
+	it('styles each placement distinctly', async () => {
+		const user = userEvent.setup()
+		const placements: TooltipPlacement[] = ['top', 'right', 'bottom', 'left']
+		const classNames: string[] = []
 
+		for (const placement of placements) {
+			const { unmount } = renderComponent({ placement })
 			const trigger = screen.getByRole('button', { name: TRIGGER_NAME })
 			await user.hover(trigger)
+			classNames.push(
+				screen.getByRole('tooltip', { name: CONTENT }).getAttribute('class') ?? '',
+			)
+			unmount()
+		}
 
-			const tooltip = screen.getByRole('tooltip', { name: CONTENT })
-			expect(tooltip).toHaveAttribute('data-placement', placement)
-		},
-	)
+		const distinct = new Set(classNames)
+		expect(distinct.size).toBe(placements.length)
+	})
 
 	it('lets a consumer override the base testid', async () => {
 		const user = userEvent.setup()

@@ -10,14 +10,14 @@ const meta = {
 		label: 'Moves',
 		value: '042',
 		icon: <Icon name="footprints" size="xs" />,
-		tone: 'default',
+		tone: 'neutral',
 	},
 } satisfies Meta<typeof StatCard>
 
 export default meta
 type Story = StoryObj<typeof meta>
 
-export const Default: Story = {}
+export const Neutral: Story = {}
 
 export const Accent: Story = {
 	args: { tone: 'accent' },
