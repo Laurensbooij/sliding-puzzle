@@ -1,0 +1,288 @@
+{
+  "Typography": {
+    "family": {
+      "display": {
+        "$type": "string",
+        "$value": "Outfit",
+        "$description": "",
+        "$extensions": {
+          "mode": {}
+        }
+      },
+      "ui": {
+        "$type": "string",
+        "$value": "Public Sans",
+        "$description": "",
+        "$extensions": {
+          "mode": {}
+        }
+      },
+      "numeric": {
+        "$type": "string",
+        "$value": "IBM Plex Mono",
+        "$description": "",
+        "$extensions": {
+          "mode": {}
+        }
+      }
+    },
+    "font-size": {
+      "2xs": {
+        "$type": "dimension",
+        "$value": {
+          "value": 11,
+          "unit": "px"
+        },
+        "$description": "",
+        "$extensions": {
+          "mode": {}
+        }
+      },
+      "xs": {
+        "$type": "dimension",
+        "$value": {
+          "value": 12,
+          "unit": "px"
+        },
+        "$description": "",
+        "$extensions": {
+          "mode": {}
+        }
+      },
+      "sm": {
+        "$type": "dimension",
+        "$value": {
+          "value": 14,
+          "unit": "px"
+        },
+        "$description": "",
+        "$extensions": {
+          "mode": {}
+        }
+      },
+      "base": {
+        "$type": "dimension",
+        "$value": {
+          "value": 16,
+          "unit": "px"
+        },
+        "$description": "",
+        "$extensions": {
+          "mode": {}
+        }
+      },
+      "lg": {
+        "$type": "dimension",
+        "$value": {
+          "value": 18,
+          "unit": "px"
+        },
+        "$description": "",
+        "$extensions": {
+          "mode": {}
+        }
+      },
+      "xl": {
+        "$type": "dimension",
+        "$value": {
+          "value": 22,
+          "unit": "px"
+        },
+        "$description": "",
+        "$extensions": {
+          "mode": {}
+        }
+      },
+      "2xl": {
+        "$type": "dimension",
+        "$value": {
+          "value": 28,
+          "unit": "px"
+        },
+        "$description": "",
+        "$extensions": {
+          "mode": {}
+        }
+      },
+      "3xl": {
+        "$type": "dimension",
+        "$value": {
+          "value": 36,
+          "unit": "px"
+        },
+        "$description": "",
+        "$extensions": {
+          "mode": {}
+        }
+      },
+      "4xl": {
+        "$type": "dimension",
+        "$value": {
+          "value": 46,
+          "unit": "px"
+        },
+        "$description": "",
+        "$extensions": {
+          "mode": {}
+        }
+      },
+      "5xl": {
+        "$type": "dimension",
+        "$value": {
+          "value": 60,
+          "unit": "px"
+        },
+        "$description": "",
+        "$extensions": {
+          "mode": {}
+        }
+      }
+    },
+    "weight": {
+      "regular": {
+        "$type": "string",
+        "$value": "Regular",
+        "$description": "",
+        "$extensions": {
+          "mode": {}
+        }
+      },
+      "medium": {
+        "$type": "string",
+        "$value": "Medium",
+        "$description": "",
+        "$extensions": {
+          "mode": {}
+        }
+      },
+      "semibold": {
+        "$type": "string",
+        "$value": "SemiBold",
+        "$description": "",
+        "$extensions": {
+          "mode": {}
+        }
+      },
+      "bold": {
+        "$type": "string",
+        "$value": "Bold",
+        "$description": "",
+        "$extensions": {
+          "mode": {}
+        }
+      }
+    },
+    "leading": {
+      "tight": {
+        "$type": "dimension",
+        "$value": {
+          "value": 105,
+          "unit": "px"
+        },
+        "$description": "",
+        "$extensions": {
+          "mode": {}
+        }
+      },
+      "snug": {
+        "$type": "dimension",
+        "$value": {
+          "value": 125,
+          "unit": "px"
+        },
+        "$description": "",
+        "$extensions": {
+          "mode": {}
+        }
+      },
+      "normal": {
+        "$type": "dimension",
+        "$value": {
+          "value": 150,
+          "unit": "px"
+        },
+        "$description": "",
+        "$extensions": {
+          "mode": {}
+        }
+      },
+      "relaxed": {
+        "$type": "dimension",
+        "$value": {
+          "value": 165,
+          "unit": "px"
+        },
+        "$description": "",
+        "$extensions": {
+          "mode": {}
+        }
+      }
+    },
+    "tracking": {
+      "tight": {
+        "$type": "dimension",
+        "$value": {
+          "value": -2,
+          "unit": "px"
+        },
+        "$description": "",
+        "$extensions": {
+          "mode": {}
+        }
+      },
+      "snug": {
+        "$type": "dimension",
+        "$value": {
+          "value": -1,
+          "unit": "px"
+        },
+        "$description": "",
+        "$extensions": {
+          "mode": {}
+        }
+      },
+      "normal": {
+        "$type": "dimension",
+        "$value": {
+          "value": 0,
+          "unit": "px"
+        },
+        "$description": "",
+        "$extensions": {
+          "mode": {}
+        }
+      },
+      "wide": {
+        "$type": "dimension",
+        "$value": {
+          "value": 4,
+          "unit": "px"
+        },
+        "$description": "",
+        "$extensions": {
+          "mode": {}
+        }
+      },
+      "caps": {
+        "$type": "dimension",
+        "$value": {
+          "value": 9,
+          "unit": "px"
+        },
+        "$description": "",
+        "$extensions": {
+          "mode": {}
+        }
+      }
+    },
+    "$extensions": {
+      "tokens-bruecke-meta": {
+        "useDTCG": true,
+        "spec": "https://www.designtokens.org/tr/2025.10/format/",
+        "colorMode": "hex",
+        "variableCollections": ["Primitives", "Color", "Spacing", "Typography", "Motion"],
+        "createdAt": "2026-08-18T07:11:14.482Z"
+      }
+    }
+  }
+}

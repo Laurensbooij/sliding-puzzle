@@ -50,8 +50,8 @@ exporter can replace it with only a conventions edit.
   to `tokens/figma/` only.
 - The `text/*` size group is renamed `font-size/*` in Figma before the first
   export so sizes and semantic text colors cannot collide (SLI-16).
-- Style Dictionary needs ≥ 5.4.0 (in `^5.1.0` range) for TokensBrücke's
-  DTCG-2025.10 dimension objects.
+- Style Dictionary needs ≥ 5.4.0 for TokensBrücke's DTCG-2025.10 dimension
+  objects (package.json pins `^5.5.1` since the cutover, SLI-17).
 - `prefers-reduced-motion` collapses duration tokens in a small hand-authored
   `src/styles/motion-preferences.css` — JSON cannot express media queries. JS
   that orchestrates motion reads durations from tokens (`getComputedStyle`),
@@ -59,3 +59,11 @@ exporter can replace it with only a conventions edit.
   net.
 - The CI drift gate (`pnpm tokens && git diff --exit-code`) already exists and
   covers both tiers.
+
+**Amended (first export, SLI-17):** the manual tier turned out smaller than
+planned. Easings fit in Figma after all — string variables holding
+`cubic-bezier(…)` — and composed `font` shorthands generate from the export's
+Typography styles, so the manual tier holds only the material stacks (plus
+glass extras) and the composed `transition` shorthands. Manual `material/*`
+entries override the export's same-named gradient styles, which lose their
+angles in DTCG.

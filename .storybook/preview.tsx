@@ -1,3 +1,5 @@
+import '@/styles/fonts'
+import '@/styles/motion-preferences.css'
 import '@/styles/reset.css'
 import '@/styles/tokens.css'
 import { I18nProvider, SUPPORTED_LOCALES } from '@i18n'

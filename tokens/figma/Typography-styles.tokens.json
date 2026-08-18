@@ -1,0 +1,213 @@
+{
+  "Typography-styles": {
+    "Display": {
+      "$type": "typography",
+      "$value": {
+        "fontFamily": "{Typography.family.display}",
+        "fontWeight": 700,
+        "fontStyle": "{Typography.weight.bold}",
+        "fontSize": "{Typography.font-size.4xl}",
+        "lineHeight": "105%",
+        "letterSpacing": "-2%",
+        "paragraphSpacing": {
+          "value": 0,
+          "unit": "px"
+        },
+        "paragraphIndent": {
+          "value": 0,
+          "unit": "px"
+        },
+        "textDecoration": "NONE",
+        "textCase": "ORIGINAL"
+      },
+      "$description": "",
+      "$extensions": {
+        "styleId": "S:6736c198b7220cb8aaa7d7159e7e725bb9d10f60,"
+      }
+    },
+    "Title": {
+      "$type": "typography",
+      "$value": {
+        "fontFamily": "{Typography.family.display}",
+        "fontWeight": 600,
+        "fontStyle": "{Typography.weight.semibold}",
+        "fontSize": "{Typography.font-size.2xl}",
+        "lineHeight": "125%",
+        "letterSpacing": "-2%",
+        "paragraphSpacing": {
+          "value": 0,
+          "unit": "px"
+        },
+        "paragraphIndent": {
+          "value": 0,
+          "unit": "px"
+        },
+        "textDecoration": "NONE",
+        "textCase": "ORIGINAL"
+      },
+      "$description": "",
+      "$extensions": {
+        "styleId": "S:29c8ac57ac1ae3f2d4ba6c3af704165107dc8626,"
+      }
+    },
+    "Heading": {
+      "$type": "typography",
+      "$value": {
+        "fontFamily": "{Typography.family.display}",
+        "fontWeight": 600,
+        "fontStyle": "{Typography.weight.semibold}",
+        "fontSize": "{Typography.font-size.lg}",
+        "lineHeight": "125%",
+        "letterSpacing": "-2%",
+        "paragraphSpacing": {
+          "value": 0,
+          "unit": "px"
+        },
+        "paragraphIndent": {
+          "value": 0,
+          "unit": "px"
+        },
+        "textDecoration": "NONE",
+        "textCase": "ORIGINAL"
+      },
+      "$description": "",
+      "$extensions": {
+        "styleId": "S:ab9a5c0a30e286bd36327afd24f06245abf18637,"
+      }
+    },
+    "Body": {
+      "$type": "typography",
+      "$value": {
+        "fontFamily": "{Typography.family.ui}",
+        "fontWeight": 400,
+        "fontStyle": "{Typography.weight.regular}",
+        "fontSize": "{Typography.font-size.base}",
+        "lineHeight": "150%",
+        "letterSpacing": "0%",
+        "paragraphSpacing": {
+          "value": 0,
+          "unit": "px"
+        },
+        "paragraphIndent": {
+          "value": 0,
+          "unit": "px"
+        },
+        "textDecoration": "NONE",
+        "textCase": "ORIGINAL"
+      },
+      "$description": "",
+      "$extensions": {
+        "styleId": "S:2a2460ab62191f0df7445fe2bc617f1956500fa0,"
+      }
+    },
+    "Body sm": {
+      "$type": "typography",
+      "$value": {
+        "fontFamily": "{Typography.family.ui}",
+        "fontWeight": 400,
+        "fontStyle": "{Typography.weight.regular}",
+        "fontSize": "{Typography.font-size.sm}",
+        "lineHeight": "150%",
+        "letterSpacing": "0%",
+        "paragraphSpacing": {
+          "value": 0,
+          "unit": "px"
+        },
+        "paragraphIndent": {
+          "value": 0,
+          "unit": "px"
+        },
+        "textDecoration": "NONE",
+        "textCase": "ORIGINAL"
+      },
+      "$description": "",
+      "$extensions": {
+        "styleId": "S:d5577217b9a886810ddcc8341797746c4f56104f,"
+      }
+    },
+    "Label": {
+      "$type": "typography",
+      "$value": {
+        "fontFamily": "{Typography.family.ui}",
+        "fontWeight": 600,
+        "fontStyle": "{Typography.weight.semibold}",
+        "fontSize": "{Typography.font-size.xs}",
+        "lineHeight": "120%",
+        "letterSpacing": "0%",
+        "paragraphSpacing": {
+          "value": 0,
+          "unit": "px"
+        },
+        "paragraphIndent": {
+          "value": 0,
+          "unit": "px"
+        },
+        "textDecoration": "NONE",
+        "textCase": "ORIGINAL"
+      },
+      "$description": "",
+      "$extensions": {
+        "styleId": "S:9e7d50db5dd2c8f559adac677d3d6cada4a2f814,"
+      }
+    },
+    "Label caps": {
+      "$type": "typography",
+      "$value": {
+        "fontFamily": "{Typography.family.ui}",
+        "fontWeight": 600,
+        "fontStyle": "{Typography.weight.semibold}",
+        "fontSize": "{Typography.font-size.xs}",
+        "lineHeight": "120%",
+        "letterSpacing": "9%",
+        "paragraphSpacing": {
+          "value": 0,
+          "unit": "px"
+        },
+        "paragraphIndent": {
+          "value": 0,
+          "unit": "px"
+        },
+        "textDecoration": "NONE",
+        "textCase": "UPPER"
+      },
+      "$description": "",
+      "$extensions": {
+        "styleId": "S:d848d6735d25707998f1f2a8d3c255659460de94,"
+      }
+    },
+    "Counter": {
+      "$type": "typography",
+      "$value": {
+        "fontFamily": "{Typography.family.numeric}",
+        "fontWeight": 600,
+        "fontStyle": "{Typography.weight.semibold}",
+        "fontSize": "{Typography.font-size.2xl}",
+        "lineHeight": "100%",
+        "letterSpacing": "0%",
+        "paragraphSpacing": {
+          "value": 0,
+          "unit": "px"
+        },
+        "paragraphIndent": {
+          "value": 0,
+          "unit": "px"
+        },
+        "textDecoration": "NONE",
+        "textCase": "ORIGINAL"
+      },
+      "$description": "",
+      "$extensions": {
+        "styleId": "S:acae40934e82a2f7da6003b22a7155a283f70256,"
+      }
+    },
+    "$extensions": {
+      "tokens-bruecke-meta": {
+        "useDTCG": true,
+        "spec": "https://www.designtokens.org/tr/2025.10/format/",
+        "colorMode": "hex",
+        "variableCollections": ["Primitives", "Color", "Spacing", "Typography", "Motion"],
+        "createdAt": "2026-08-18T07:11:14.482Z"
+      }
+    }
+  }
+}

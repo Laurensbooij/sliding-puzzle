@@ -1,0 +1,13 @@
+{
+  "transition": {
+    "control": {
+      "$value": "background-color var(--dur-fast) var(--ease-standard), color var(--dur-fast) var(--ease-standard), border-color var(--dur-fast) var(--ease-standard), box-shadow var(--dur-fast) var(--ease-standard), transform var(--dur-fast) var(--ease-standard)"
+    },
+    "tile": {
+      "$value": "left var(--dur-slide) var(--ease-slide), top var(--dur-slide) var(--ease-slide), box-shadow var(--dur-fast) var(--ease-standard), transform var(--dur-fast) var(--ease-standard)"
+    },
+    "tile-shuffle": {
+      "$value": "left var(--dur-shuffle) var(--ease-shuffle), top var(--dur-shuffle) var(--ease-shuffle)"
+    }
+  }
+}

@@ -21,9 +21,13 @@ class, no IDs, no `!important` (element selectors belong to the global reset onl
   - **`tokens/figma/`** — TokensBrücke export from Figma. Never hand-edit;
     re-export replaces it wholesale. Export profile: DTCG 2025.10 **on**,
     style export **on**, split by collection, hex colors.
-  - **`tokens/manual/`** — hand-owned: materials (wood/glass gradients),
-    easings, composed `transition`/`font` shorthands. The design prototype's
-    CSS is the reference when updating these.
+  - **`tokens/manual/`** — hand-owned: materials (wood/glass gradient stacks
+    plus glass blur/border/glow extras) and composed `transition` shorthands.
+    Easings ship in the export as Motion `ease/*` string variables, and `font`
+    shorthands are generated from its Typography styles — neither is manual.
+    The design prototype's CSS is the reference when updating this tier.
+    Manual `material/*` entries deliberately override the export's same-named
+    gradient styles: Figma's gradients lose their angles on export.
 - **CSS variable names mirror Figma variable paths** (`space/3` → `--space-3`).
   Never invent a differently-named alias for an existing token.
 - Export workflow: run TokensBrücke in Figma → save into `tokens/figma/` →
@@ -35,8 +39,8 @@ class, no IDs, no `!important` (element selectors belong to the global reset onl
 - Typefaces (Outfit, Public Sans, IBM Plex Mono) are **self-hosted via
   `@fontsource` packages** — no font CDN requests. Subset imports, woff2,
   `font-display: swap`.
-- Components reference families only through tokens (`--font-display`,
-  `--font-ui`, `--font-numeric`).
+- Components reference families only through tokens (`--family-display`,
+  `--family-ui`, `--family-numeric`).
 
 ## Units (lint-enforced)
 

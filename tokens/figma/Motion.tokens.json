@@ -1,0 +1,155 @@
+{
+  "Motion": {
+    "dur": {
+      "instant": {
+        "$type": "dimension",
+        "$value": {
+          "value": 80,
+          "unit": "px"
+        },
+        "$description": "",
+        "$extensions": {
+          "mode": {}
+        }
+      },
+      "shuffle": {
+        "$type": "dimension",
+        "$value": {
+          "value": 20,
+          "unit": "px"
+        },
+        "$description": "",
+        "$extensions": {
+          "mode": {}
+        }
+      },
+      "fast": {
+        "$type": "dimension",
+        "$value": {
+          "value": 140,
+          "unit": "px"
+        },
+        "$description": "",
+        "$extensions": {
+          "mode": {}
+        }
+      },
+      "slide": {
+        "$type": "dimension",
+        "$value": {
+          "value": 200,
+          "unit": "px"
+        },
+        "$description": "",
+        "$extensions": {
+          "mode": {}
+        }
+      },
+      "medium": {
+        "$type": "dimension",
+        "$value": {
+          "value": 280,
+          "unit": "px"
+        },
+        "$description": "",
+        "$extensions": {
+          "mode": {}
+        }
+      },
+      "slow": {
+        "$type": "dimension",
+        "$value": {
+          "value": 420,
+          "unit": "px"
+        },
+        "$description": "",
+        "$extensions": {
+          "mode": {}
+        }
+      },
+      "celebrate": {
+        "$type": "dimension",
+        "$value": {
+          "value": 900,
+          "unit": "px"
+        },
+        "$description": "",
+        "$extensions": {
+          "mode": {}
+        }
+      }
+    },
+    "stagger": {
+      "shuffle": {
+        "$type": "dimension",
+        "$value": {
+          "value": 24,
+          "unit": "px"
+        },
+        "$description": "",
+        "$extensions": {
+          "mode": {}
+        }
+      }
+    },
+    "ease": {
+      "standard": {
+        "$type": "string",
+        "$value": "cubic-bezier(.2,.8,.2,1)",
+        "$description": "",
+        "$extensions": {
+          "mode": {}
+        }
+      },
+      "out-quint": {
+        "$type": "string",
+        "$value": "cubic-bezier(.22,1,.36,1)",
+        "$description": "",
+        "$extensions": {
+          "mode": {}
+        }
+      },
+      "in-out": {
+        "$type": "string",
+        "$value": "cubic-bezier(.65,0,.35,1)",
+        "$description": "",
+        "$extensions": {
+          "mode": {}
+        }
+      },
+      "slide": {
+        "$type": "string",
+        "$value": "cubic-bezier(.32,1.14,.42,1)",
+        "$description": "",
+        "$extensions": {
+          "mode": {}
+        }
+      },
+      "shuffle": {
+        "$type": "string",
+        "$value": "cubic-bezier(.4,0,.3,1)",
+        "$description": "",
+        "$extensions": {
+          "mode": {}
+        }
+      },
+      "nudge": {
+        "$type": "string",
+        "$value": "cubic-bezier(.36,.07,.19,.97)",
+        "$description": "",
+        "$extensions": {
+          "mode": {}
+        }
+      }
+    },
+    "$extensions": {
+      "tokens-bruecke-meta": {
+        "useDTCG": true,
+        "spec": "https://www.designtokens.org/tr/2025.10/format/",
+        "colorMode": "hex",
+        "variableCollections": ["Primitives", "Color", "Spacing", "Typography", "Motion"],
+        "createdAt": "2026-08-18T07:11:14.482Z"
+      }
+    }
+  }
+}
