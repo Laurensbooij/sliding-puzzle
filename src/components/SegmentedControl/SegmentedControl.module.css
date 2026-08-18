@@ -19,27 +19,27 @@
 	white-space: nowrap;
 }
 
+/* The track owns the height; segments divide what is left. A plain border works
+   because Figma counts its stroke in layout, so both sides agree that the
+   control is one control-height tall in total. */
 .track {
 	display: flex;
+	height: var(--control-height-md);
 	gap: var(--space-1);
 	padding: var(--space-1);
+	border: 1px solid var(--border-subtle);
 	border-radius: var(--radius-pill);
 	background-color: var(--surface-sunken);
-
-	/* Figma strokes this line inside the 40px track, so a real border would push
-	   the control to 42. An outline takes no space, and the negative offset puts
-	   it where Figma draws it. Outlines follow border-radius, so the pill holds. */
-	outline: 1px solid var(--border-subtle);
-	outline-offset: -1px;
 }
 
-/* No overflow clipping anywhere on the track: the focus ring of an edge segment
-   sits outside it, and clipping would obscure it (SC 2.4.11). */
+/* No height of its own — `align-items: stretch` fills the track's content box,
+   so the segment tracks the token instead of restating it.
+   No overflow clipping anywhere on the track either: the focus ring of an edge
+   segment sits outside the segment, and clipping would obscure it (SC 2.4.11). */
 .segment {
 	position: relative;
 	display: grid;
 	place-items: center;
-	height: var(--control-height-sm);
 	padding-inline: var(--space-4);
 }
 
