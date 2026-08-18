@@ -1,0 +1,74 @@
+{
+  "material": {
+    "wood-grain-fine": {
+      "$value": "repeating-linear-gradient(96deg, rgba(64, 39, 21, 0.2) 0 2px, rgba(255, 255, 255, 0.05) 2px 4px, rgba(64, 39, 21, 0.1) 4px 7px, rgba(255, 255, 255, 0.03) 7px 11px)"
+    },
+    "wood-grain-broad": {
+      "$value": "repeating-linear-gradient(92deg, rgba(64, 39, 21, 0.16) 0 14px, rgba(216, 177, 132, 0.1) 14px 34px, rgba(64, 39, 21, 0.1) 34px 52px)"
+    },
+    "wood-figure": {
+      "$value": "radial-gradient(120% 60% at 18% 30%, rgba(232, 207, 174, 0.42), transparent 60%), radial-gradient(90% 70% at 82% 78%, rgba(64, 39, 21, 0.38), transparent 62%)"
+    },
+    "wood-base": {
+      "$value": "linear-gradient(165deg, var(--wood-500), var(--wood-700) 58%, var(--wood-900))"
+    },
+    "wood": {
+      "$value": "var(--material-wood-grain-fine), var(--material-wood-grain-broad), var(--material-wood-figure), var(--material-wood-base)"
+    },
+    "frame-bevel": {
+      "$value": "linear-gradient(180deg, rgba(255, 255, 255, 0.34), rgba(255, 255, 255, 0) 22%, rgba(43, 25, 12, 0.28))"
+    },
+    "frame-well": {
+      "$value": "linear-gradient(180deg, rgba(43, 25, 12, 0.55), rgba(43, 25, 12, 0.28))"
+    },
+    "glass-fill": {
+      "$value": "linear-gradient(150deg, rgba(255, 255, 255, 0.42), rgba(255, 255, 255, 0.14) 48%, rgba(255, 255, 255, 0.3))"
+    },
+    "glass-fill-strong": {
+      "$value": "linear-gradient(150deg, rgba(255, 255, 255, 0.6), rgba(255, 255, 255, 0.26) 50%, rgba(255, 255, 255, 0.44))"
+    },
+    "glass-sheen": {
+      "$value": "linear-gradient(125deg, rgba(255, 255, 255, 0.7) 0 16%, rgba(255, 255, 255, 0) 40%)"
+    },
+    "glass-border": {
+      "$value": "1px solid rgba(255, 255, 255, 0.68)"
+    },
+    "glass-border-color": {
+      "$value": "rgba(255, 255, 255, 0.68)"
+    },
+    "glass-blur": {
+      "$value": "14px"
+    },
+    "glass-blur-heavy": {
+      "$value": "22px"
+    },
+    "glass-saturate": {
+      "$value": "1.25"
+    },
+    "glass-glow-hover": {
+      "$value": "inset 0 0 0 1px rgba(255, 255, 255, 0.55), inset 0 0 22px rgba(255, 255, 255, 0.3)"
+    },
+    "glass-glow-press": {
+      "$value": "inset 0 0 0 1px rgba(255, 255, 255, 0.42), inset 0 2px 10px rgba(43, 25, 12, 0.18)"
+    },
+    "glass-bubble-border": {
+      "$value": "1px solid rgba(255, 255, 255, 0.95)"
+    },
+    "glass-bubble-blur": {
+      "$value": "blur(var(--material-glass-blur-heavy)) saturate(1.4)"
+    },
+    "glass-bubble-size": {
+      "$value": "38%"
+    }
+  },
+  "art": {
+    "ink": {
+      "$type": "color",
+      "$value": "{teal.800}"
+    },
+    "ink-alt": {
+      "$type": "color",
+      "$value": "{wood.900}"
+    }
+  }
+}

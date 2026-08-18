@@ -1,0 +1,19 @@
+/**
+ * Reduced-motion at the token layer (ADR-0010): collapsing the duration tokens
+ * silences token-reading JS (getComputedStyle) as well as CSS. The global
+ * reset's blanket kill switch stays as the safety net.
+ * --dur-instant and --dur-fast stay live: sub-150ms opacity/color fades carry
+ * no movement, and 1ms there would make state changes read as flicker.
+ * :root:root outranks tokens.css's :root, so the collapse survives the import
+ * sorter placing this file before tokens.css in the bundle.
+ */
+@media (prefers-reduced-motion: reduce) {
+	:root:root {
+		--dur-shuffle: 1ms;
+		--dur-slide: 1ms;
+		--dur-medium: 1ms;
+		--dur-slow: 1ms;
+		--dur-celebrate: 1ms;
+		--stagger-shuffle: 0ms;
+	}
+}

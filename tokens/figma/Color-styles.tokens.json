@@ -1,0 +1,125 @@
+{
+  "Color-styles": {
+    "material": {
+      "wood": {
+        "$type": "gradient",
+        "$value": [
+          {
+            "color": "#9a6a3f",
+            "position": 0
+          },
+          {
+            "color": "#6b4426",
+            "position": 0.5799999833106995
+          },
+          {
+            "color": "#402715",
+            "position": 1
+          }
+        ]
+      },
+      "frame-bevel": {
+        "$type": "gradient",
+        "$value": [
+          {
+            "color": "#ffffff57",
+            "position": 0
+          },
+          {
+            "color": "#ffffff00",
+            "position": 0.2199999988079071
+          },
+          {
+            "color": "#2b190c47",
+            "position": 1
+          }
+        ]
+      },
+      "frame-well": {
+        "$type": "gradient",
+        "$value": [
+          {
+            "color": "#2b190c8c",
+            "position": 0
+          },
+          {
+            "color": "#2b190c47",
+            "position": 1
+          }
+        ]
+      },
+      "glass-fill": {
+        "$type": "gradient",
+        "$value": [
+          {
+            "color": "#ffffff6b",
+            "position": 0
+          },
+          {
+            "color": "#ffffff24",
+            "position": 0.47999998927116394
+          },
+          {
+            "color": "#ffffff4d",
+            "position": 1
+          }
+        ]
+      },
+      "glass-fill-strong": {
+        "$type": "gradient",
+        "$value": [
+          {
+            "color": "#ffffff99",
+            "position": 0
+          },
+          {
+            "color": "#ffffff42",
+            "position": 0.5
+          },
+          {
+            "color": "#ffffff70",
+            "position": 1
+          }
+        ]
+      },
+      "glass-sheen": {
+        "$type": "gradient",
+        "$value": [
+          {
+            "color": "#ffffffb3",
+            "position": 0
+          },
+          {
+            "color": "#ffffffb3",
+            "position": 0.1599999964237213
+          },
+          {
+            "color": "#ffffff00",
+            "position": 0.4000000059604645
+          }
+        ]
+      },
+      "glass-bubble": {
+        "$type": "color",
+        "$value": "#ffffff38"
+      },
+      "glass-tint-accent": {
+        "$type": "color",
+        "$value": "#16a8922e"
+      },
+      "glass-tint-amber": {
+        "$type": "color",
+        "$value": "#f0a53733"
+      }
+    },
+    "$extensions": {
+      "tokens-bruecke-meta": {
+        "useDTCG": true,
+        "spec": "https://www.designtokens.org/tr/2025.10/format/",
+        "colorMode": "hex",
+        "variableCollections": ["Primitives", "Color", "Spacing", "Typography", "Motion"],
+        "createdAt": "2026-08-18T07:11:14.482Z"
+      }
+    }
+  }
+}
