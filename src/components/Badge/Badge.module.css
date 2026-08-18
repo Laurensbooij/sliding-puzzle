@@ -36,15 +36,16 @@
 .amber {
 	background-color: var(--surface-reward-soft);
 
-	/* Figma pairs this tint with amber/600, which lands at 2.5:1 — below AA for
-	   12px text. amber/800 is the nearest ramp step that clears 4.5:1. */
+	/* amber/600 on this tint is 2.51:1 — below AA for 12px text. amber/800 is the
+	   nearest ramp step that clears it, at 6.07:1. Figma corrected to match. */
 	color: var(--amber-800);
 }
 
 .danger {
 	background-color: var(--surface-danger-soft);
 
-	/* rose/600 on this tint is 4.13:1 — just under AA. rose/700 clears it. */
+	/* rose/600 on this tint is 4.13:1 — just under AA. rose/700 clears it at
+	   5.81:1. Figma corrected to match. */
 	color: var(--rose-700);
 }
 
