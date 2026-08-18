@@ -1,5 +1,6 @@
 import { renderWithProviders } from '@testing'
 import { screen } from '@testing-library/react'
+import type { RenderResult } from '@testing-library/react'
 import { userEvent } from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
 
@@ -7,7 +8,17 @@ import { Card } from './Card'
 import type { CardProps } from './Card'
 import { CARD_TESTIDS } from './constants'
 
+const CONTENT = 'Records'
+
 const paddings: CardProps['padding'][] = ['none', 'sm', 'md', 'lg']
+
+/**
+ * The one render for every case. `children` falls back to plain text, so a case
+ * spells out markup only when it needs something the panel wraps — a heading, or
+ * a focusable child.
+ */
+const renderComponent = ({ children = CONTENT, ...props }: Partial<CardProps> = {}): RenderResult =>
+	renderWithProviders(<Card {...props}>{children}</Card>)
 
 /**
  * WCAG 2.2 AA determinations for Card, per docs/conventions/accessibility.md.
@@ -20,29 +31,24 @@ const paddings: CardProps['padding'][] = ['none', 'sm', 'md', 'lg']
  */
 describe('Card', () => {
 	it('renders its children', () => {
-		renderWithProviders(
-			<Card>
-				<h2>Records</h2>
-			</Card>,
-		)
+		renderComponent({ children: <h2>{CONTENT}</h2> })
 
-		const heading = screen.getByRole('heading', { name: 'Records' })
+		const heading = screen.getByRole('heading', { name: CONTENT })
 		expect(heading).toBeVisible()
 	})
 
 	it('is a region named by the label its consumer gives it', () => {
-		renderWithProviders(
-			<Card aria-label="Records">
-				<p>Solve a board and it lands here.</p>
-			</Card>,
-		)
+		renderComponent({
+			'aria-label': CONTENT,
+			children: <p>Solve a board and it lands here.</p>,
+		})
 
-		const region = screen.getByRole('region', { name: 'Records' })
+		const region = screen.getByRole('region', { name: CONTENT })
 		expect(region).toBeVisible()
 	})
 
 	it('stays an unnamed generic container when no label is given', () => {
-		renderWithProviders(<Card>Records</Card>)
+		renderComponent()
 
 		const region = screen.queryByRole('region')
 		expect(region).not.toBeInTheDocument()
@@ -52,13 +58,12 @@ describe('Card', () => {
 	// Focus belongs to whatever the consumer nests inside it.
 	it('takes no focus itself and leaves its children keyboard-reachable', async () => {
 		const user = userEvent.setup()
-		renderWithProviders(
-			<Card aria-label="Records">
-				<button type="button">Play again</button>
-			</Card>,
-		)
+		renderComponent({
+			'aria-label': CONTENT,
+			children: <button type="button">Play again</button>,
+		})
 
-		const card = screen.getByRole('region', { name: 'Records' })
+		const card = screen.getByRole('region', { name: CONTENT })
 		const playAgain = screen.getByRole('button', { name: 'Play again' })
 		await user.tab()
 
@@ -67,29 +72,29 @@ describe('Card', () => {
 	})
 
 	it.each(paddings)('renders the %s padding step around its children', (padding) => {
-		renderWithProviders(<Card padding={padding}>Records</Card>)
+		renderComponent({ padding })
 
-		const card = screen.getByText('Records')
+		const card = screen.getByText(CONTENT)
 		expect(card).toBeVisible()
 	})
 
 	it('renders raised', () => {
-		renderWithProviders(<Card raised>Records</Card>)
+		renderComponent({ raised: true })
 
-		const card = screen.getByText('Records')
+		const card = screen.getByText(CONTENT)
 		expect(card).toBeVisible()
 	})
 
 	it('keeps a consumer class name alongside its own', () => {
-		renderWithProviders(<Card className="wide">Records</Card>)
+		renderComponent({ className: 'wide' })
 
-		const card = screen.getByText('Records')
+		const card = screen.getByText(CONTENT)
 		expect(card).toHaveClass('wide')
 	})
 
 	it('lets a collection override the base testid', () => {
 		const overrideTestId = `${CARD_TESTIDS.BASE}-records`
-		renderWithProviders(<Card dataTestId={overrideTestId}>Records</Card>)
+		renderComponent({ dataTestId: overrideTestId })
 
 		const card = screen.getByTestId(overrideTestId)
 		expect(card).toBeVisible()
