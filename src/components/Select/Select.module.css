@@ -4,9 +4,15 @@
 	--select-focus-spacer: 0 0 0 var(--border-width-strong) var(--surface-page);
 
 	/* The chevron floats above the field and takes no layout space, so the
-	   field's text has to be kept out from under it by hand. */
+	   field's text has to be kept out from under it by hand. Keep
+	   --select-chevron-size in step with the Icon's `size` prop in Select.tsx:
+	   nothing links the two, so changing one alone leaves the text clearance
+	   stale and the value runs under the glyph. */
+	--select-chevron-size: var(--space-5);
 	--select-chevron-inset: var(--space-3);
-	--select-chevron-clearance: calc(var(--select-chevron-inset) + var(--space-5) + var(--space-2));
+	--select-chevron-clearance: calc(
+		var(--select-chevron-inset) + var(--select-chevron-size) + var(--space-2)
+	);
 
 	display: flex;
 	flex-direction: column;
@@ -61,9 +67,10 @@
 	box-shadow: var(--select-focus-spacer);
 }
 
-/* Last of the three, so a field that is both hovered and focused takes the
-   hover surface. Ordered by specificity as well: Stylelint reads a lower-weight
-   selector appearing later as a mistake. */
+/* A field that is both hovered and focused keeps the hover surface — focus sets
+   no background of its own, and this selector outweighs the focus one anyway.
+   Its position is not what decides that: it sits last because Stylelint reads a
+   heavier selector appearing before a lighter one as a mistake. */
 .select:enabled:hover {
 	border-color: var(--border-strong);
 	background-color: var(--surface-sunken);

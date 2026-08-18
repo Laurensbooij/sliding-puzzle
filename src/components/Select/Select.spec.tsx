@@ -64,7 +64,23 @@ describe('Select', () => {
 		expect(field).toHaveValue(first.value)
 	})
 
-	it('reports the chosen value and honours a controlled one', async () => {
+	it('reports the chosen value to onChange', async () => {
+		const user = userEvent.setup()
+		// Read off the event as it fires: React reverts a controlled select's DOM
+		// value after render, so `target.value` is already stale by assertion time.
+		const reported: string[] = []
+		const onChange = vi.fn<NonNullable<SelectProps['onChange']>>((event) => {
+			reported.push(event.target.value)
+		})
+		renderComponent({ defaultValue: first.value, onChange })
+
+		const field = screen.getByRole('combobox', { name: LABEL })
+		await user.selectOptions(field, second.value)
+
+		expect(reported).toEqual([second.value])
+	})
+
+	it('honours a controlled value, ignoring the choice until the caller agrees', async () => {
 		const user = userEvent.setup()
 		const onChange = vi.fn<NonNullable<SelectProps['onChange']>>()
 		renderComponent({ value: first.value, onChange })
@@ -74,14 +90,6 @@ describe('Select', () => {
 
 		expect(onChange).toHaveBeenCalledOnce()
 		expect(field).toHaveValue(first.value)
-	})
-
-	it('keeps an option listed but unchoosable when it is disabled', () => {
-		const placeholder = { value: '', label: 'Choose a pack', disabled: true }
-		renderComponent({ options: [placeholder, ...options], defaultValue: '' })
-
-		const listedPlaceholder = screen.getByRole('option', { name: placeholder.label })
-		expect(listedPlaceholder).toBeDisabled()
 	})
 
 	it('takes one tab stop and changes value from the keyboard', async () => {

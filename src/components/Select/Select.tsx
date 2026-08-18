@@ -10,13 +10,14 @@ export interface SelectOption {
 	value: string
 	/** Visible text of the option. Already localized. */
 	label: string
-	/** Keeps the option listed but unchoosable — a placeholder, mostly. */
-	disabled?: boolean
 }
 
 export interface SelectProps extends Omit<
 	ComponentPropsWithoutRef<'select'>,
-	'className' | 'children'
+	// `multiple` and `size` both turn the control into a list box, which the
+	// fixed field height would clip and the chevron would float over rows of.
+	// The component owns its single-choice shape the way Icon owns its scale.
+	'className' | 'children' | 'multiple' | 'size'
 > {
 	/** Visible micro-label above the field, and the select's accessible name. */
 	label: ReactNode
@@ -59,7 +60,7 @@ export const Select: FC<SelectProps> = ({ label, options, dataTestId, id, ...sel
 					data-testid={`${base}${SELECT_TESTIDS.FIELD_SUFFIX}`}
 				>
 					{options.map((option) => (
-						<option key={option.value} value={option.value} disabled={option.disabled}>
+						<option key={option.value} value={option.value}>
 							{option.label}
 						</option>
 					))}
