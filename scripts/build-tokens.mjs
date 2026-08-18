@@ -26,9 +26,30 @@ StyleDictionary.registerParser({
 			}
 		}
 		stripRefPrefixes(root)
+		hoistChildrenOfValuedTokens(root)
 		return root
 	},
 })
+
+// Figma lets a variable named `focus-ring` coexist with `focus-ring/on-wood`,
+// which exports as a node carrying both a `$value` and children. Style
+// Dictionary reads such a node as a leaf and silently drops the children, so
+// the whole `on-wood`/`hover`/`soft` family never reached tokens.css. Hoisting
+// them to dash-joined siblings keeps both: `--focus-ring` and
+// `--focus-ring-on-wood`. Aliases pointing *into* a hoisted subtree would move
+// with it; none exist today, and Style Dictionary throws on a broken reference.
+const hoistChildrenOfValuedTokens = (node) => {
+	for (const [key, value] of Object.entries(node)) {
+		if (key.startsWith('$') || !value || typeof value !== 'object') continue
+		hoistChildrenOfValuedTokens(value)
+		if (value.$value === undefined) continue
+		for (const childKey of Object.keys(value)) {
+			if (childKey.startsWith('$')) continue
+			node[`${key}-${childKey}`] = value[childKey]
+			delete value[childKey]
+		}
+	}
+}
 
 // Figma variables are unitless numbers, so TokensBrücke types every one of
 // them as a px dimension. Real units are a naming convention the build

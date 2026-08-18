@@ -1,34 +1,144 @@
+/*
+ * Layer order matches the Figma component set (Tile / Variations): the blurred
+ * glass fill sits under the source-image fragment, the sheen streaks over both,
+ * the bead floats at the centre and the edge draws every inset highlight last.
+ */
+
 .tile {
 	position: relative;
 	display: grid;
 	place-items: center;
 	aspect-ratio: 1;
+
+	/* SC 2.5.8: a tile is sized by the board, but never below the target floor. */
+	min-width: var(--control-height-sm);
+	min-height: var(--control-height-sm);
 	width: 100%;
-	padding: var(--space-2);
-	border: 1px solid var(--border-subtle);
-	border-radius: var(--radius-md);
-	background-color: var(--surface-card);
+	padding: var(--space-0);
+	overflow: hidden;
+	border: var(--material-glass-border);
+	border-radius: var(--radius-tile);
+	background-color: transparent;
 	box-shadow: var(--shadow-tile);
-	color: var(--text-strong);
 	cursor: pointer;
+	transition: var(--transition-tile);
+}
+
+.tile:focus-visible {
+	outline: 2px solid var(--focus-ring-on-wood);
+	outline-offset: 2px;
 }
 
 .tile[aria-disabled='true'] {
 	cursor: default;
 }
 
-.tile:focus-visible {
-	outline: 2px solid var(--focus-ring);
-	outline-offset: 2px;
+.glass {
+	position: absolute;
+	inset: 0;
+	background-image: var(--material-glass-fill);
+	backdrop-filter: blur(var(--material-glass-blur)) saturate(var(--material-glass-saturate));
+	pointer-events: none;
 }
 
-.image {
+.fragment {
 	position: absolute;
-	inset: var(--space-1);
-	border-radius: var(--radius-sm);
+	inset: 0;
+	overflow: hidden;
+	opacity: 0.9;
+	pointer-events: none;
+}
+
+/*
+ * The whole source image, scaled to board size and pulled up-left until this
+ * tile's home cell fills the frame — no build-time slicing, one cached asset.
+ * The four --fragment-* custom properties come from the component.
+ */
+.fragmentImage {
+	position: absolute;
+	top: calc(var(--fragment-row) * -100%);
+	left: calc(var(--fragment-col) * -100%);
+	width: calc(var(--fragment-cols) * 100%);
+	max-width: none;
+	height: calc(var(--fragment-rows) * 100%);
+}
+
+.sheen {
+	position: absolute;
+	inset: 0;
+	opacity: 0.55;
+	background-image: var(--material-glass-sheen);
+	pointer-events: none;
+}
+
+/*
+ * The movability affordance: its own pane of glass, faint at rest and full on
+ * hover or focus. A tile that cannot move shows no bead at all.
+ */
+.bead {
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	width: var(--space-8);
+	height: var(--space-8);
+	border: var(--material-glass-bubble-border);
+	border-radius: var(--radius-pill);
+	background-color: var(--material-glass-bubble);
+	backdrop-filter: var(--material-glass-bubble-blur);
+	opacity: 0;
+	transform: translate(-50%, -50%);
+	transition: opacity var(--dur-fast) var(--ease-standard);
+	pointer-events: none;
+}
+
+.edge {
+	--tile-edge: var(--glass-inner), var(--glass-edge-light);
+
+	position: absolute;
+	inset: 0;
+	border-radius: inherit;
+	box-shadow: var(--tile-edge);
+	transition: var(--transition-control);
+	pointer-events: none;
 }
 
 .label {
+	position: relative;
+	font-family: var(--family-numeric);
 	font-size: var(--font-size-lg);
 	font-weight: var(--weight-semibold);
+	color: var(--text-strong);
+	pointer-events: none;
+}
+
+.tile[aria-disabled='false'] .bead {
+	opacity: 0.4;
+}
+
+.tile[aria-disabled='false']:hover .bead,
+.tile[aria-disabled='false']:focus-visible .bead,
+.tile[aria-disabled='false']:active .bead {
+	opacity: 1;
+}
+
+/* Hover is neutral — the glass brightens, no hue is added. */
+.tile[aria-disabled='false']:hover .glass,
+.tile[aria-disabled='false']:focus-visible .glass,
+.tile[aria-disabled='false']:active .glass {
+	background-image: var(--material-glass-fill-strong);
+}
+
+.tile[aria-disabled='false']:hover .edge,
+.tile[aria-disabled='false']:focus-visible .edge {
+	--tile-edge: var(--material-glass-glow-hover), var(--glass-inner), var(--glass-edge-light);
+}
+
+.tile[aria-disabled='false']:active .edge {
+	--tile-edge: var(--material-glass-glow-press), var(--glass-inner), var(--glass-edge-light);
+}
+
+/* Press sinks the tile in place: no translation, no shadow growth. */
+.tile[aria-disabled='false']:active {
+	box-shadow: var(--shadow-tile-press);
+	transform: scale(0.985);
 }
