@@ -147,7 +147,7 @@
   --board-max: 35rem;
   --tile-gap: 0.625rem;
   --frame-padding: 1.25rem;
-  --border-width-strong: 0.125rem;
+  --border-width-strong: 2px;
   --family-display: Outfit;
   --family-ui: Public Sans;
   --family-numeric: IBM Plex Mono;

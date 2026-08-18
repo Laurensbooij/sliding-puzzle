@@ -34,9 +34,10 @@ from 'react'`). Props type named exactly **`ComponentNameProps`**, exported
   the Figma design system starts in `src/components/`; its consumers are designed
   screens, not speculation ([ADR-0009](../adr/0009-design-system-components-are-born-shared.md)).
   Game-domain components (Board, Tile, Frame) stay in the game feature.
-- A trivial component is flat colocated files. Once it grows satellites (hook, helper,
-  constants, sub-component) it graduates to a `ComponentName/` folder with an
-  `index.ts` barrel. Private sub-components live under its `components/`, are full
+- A trivial component is flat colocated files. Once it grows satellites (spec, hook,
+  helper, constants, sub-component) it graduates to a `ComponentName/` folder with an
+  `index.ts` barrel — a specced module shares a folder named after it (lint-enforced:
+  `sliding-puzzle/spec-in-module-folder`). Private sub-components live under its `components/`, are full
   components recursively, and are never exported from the folder's barrel.
 - Local hooks → `hooks/use-x/` (hook + spec). Local helpers → `utils/`. Local
   constants → unprefixed `constants.ts`. Local messages →
@@ -89,7 +90,7 @@ from 'react'`). Props type named exactly **`ComponentNameProps`**, exported
 - **The ink is the consumer's, never the file's.** Source images paint in
   `currentColor`; the renderer sets `color: var(--art-ink)`. An `<img>` cannot do this
   — it renders in a document of its own where `currentColor` can only resolve to black
-  — which is why the fragment is inlined ([ADR-0012](../adr/0012-source-images-render-inline-not-as-img.md)).
+  — which is why the fragment is inlined ([ADR-0013](../adr/0013-source-images-render-inline-not-as-img.md)).
   A literal colour in a vector file is a test failure (`source-images.spec.ts`).
 
 ## Storybook
