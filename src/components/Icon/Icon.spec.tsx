@@ -6,6 +6,7 @@ import { describe, expect, it } from 'vitest'
 
 import { Icon } from './Icon'
 import type { IconName, IconProps } from './Icon'
+import styles from './Icon.module.css'
 import { ICON_GLYPHS, ICON_SIZES, ICON_TESTIDS } from './constants'
 
 const iconNames = Object.keys(ICON_GLYPHS) as IconName[]
@@ -72,37 +73,22 @@ describe('Icon', () => {
 		expect(new Set(drawings).size).toBe(iconNames.length)
 	})
 
-	// The scale is CSS-module classes, not a data attribute
-	// (docs/conventions/components.md), and the class names are hashed — so the
-	// assertion is that every step is told apart in the DOM. The pixel each one
-	// resolves to lives in the stylesheet and the stories.
-	it('draws every step of the icon scale distinctly', () => {
-		renderComponent(
-			...ICON_SIZES.map((size) => ({
-				name: 'trophy' as const,
-				size,
-				dataTestId: `${ICON_TESTIDS.BASE}-${size}`,
-			})),
-		)
+	// The scale selects a CSS-module class rather than a data attribute
+	// (docs/conventions/components.md), so the assertion is that each step
+	// reaches for its own class. The pixel that class resolves to lives in the
+	// stylesheet, and the stories are what accept it.
+	it.each(ICON_SIZES)('draws the %s step of the icon scale', (size) => {
+		renderComponent({ name: 'trophy', size })
 
-		const classNames = ICON_SIZES.map(
-			(size) =>
-				screen.getByTestId(`${ICON_TESTIDS.BASE}-${size}`).getAttribute('class') ?? '',
-		)
-		const distinct = new Set(classNames)
-		expect(distinct.size).toBe(ICON_SIZES.length)
+		const glyph = screen.getByTestId(ICON_TESTIDS.BASE)
+		expect([...glyph.classList]).toContain(styles[size])
 	})
 
 	it('defaults to the md step', () => {
-		const explicitTestId = `explicit-${ICON_TESTIDS.BASE}`
-		renderComponent(
-			{ name: 'trophy' },
-			{ name: 'trophy', size: 'md', dataTestId: explicitTestId },
-		)
+		renderComponent({ name: 'trophy' })
 
-		const defaulted = screen.getByTestId(ICON_TESTIDS.BASE)
-		const explicit = screen.getByTestId(explicitTestId)
-		expect(defaulted.getAttribute('class')).toBe(explicit.getAttribute('class'))
+		const glyph = screen.getByTestId(ICON_TESTIDS.BASE)
+		expect([...glyph.classList]).toContain(styles.md)
 	})
 
 	// Keyboard operation map: an Icon has none. It is a graphic, never a control

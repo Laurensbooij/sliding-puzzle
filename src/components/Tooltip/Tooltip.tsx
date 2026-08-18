@@ -1,4 +1,4 @@
-import { cx } from '@/lib/cx'
+import { cx } from '@css-utils'
 import type { CSSProperties, FC, ReactElement, ReactNode } from 'react'
 import { cloneElement, useEffect, useId, useLayoutEffect, useRef, useState } from 'react'
 

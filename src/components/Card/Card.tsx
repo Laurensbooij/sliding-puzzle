@@ -1,4 +1,4 @@
-import { cx } from '@/lib/cx'
+import { cx } from '@css-utils'
 import type { ComponentPropsWithoutRef, FC } from 'react'
 
 import styles from './Card.module.css'

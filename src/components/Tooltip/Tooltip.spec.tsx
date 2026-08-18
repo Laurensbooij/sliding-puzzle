@@ -5,6 +5,7 @@ import { describe, expect, it, vi } from 'vitest'
 
 import { Tooltip } from './Tooltip'
 import type { TooltipPlacement, TooltipProps } from './Tooltip'
+import styles from './Tooltip.module.css'
 import { TOOLTIP_TESTIDS } from './constants'
 
 const TRIGGER_NAME = 'Shuffle'
@@ -276,29 +277,23 @@ describe('Tooltip', () => {
 		expect(onClick).toHaveBeenCalledOnce()
 	})
 
-	// Placement is a CSS-module class, not a data attribute
-	// (docs/conventions/components.md), and the class names are hashed — so the
-	// assertion is that the four placements are told apart in the DOM at all.
-	// Which side each one lands on is `position-area`, which jsdom cannot
-	// compute; the stories carry that half.
-	it('styles each placement distinctly', async () => {
-		const user = userEvent.setup()
-		const placements: TooltipPlacement[] = ['top', 'right', 'bottom', 'left']
-		const classNames: string[] = []
+	// Placement selects a CSS-module class rather than a data attribute
+	// (docs/conventions/components.md), so the assertion is that each placement
+	// reaches for its own class. Which side that class puts the chip on is
+	// `position-area`, which jsdom cannot compute — the stories carry that half.
+	it.each<TooltipPlacement>(['top', 'right', 'bottom', 'left'])(
+		'renders on the %s of its trigger',
+		async (placement) => {
+			const user = userEvent.setup()
+			renderComponent({ placement })
 
-		for (const placement of placements) {
-			const { unmount } = renderComponent({ placement })
 			const trigger = screen.getByRole('button', { name: TRIGGER_NAME })
 			await user.hover(trigger)
-			classNames.push(
-				screen.getByRole('tooltip', { name: CONTENT }).getAttribute('class') ?? '',
-			)
-			unmount()
-		}
 
-		const distinct = new Set(classNames)
-		expect(distinct.size).toBe(placements.length)
-	})
+			const tooltip = screen.getByRole('tooltip', { name: CONTENT })
+			expect([...tooltip.classList]).toContain(styles[placement])
+		},
+	)
 
 	it('lets a consumer override the base testid', async () => {
 		const user = userEvent.setup()

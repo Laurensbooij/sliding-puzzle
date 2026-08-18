@@ -31,6 +31,10 @@ const aliasSpellingPatterns = [
 		group: ['@/lib/i18n', '@/lib/i18n/*'],
 		message: 'Import the i18n facade as `@i18n`, or global messages as `@messages`.',
 	},
+	{
+		group: ['@/lib/css-utils', '@/lib/css-utils/*'],
+		message: 'Import the CSS helpers as `@css-utils`.',
+	},
 	{ group: ['@/testing', '@/testing/*'], message: 'Import test helpers as `@testing`.' },
 	{
 		group: ['@/machines', '@/machines/*'],

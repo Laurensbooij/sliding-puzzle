@@ -1,4 +1,4 @@
-import { cx } from '@/lib/cx'
+import { cx } from '@css-utils'
 import type { ComponentPropsWithoutRef, FC, ReactNode } from 'react'
 import { useId } from 'react'
 

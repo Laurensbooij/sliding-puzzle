@@ -33,7 +33,6 @@
 	color: var(--text-inverse);
 	font: var(--label);
 	position-anchor: var(--tooltip-anchor);
-	position-area: block-start center;
 	position-try-fallbacks: flip-block, flip-inline;
 	opacity: 0;
 
@@ -58,6 +57,10 @@
 	content: '';
 	position: absolute;
 	inset: calc(-1 * var(--tooltip-offset));
+}
+
+.top {
+	position-area: block-start center;
 }
 
 .bottom {

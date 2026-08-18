@@ -62,7 +62,7 @@ from 'react'`). Props type named exactly **`ComponentNameProps`**, exported
   class list the component composes anyway; state flips at runtime and reads
   better as an attribute that is present or absent than as a class toggled in
   JSX. Being able to tell them apart in devtools is the point.
-- **Compose class names with `cx` from `@/lib/cx`** — never hand-roll
+- **Compose class names with `cx` from `@css-utils`** — never hand-roll
   `[a, b].filter(Boolean).join(' ')` or a ternary. It drops falsy entries and
   returns `undefined` when nothing survives, so React omits an empty `class`.
 - A component that accepts `className` puts the consumer's class **last**, so a
@@ -71,7 +71,7 @@ from 'react'`). Props type named exactly **`ComponentNameProps`**, exported
 ## Imports
 
 - Reach aliased modules by their alias only — `@engine`, `@i18n`, `@messages`,
-  `@testing`, and shared components as `@components/<Name>`. The long `@/...`
+  `@testing`, `@css-utils`, and shared components as `@components/<Name>`. The long `@/...`
   spelling for those targets is a lint error, and everything else uses `@/*`. See
   [ADR-0007](../adr/0007-module-boundaries-and-import-aliases.md).
 - **Features never import other features.** Compose them at the app level.

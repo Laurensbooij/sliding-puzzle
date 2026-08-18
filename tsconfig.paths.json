@@ -9,6 +9,7 @@
     "paths": {
       "@/*": ["./src/*"],
       "@components/*": ["./src/components/*"],
+      "@css-utils": ["./src/lib/css-utils"],
       "@engine": ["./src/engine"],
       "@i18n": ["./src/lib/i18n"],
       "@machines/*": ["./src/machines/*"],

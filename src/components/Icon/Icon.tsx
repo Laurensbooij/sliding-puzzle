@@ -1,4 +1,4 @@
-import { cx } from '@/lib/cx'
+import { cx } from '@css-utils'
 import type { FC, SVGProps } from 'react'
 
 import styles from './Icon.module.css'

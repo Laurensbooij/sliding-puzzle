@@ -37,7 +37,8 @@ Most conventions are lint-enforced (including the custom
 - **Imports flow one way** (ADR-0007): `engine → lib → {machines | components} →
 features → app`. Features never import each other; machines and components never
   import each other. Aliased modules are reached only by their alias — `@engine`,
-  `@i18n`, `@messages`, `@testing`, `@components/<Name>`, `@machines/<name>` —
+  `@i18n`, `@messages`, `@testing`, `@css-utils`, `@components/<Name>`,
+  `@machines/<name>` —
   never the long `@/...` form.
 - **Never import `react-intl`** (ADR-0008): all localization goes through the
   `@i18n` facade. Messages live in `translation-messages.ts` beside their
@@ -74,6 +75,12 @@ To add or change a convention, use the `/update-conventions` skill.
 
 Issues live in the Sliding puzzle Linear workspace (team `Sliding puzzle`, key `SLI`),
 driven via the Linear MCP tools. See `docs/agents/issue-tracker.md`.
+
+### MCP servers
+
+`.mcp.json` declares the project's servers — `linear` and `figma` — as URLs only.
+Each user completes their own OAuth (`/mcp`), and a fresh clone gets a one-time
+"trust this project's MCP servers?" prompt. Never commit a token here.
 
 ### Triage labels
 
