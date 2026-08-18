@@ -235,6 +235,7 @@ export default tseslint.config(
 		plugins: { 'sliding-puzzle': slidingPuzzle },
 		rules: {
 			'sliding-puzzle/assign-before-assert': 'error',
+			'sliding-puzzle/render-through-render-component': 'error',
 		},
 	},
 	{
@@ -243,6 +244,32 @@ export default tseslint.config(
 		plugins: { 'sliding-puzzle': slidingPuzzle },
 		rules: {
 			'sliding-puzzle/spec-in-module-folder': 'error',
+		},
+	},
+	{
+		// The spec-side half of the rendering convention: `renderComponent` is
+		// only a single entry point if RTL's bare `render` cannot be reached
+		// around it. src/testing/ is where the wrapper legitimately calls it.
+		//
+		// Flat config replaces a rule's options rather than merging them, so the
+		// patterns from the src-wide block above have to be restated here or spec
+		// files would silently lose their alias-spelling checks.
+		files: ['src/**/*.spec.tsx'],
+		rules: {
+			'no-restricted-imports': [
+				'error',
+				{
+					patterns: [...aliasSpellingPatterns, reactIntlPattern],
+					paths: [
+						{
+							name: '@testing-library/react',
+							importNames: ['render'],
+							message:
+								"Render through the spec's renderComponent() helper, which wraps renderWithProviders from `@testing`.",
+						},
+					],
+				},
+			],
 		},
 	},
 	{

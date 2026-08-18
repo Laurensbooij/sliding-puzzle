@@ -1,0 +1,29 @@
+/*
+ * Sizes come from the spacing scale because that is what the design file does:
+ * the Figma icon frame binds its 24px box to `space/6`. There is no icon-size
+ * variable collection to mirror (ADR-0010), so inventing `--icon-size-*` in the
+ * hand-owned tier would name a Figma path that does not exist.
+ */
+.icon {
+	flex-shrink: 0;
+}
+
+.icon[data-size='sm'] {
+	width: var(--space-4);
+	height: var(--space-4);
+}
+
+.icon[data-size='md'] {
+	width: var(--space-5);
+	height: var(--space-5);
+}
+
+.icon[data-size='lg'] {
+	width: var(--space-6);
+	height: var(--space-6);
+}
+
+.icon[data-size='xl'] {
+	width: var(--space-8);
+	height: var(--space-8);
+}

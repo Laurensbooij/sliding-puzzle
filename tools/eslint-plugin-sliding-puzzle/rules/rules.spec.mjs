@@ -6,6 +6,7 @@ import assignBeforeAssert from './assign-before-assert.mjs'
 import noInlineTestid from './no-inline-testid.mjs'
 import propsTypeInComponentFile from './props-type-in-component-file.mjs'
 import propsTypeNaming from './props-type-naming.mjs'
+import renderThroughRenderComponent from './render-through-render-component.mjs'
 import specInModuleFolder from './spec-in-module-folder.mjs'
 import storiesFileRequired from './stories-file-required.mjs'
 import testidsInConstantsFile from './testids-in-constants-file.mjs'
@@ -227,6 +228,68 @@ ruleTester.run('spec-in-module-folder', specInModuleFolder, {
 			code: 'export {}',
 			filename: '/src/lib/i18n/utils/detect-locale.spec.ts',
 			errors: [{ messageId: 'wrongFolder' }],
+		},
+	],
+})
+
+const IMPORT = "import { renderWithProviders } from '@testing'\n"
+
+ruleTester.run('render-through-render-component', renderThroughRenderComponent, {
+	valid: [
+		{
+			code: `${IMPORT}const renderComponent = (props) => renderWithProviders(<Icon {...props} />)`,
+			filename: 'Icon.spec.tsx',
+		},
+		{
+			code: `${IMPORT}const renderComponent = (...icons) => {\n\treturn renderWithProviders(<Icon />)\n}`,
+			filename: 'Icon.spec.tsx',
+		},
+		// The prose prescribes no syntax, so a function declaration is equally fine.
+		{
+			code: `${IMPORT}function renderComponent(props) {\n\treturn renderWithProviders(<Icon {...props} />)\n}`,
+			filename: 'Icon.spec.tsx',
+		},
+		{
+			code: `${IMPORT}it("renders", () => { renderComponent({ name: "x" }) })`,
+			filename: 'Icon.spec.tsx',
+		},
+		// Node-project specs render nothing — the helper is a component-spec pattern.
+		{ code: `${IMPORT}renderWithProviders(element)`, filename: 'board.spec.ts' },
+		{ code: `${IMPORT}renderWithProviders(<Icon />)`, filename: 'render-with-providers.tsx' },
+	],
+	invalid: [
+		{
+			code: `${IMPORT}it("renders", () => { renderWithProviders(<Icon />) })`,
+			filename: 'Icon.spec.tsx',
+			errors: [{ messageId: 'renderThroughHelper' }],
+		},
+		{
+			code: `${IMPORT}const renderOther = (props) => renderWithProviders(<Icon {...props} />)`,
+			filename: 'Icon.spec.tsx',
+			errors: [{ messageId: 'renderThroughHelper' }],
+		},
+		// A helper per describe block is the drift the rule exists to stop.
+		{
+			code: `${IMPORT}describe("Icon", () => {\n\tconst renderComponent = (props) => renderWithProviders(<Icon {...props} />)\n})`,
+			filename: 'Icon.spec.tsx',
+			errors: [{ messageId: 'renderThroughHelper' }],
+		},
+		{
+			code: `${IMPORT}it("renders", () => {\n\tconst renderComponent = () => renderWithProviders(<Icon />)\n})`,
+			filename: 'Icon.spec.tsx',
+			errors: [{ messageId: 'renderThroughHelper' }],
+		},
+		// Renaming the import must not walk past the rule.
+		{
+			code: 'import { renderWithProviders as renderIt } from \'@testing\'\nit("renders", () => { renderIt(<Icon />) })',
+			filename: 'Icon.spec.tsx',
+			errors: [{ messageId: 'renderThroughHelper' }],
+		},
+		// A no-argument helper cannot vary cases, which is the point of having one.
+		{
+			code: `${IMPORT}const renderComponent = () => renderWithProviders(<Icon />)`,
+			filename: 'Icon.spec.tsx',
+			errors: [{ messageId: 'helperTakesArguments' }],
 		},
 	],
 })
