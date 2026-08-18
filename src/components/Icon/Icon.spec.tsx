@@ -4,12 +4,24 @@ import { userEvent } from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
 
 import { Icon } from './Icon'
-import type { IconName, IconProps } from './Icon'
-import { ICON_GLYPHS, ICON_TESTIDS } from './constants'
+import type { IconName } from './Icon'
+import { ICON_GLYPHS, ICON_SIZES, ICON_TESTIDS } from './constants'
 
 const iconNames = Object.keys(ICON_GLYPHS) as IconName[]
-const iconSizes = ['xs', 'sm', 'md', 'lg', 'xl'] as const satisfies NonNullable<IconProps['size']>[]
 
+/**
+ * Accessibility criteria that do not apply to a non-interactive graphic, recorded
+ * rather than skipped (docs/conventions/accessibility.md):
+ *
+ * - **Focus indicator (SC 2.4.11)** — N/A: an Icon is never focusable. The
+ *   tab-order case below is what holds that true; the control wrapping it
+ *   (Button, IconButton) owns the visible focus ring.
+ * - **Announcements** — N/A: an Icon holds no state, so there is nothing for a
+ *   live region to announce. Its glyph changes only when its consumer re-renders it.
+ * - **Target size (SC 2.5.8)** — N/A: an Icon is not a target. The storybook axe
+ *   scan runs with `target-size` enabled, so a story that ever made one
+ *   interactive would fail rather than pass quietly.
+ */
 describe('Icon', () => {
 	it('is decorative by default — hidden from assistive technology', () => {
 		renderWithProviders(<Icon name="shuffle" />)
@@ -29,13 +41,6 @@ describe('Icon', () => {
 		expect(glyph).not.toHaveAttribute('aria-hidden')
 	})
 
-	it.each(iconNames)('renders the %s glyph', (name) => {
-		renderWithProviders(<Icon name={name} />)
-
-		const glyph = screen.getByTestId(ICON_TESTIDS.BASE)
-		expect(glyph.tagName.toLowerCase()).toBe('svg')
-	})
-
 	it('maps every designed name to a distinct glyph', () => {
 		renderWithProviders(
 			<>
@@ -51,7 +56,7 @@ describe('Icon', () => {
 		expect(new Set(drawings).size).toBe(iconNames.length)
 	})
 
-	it.each(iconSizes)('reports the %s step of the icon scale', (size) => {
+	it.each(ICON_SIZES)('reports the %s step of the icon scale', (size) => {
 		renderWithProviders(<Icon name="trophy" size={size} />)
 
 		const glyph = screen.getByTestId(ICON_TESTIDS.BASE)

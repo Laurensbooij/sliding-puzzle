@@ -32,10 +32,18 @@ export const ICON_TESTIDS = {
 	BASE: 'icon',
 } as const
 
+/** Steps of the icon scale, smallest first. */
+export const ICON_SIZES = ['sm', 'md', 'lg', 'xl'] as const
+
 /**
  * The designed set: the 26 stock Lucide glyphs the design system draws from
- * (ADR-0011). Naming these one by one is what keeps the bundle to the designed
- * set instead of all of Lucide — a wildcard re-export would pull in everything.
+ * (ADR-0011). Naming them one by one keeps the bundle to the designed set
+ * rather than all of Lucide — a wildcard re-export would pull in everything.
+ *
+ * It does not narrow further than that: a runtime lookup by name keeps every
+ * entry reachable, so a screen rendering one glyph still carries all 26 (~10 kB
+ * raw). Per-glyph shaking would mean giving up the name union for a component
+ * argument, which is the trade the design system did not want.
  *
  * Adding a glyph means adding it in Figma first; the keys mirror Lucide's own
  * kebab-case names so the two stay comparable by eye.

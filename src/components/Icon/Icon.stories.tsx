@@ -1,11 +1,13 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
 
 import { Icon } from './Icon'
-import type { IconName, IconSize } from './Icon'
-import { ICON_GLYPHS } from './constants'
+import type { IconName } from './Icon'
+import { ICON_GLYPHS, ICON_SIZES } from './constants'
 
 const iconNames = Object.keys(ICON_GLYPHS) as IconName[]
-const iconSizes: IconSize[] = ['xs', 'sm', 'md', 'lg', 'xl']
+
+const cellStyle = { display: 'grid', gap: 'var(--space-1)', justifyItems: 'center' } as const
+const captionStyle = { font: 'var(--label)', color: 'var(--text-muted)' } as const
 
 const meta = {
 	title: 'Components/Icon',
@@ -16,7 +18,7 @@ const meta = {
 	},
 	argTypes: {
 		name: { control: 'select', options: iconNames },
-		size: { control: 'inline-radio', options: iconSizes },
+		size: { control: 'inline-radio', options: ICON_SIZES },
 	},
 } satisfies Meta<typeof Icon>
 
@@ -39,25 +41,16 @@ export const GlyphSet: Story = {
 			}}
 		>
 			{iconNames.map((name) => (
-				<li
-					key={name}
-					style={{
-						display: 'grid',
-						gap: 'var(--space-1)',
-						justifyItems: 'center',
-						width: '5rem',
-						color: 'var(--text-body)',
-					}}
-				>
+				<li key={name} style={{ ...cellStyle, width: '5rem', color: 'var(--text-body)' }}>
 					<Icon name={name} />
-					<span style={{ font: 'var(--label)', color: 'var(--text-muted)' }}>{name}</span>
+					<span style={captionStyle}>{name}</span>
 				</li>
 			))}
 		</ul>
 	),
 }
 
-/** Every step of the icon scale: xs 14 · sm 16 · md 20 · lg 24 · xl 32. */
+/** Every step of the icon scale: sm 16 · md 20 · lg 24 · xl 32. */
 export const Scale: Story = {
 	render: () => (
 		<div
@@ -68,13 +61,10 @@ export const Scale: Story = {
 				color: 'var(--text-body)',
 			}}
 		>
-			{iconSizes.map((size) => (
-				<div
-					key={size}
-					style={{ display: 'grid', gap: 'var(--space-1)', justifyItems: 'center' }}
-				>
+			{ICON_SIZES.map((size) => (
+				<div key={size} style={cellStyle}>
 					<Icon name="trophy" size={size} />
-					<span style={{ font: 'var(--label)', color: 'var(--text-muted)' }}>{size}</span>
+					<span style={captionStyle}>{size}</span>
 				</div>
 			))}
 		</div>
