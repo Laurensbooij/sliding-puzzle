@@ -1,0 +1,85 @@
+.root {
+	/* A page-coloured spacer between the field and the focus ring, so the ring
+	   reads as a ring rather than a thicker border. */
+	--select-focus-spacer: 0 0 0 var(--border-width-strong) var(--surface-page);
+
+	/* The chevron floats above the field and takes no layout space, so the
+	   field's text has to be kept out from under it by hand. */
+	--select-chevron-inset: var(--space-3);
+	--select-chevron-clearance: calc(var(--select-chevron-inset) + var(--space-5) + var(--space-2));
+
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-1);
+}
+
+.label {
+	font: var(--label-caps);
+	letter-spacing: var(--tracking-caps);
+	text-transform: uppercase;
+	color: var(--text-muted);
+}
+
+/* The field owns the height; the select fills it. A plain border works because
+   Figma counts its stroke in layout, so both sides agree the field is one
+   control-height tall in total. No overflow clipping either: the focus ring
+   sits outside the field and clipping it would obscure focus (SC 2.4.11). */
+.field {
+	position: relative;
+	display: flex;
+	align-items: stretch;
+	height: var(--control-height-md);
+}
+
+/* The select is the painted box, not a hidden input under a facade: the border,
+   the hit target and the focus ring are one and the same element. */
+.select {
+	flex: 1;
+	min-width: 0;
+	padding-inline: var(--space-4) var(--select-chevron-clearance);
+	border: var(--border-width) solid var(--border-default);
+	border-radius: var(--radius-md);
+	background-color: var(--surface-card);
+	font-family: var(--family-ui);
+	font-size: var(--font-size-sm);
+	font-weight: var(--weight-medium);
+	line-height: var(--leading-normal);
+	color: var(--text-strong);
+	transition: var(--transition-control);
+	appearance: none;
+	cursor: pointer;
+}
+
+.select:disabled {
+	cursor: default;
+}
+
+.select:focus-visible {
+	border-color: var(--border-strong);
+	outline: var(--border-width-strong) solid var(--focus-ring);
+	outline-offset: 2px;
+	box-shadow: var(--select-focus-spacer);
+}
+
+/* Last of the three, so a field that is both hovered and focused takes the
+   hover surface. Ordered by specificity as well: Stylelint reads a lower-weight
+   selector appearing later as a mistake. */
+.select:enabled:hover {
+	border-color: var(--border-strong);
+	background-color: var(--surface-sunken);
+}
+
+.chevron {
+	position: absolute;
+	inset-inline-end: var(--select-chevron-inset);
+	inset-block-start: 50%;
+	transform: translateY(-50%);
+	color: var(--text-muted);
+	pointer-events: none;
+}
+
+/* Disabled fades the whole control, label included — the design dims the pair
+   together rather than greying the field alone. */
+.root:has(.select:disabled) {
+	opacity: var(--state-disabled-opacity);
+}
