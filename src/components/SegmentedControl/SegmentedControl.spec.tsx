@@ -7,13 +7,17 @@ import { SegmentedControl } from './SegmentedControl'
 import type { SegmentedControlProps } from './SegmentedControl'
 import { SEGMENTED_CONTROL_TESTIDS } from './constants'
 
-const GROUP_LABEL = 'Grid size'
+const GROUP_LABEL = 'Board size'
 
-const options: SegmentedControlProps['options'] = [
+// A tuple, so the destructured segments are known to exist and every assertion
+// can read its expected copy off the fixture instead of retyping it.
+const options = [
 	{ value: '3', label: '3 × 3' },
 	{ value: '4', label: '4 × 4' },
 	{ value: '5', label: '5 × 5' },
-]
+] as const satisfies SegmentedControlProps['options']
+
+const [first, second, third] = options
 
 const renderControl = (overrides: Partial<SegmentedControlProps> = {}) => {
 	const onChange = vi.fn<SegmentedControlProps['onChange']>()
@@ -43,8 +47,8 @@ describe('SegmentedControl', () => {
 	it('names each radio after its option label and checks the selected one', () => {
 		renderControl({ value: '4' })
 
-		const selected = screen.getByRole('radio', { name: '4 × 4' })
-		const unselected = screen.getByRole('radio', { name: '3 × 3' })
+		const selected = screen.getByRole('radio', { name: second.label })
+		const unselected = screen.getByRole('radio', { name: first.label })
 		expect(selected).toBeChecked()
 		expect(unselected).not.toBeChecked()
 	})
@@ -53,7 +57,7 @@ describe('SegmentedControl', () => {
 		const user = userEvent.setup()
 		const { onChange } = renderControl()
 
-		const secondSegment = screen.getByRole('radio', { name: '4 × 4' })
+		const secondSegment = screen.getByRole('radio', { name: second.label })
 		await user.click(secondSegment)
 
 		expect(onChange).toHaveBeenCalledExactlyOnceWith('4')
@@ -63,8 +67,8 @@ describe('SegmentedControl', () => {
 		const user = userEvent.setup()
 		renderControl({ value: '4' })
 
-		const selected = screen.getByRole('radio', { name: '4 × 4' })
-		const firstSegment = screen.getByRole('radio', { name: '3 × 3' })
+		const selected = screen.getByRole('radio', { name: second.label })
+		const firstSegment = screen.getByRole('radio', { name: first.label })
 
 		await user.tab()
 		expect(selected).toHaveFocus()
@@ -97,7 +101,7 @@ describe('SegmentedControl', () => {
 		const user = userEvent.setup()
 		const { onChange } = renderControl({ value: '3' })
 
-		const thirdSegment = screen.getByRole('radio', { name: '5 × 5' })
+		const thirdSegment = screen.getByRole('radio', { name: third.label })
 		thirdSegment.focus()
 		await user.keyboard(' ')
 
@@ -107,7 +111,7 @@ describe('SegmentedControl', () => {
 	it('announces selection through the native radio state, not a live region', () => {
 		renderControl({ value: '5' })
 
-		const selected = screen.getByRole('radio', { name: '5 × 5', checked: true })
+		const selected = screen.getByRole('radio', { name: third.label, checked: true })
 		const statusRegion = screen.queryByRole('status')
 		const alertRegion = screen.queryByRole('alert')
 
@@ -140,7 +144,7 @@ describe('SegmentedControl', () => {
 			</>,
 		)
 
-		const firstGroupRadios = screen.getAllByRole('radio', { name: '3 × 3' })
+		const firstGroupRadios = screen.getAllByRole('radio', { name: first.label })
 		const [firstName, secondName] = firstGroupRadios.map((radio) => radio.getAttribute('name'))
 		const checkedRadios = screen.getAllByRole('radio', { checked: true })
 		expect(firstName).not.toBe(secondName)
@@ -148,7 +152,7 @@ describe('SegmentedControl', () => {
 	})
 
 	it('exposes a testid per segment and lets a consumer override the base', () => {
-		const overrideTestId = 'setup-grid-size'
+		const overrideTestId = 'setup-board-size'
 		renderControl({ dataTestId: overrideTestId })
 
 		const group = screen.getByTestId(overrideTestId)

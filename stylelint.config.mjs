@@ -50,15 +50,18 @@ export default {
 		'declaration-property-value-disallowed-list': [
 			{
 				'/^(transition|animation)/': ['/\\d+m?s(?![a-z-])/'],
-				'outline-offset': ['/^-/'],
-				'/^--/': ['/\\binset\\b/'],
+				'outline-offset': ['/^-/', '/^calc\\(\\s*-/'],
+				// `inset` followed by a length is a hand-composed shadow. Aliasing a
+				// token (var(--inset-frame)) or using the clip-path shape (inset(50%))
+				// never puts a number straight after the word, so both stay legal.
+				'/^(--|box-shadow$)/': ['/(^|\\s)inset\\s+[-.0-9]/'],
 			},
 			{
 				message: (property) => {
-					if (property.startsWith('--'))
-						return `Composing an inset shadow in ${property} fakes a border. Use \`border\` — Figma counts its inside strokes in layout, so nothing needs compensating.`
 					if (property === 'outline-offset')
 						return 'A negative outline-offset fakes an inside border. Use `border` — Figma counts its inside strokes in layout.'
+					if (property === 'box-shadow' || property.startsWith('--'))
+						return `Composing an inset shadow in ${property} fakes a border. Use \`border\` — Figma counts its inside strokes in layout, so nothing needs compensating.`
 					return 'Use a motion token (var(--dur-…), var(--ease-…)) instead of a literal duration.'
 				},
 			},

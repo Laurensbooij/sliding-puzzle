@@ -36,27 +36,26 @@ class, no IDs, no `!important` (element selectors belong to the global reset onl
 
 ## Borders and control sizing
 
-Figma has **stroke alignment**, which CSS has no equivalent for, and it used to
-ignore strokes when sizing auto-layout frames. That mismatch is why a bordered
-frame could read 40 in Figma and render 42 in the browser. It is settled now:
-every bordered component in the file sets `strokesIncludedInLayout`, which Figma
-documents as behaving like `box-sizing: border-box`. Both sides agree.
-
 - **Draw borders with `border`.** Never fake one that takes no space — no inset
-  `box-shadow` ring, no `outline` with a negative `outline-offset`. There is
-  nothing left to compensate for, and the fakes cost you a real border's
-  behaviour (lint-enforced: Stylelint's `declaration-property-value-disallowed-list`
-  rejects a negative `outline-offset` and an `inset` shadow composed in a custom
-  property).
+  `box-shadow` ring, no negative `outline-offset`. Figma counts its inside
+  strokes in layout (`strokesIncludedInLayout`, which it documents as behaving
+  like `box-sizing: border-box`), so both sides already agree on the box and
+  there is nothing to compensate for. The old mismatch — a frame reading 40 in
+  Figma and rendering 42 — is gone.
 - `outline` stays for **focus rings only**, always at a positive offset.
 - **Control heights come from `--control-height-sm|md|lg`** — the same
-  `control-height/*` variables the Figma components bind their height to. A
-  control states its height once, on the outer element; inner parts fill it
-  (`align-items: stretch`) rather than restating a number. Not machine-checked —
-  guard it in review.
-- A Figma **`focus spacer`** layer is a design-file device for faking
-  `outline-offset`; it has no counterpart in CSS. Implement the pair as one
-  `outline` plus `outline-offset`, never as a second element.
+  `control-height/*` variables the Figma components bind their height to. State
+  the height once on the outer element and let inner parts fill it
+  (`align-items: stretch`) rather than restating a number.
+- A Figma **`focus spacer`** layer fakes `outline-offset`, which Figma has no
+  property for. Implement the pair as one `outline` plus `outline-offset`, never
+  as a second element.
+
+Stylelint guards the first rule, not proves it: it rejects a literal or `calc()`
+negative `outline-offset`, and an `inset` shadow composed in `box-shadow` or a
+custom property. A value routed through a variable resolves too late to check.
+Control heights are review-guarded only — no rule can tell a control's height
+from any other height.
 
 ## Fonts
 

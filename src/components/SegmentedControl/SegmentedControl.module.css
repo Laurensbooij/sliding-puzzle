@@ -24,6 +24,7 @@
    control is one control-height tall in total. */
 .track {
 	display: flex;
+	align-items: stretch;
 	height: var(--control-height-md);
 	gap: var(--space-1);
 	padding: var(--space-1);
@@ -32,8 +33,8 @@
 	background-color: var(--surface-sunken);
 }
 
-/* No height of its own — `align-items: stretch` fills the track's content box,
-   so the segment tracks the token instead of restating it.
+/* No height of its own — the track's `align-items: stretch` fills its content
+   box, so the segment tracks the token instead of restating it.
    No overflow clipping anywhere on the track either: the focus ring of an edge
    segment sits outside the segment, and clipping would obscure it (SC 2.4.11). */
 .segment {
@@ -56,14 +57,6 @@
 	cursor: pointer;
 }
 
-/* Hover tints an unselected segment one step darker than the sunken track. It
-   sits above `:checked` deliberately: same specificity, so the selected pill
-   wins on source order and stays white — hovering the current choice is a
-   no-op interaction and the design gives it no paint. */
-.input:hover {
-	background-color: var(--state-hover-tint);
-}
-
 .input:checked {
 	background-color: var(--state-selected-bg);
 	box-shadow: var(--shadow-1);
@@ -76,8 +69,7 @@
 
 /* Press paints the selected pill only — the one pressed state the design set
    draws. An unselected segment becomes checked on click, so it goes straight to
-   the pill with nothing to show in between. Scoping to `:checked` also outranks
-   the selected rule above instead of merely following it. */
+   the pill with nothing to show in between. */
 .input:checked:active {
 	background-color: var(--state-press-tint);
 	box-shadow: none;
@@ -104,4 +96,11 @@
 
 .group:disabled .input {
 	cursor: default;
+}
+
+/* Hover states what it means rather than relying on source order: only an
+   enabled, unselected segment takes the tint. `:hover` still matches a disabled
+   control, and the selected pill is designed not to react at all. */
+.input:enabled:not(:checked):hover {
+	background-color: var(--state-hover-tint);
 }

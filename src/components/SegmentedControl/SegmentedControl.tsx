@@ -14,7 +14,7 @@ export interface SegmentedControlOption {
 export interface SegmentedControlProps {
 	/** Accessible name of the group. Localized by the caller; never rendered visibly. */
 	label: string
-	/** Two to four options — beyond that the design system specifies a Select. */
+	/** The design set draws three and four; more than four belongs in a Select. */
 	options: readonly SegmentedControlOption[]
 	/** Value of the currently selected option. */
 	value: string
@@ -27,8 +27,8 @@ export interface SegmentedControlProps {
 }
 
 /**
- * Inline single-choice control — grid size, source-image packs. A pill track of
- * segments where the selected one is a raised white pill.
+ * Inline single-choice control — board dimension, source-image packs. A pill
+ * track of segments where the selected one is a raised white pill.
  *
  * Each segment is a native radio (ADR-0011): the browser supplies the whole
  * roving-tabindex keyboard model — one tab stop on the checked segment, arrow

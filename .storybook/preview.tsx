@@ -13,7 +13,16 @@ const preview: Preview = {
 		// hovered segment stays hovered as you click down the sidebar. Declaring
 		// every state empty here means each story always carries a full,
 		// definitive instruction and stories override only the keys they need.
-		pseudo: { hover: [], active: [], focus: [], focusVisible: [], visited: [] },
+		pseudo: {
+			hover: [],
+			active: [],
+			focusVisible: [],
+			focusWithin: [],
+			focus: [],
+			visited: [],
+			link: [],
+			target: [],
+		},
 		a11y: {
 			// Fail stories on WCAG violations rather than just warning — AA is a
 			// baseline requirement here, not a nice-to-have.
