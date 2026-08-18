@@ -225,7 +225,9 @@
   --danger-hover: var(--rose-600);
   --danger-press: var(--rose-700);
   --danger-soft: var(--rose-100);
+  --danger-soft-text: var(--rose-700);
   --reward-deep: var(--amber-700);
+  --reward-soft-text: var(--amber-800);
   --link-hover: var(--teal-800);
   --link-visited: var(--teal-800);
   --display: var(--weight-bold) var(--font-size-4xl)/1.05 var(--family-display);

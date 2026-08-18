@@ -40,6 +40,11 @@ const aliasSpellingPatterns = [
 		group: ['@/components', '@/components/*'],
 		message: 'Import shared components as `@components/<Name>`.',
 	},
+	{
+		group: ['@/source-images/vectors/*', '**/source-images/vectors/*'],
+		message:
+			'Reach source images through the registry — `@/source-images`. A hard-coded path skips the SourceImageName type.',
+	},
 ]
 
 // react-intl is wrapped by the facade so consumers depend on our surface, not
@@ -200,6 +205,17 @@ export default tseslint.config(
 				{
 					patterns: [...aliasSpellingPatterns, reactIntlPattern, ...enginePurityPatterns],
 				},
+			],
+		},
+	},
+	{
+		// The registry is the one module that may reach the vector files — that
+		// is what makes it the boundary the type union rests on.
+		files: ['src/source-images/index.ts'],
+		rules: {
+			'no-restricted-imports': [
+				'error',
+				{ patterns: [...aliasSpellingPatterns, reactIntlPattern] },
 			],
 		},
 	},

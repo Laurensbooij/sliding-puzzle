@@ -8,6 +8,11 @@
 	flex-shrink: 0;
 }
 
+.icon[data-size='xs'] {
+	width: var(--space-3);
+	height: var(--space-3);
+}
+
 .icon[data-size='sm'] {
 	width: var(--space-4);
 	height: var(--space-4);

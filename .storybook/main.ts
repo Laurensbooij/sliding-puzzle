@@ -6,9 +6,8 @@ const config: StorybookConfig = {
 		'@storybook/addon-docs',
 		'@storybook/addon-a11y',
 		'@storybook/addon-vitest',
-		// Forces :hover/:active/:focus-visible over CDP. Synthetic events cannot
-		// drive CSS pseudo-classes, so designed interaction states would
-		// otherwise be unrenderable — and invisible to axe and Chromatic.
+		// Real :hover/:active/:focus-visible in a static frame — Storybook's
+		// instrumented events can't produce them, so Chromatic never saw them.
 		'storybook-addon-pseudo-states',
 	],
 	framework: {
