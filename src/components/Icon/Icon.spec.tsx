@@ -15,14 +15,17 @@ const iconNames = Object.keys(ICON_GLYPHS) as IconName[]
  * Cases needing several instances go through here too, so the component's
  * baseline rendering is described once.
  */
-const renderComponent = (...icons: Partial<IconProps>[]): RenderResult =>
-	renderWithProviders(
+const renderComponent = (...icons: Partial<IconProps>[]): RenderResult => {
+	const cases = icons.length > 0 ? icons : [{}]
+
+	return renderWithProviders(
 		<>
-			{(icons.length > 0 ? icons : [{}]).map((props, index) => (
+			{cases.map((props, index) => (
 				<Icon key={index} name="shuffle" {...props} />
 			))}
 		</>,
 	)
+}
 
 /**
  * Accessibility criteria that do not apply to a non-interactive graphic, recorded
@@ -36,6 +39,8 @@ const renderComponent = (...icons: Partial<IconProps>[]): RenderResult =>
  * - **Target size (SC 2.5.8)** — N/A: an Icon is not a target. The storybook axe
  *   scan runs with `target-size` enabled, so a story that ever made one
  *   interactive would fail rather than pass quietly.
+ * - **Reduced motion (ADR-0010)** — N/A: an Icon has no transition or animation
+ *   of its own, so there is no duration token for the collapse to reach.
  */
 describe('Icon', () => {
 	it('is decorative by default — hidden from assistive technology', () => {
@@ -67,7 +72,7 @@ describe('Icon', () => {
 		expect(new Set(drawings).size).toBe(iconNames.length)
 	})
 
-	it.each(ICON_SIZES)('reports the %s step of the icon scale', (size) => {
+	it.each(ICON_SIZES)('draws the %s step of the icon scale', (size) => {
 		renderComponent({ name: 'trophy', size })
 
 		const glyph = screen.getByTestId(ICON_TESTIDS.BASE)

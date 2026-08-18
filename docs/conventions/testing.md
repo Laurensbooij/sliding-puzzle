@@ -51,13 +51,17 @@ baseline setup ends up restated once per case and one change to it touches every
 test. The helper states that baseline once.
 
 - **Shape it to the spec's real needs** — a props object is the common case, but a
-  variadic helper is right when cases legitimately render several instances
-  (`Icon.spec.tsx` renders one glyph per props object). Thread render options
-  through as a second parameter when a case needs another locale.
+  variadic helper is right when cases legitimately render several instances of the
+  component. Thread render options through as a second parameter when a case needs
+  another locale.
 - **A case the helper genuinely cannot express** opts out with an
   `eslint-disable-next-line sliding-puzzle/render-through-render-component`
   carrying the reason. Reach for that only after trying to widen the helper —
   widening it is usually the smaller change.
+
+The rule checks that the helper is declared at module top level, takes at least one
+parameter, and is the only caller of `renderWithProviders` — under any import alias.
+Whether its arguments are the _right_ ones stays a review judgement.
 
 ## Queries — accessible identity first (ADR-0005)
 
