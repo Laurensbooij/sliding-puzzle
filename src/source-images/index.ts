@@ -1,13 +1,13 @@
-import bike from './bike.svg'
-import cat from './cat.svg'
-import coffee from './coffee.svg'
-import flower from './flower.svg'
-import rocket from './rocket.svg'
-import sailboat from './sailboat.svg'
+import type { SourceImageName } from './types'
+import bike from './vectors/bike.svg'
+import cat from './vectors/cat.svg'
+import coffee from './vectors/coffee.svg'
+import flower from './vectors/flower.svg'
+import rocket from './vectors/rocket.svg'
+import sailboat from './vectors/sailboat.svg'
 
-export const SOURCE_IMAGE_NAMES = ['sailboat', 'rocket', 'bike', 'coffee', 'cat', 'flower'] as const
-
-export type SourceImageName = (typeof SOURCE_IMAGE_NAMES)[number]
+export { SOURCE_IMAGE_NAMES } from './types'
+export type { SourceImageName } from './types'
 
 export const SOURCE_IMAGES: Record<SourceImageName, string> = {
 	sailboat,
