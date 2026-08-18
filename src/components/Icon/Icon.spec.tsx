@@ -1,13 +1,28 @@
 import { renderWithProviders } from '@testing'
 import { screen } from '@testing-library/react'
+import type { RenderResult } from '@testing-library/react'
 import { userEvent } from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
 
 import { Icon } from './Icon'
-import type { IconName } from './Icon'
+import type { IconName, IconProps } from './Icon'
 import { ICON_GLYPHS, ICON_SIZES, ICON_TESTIDS } from './constants'
 
 const iconNames = Object.keys(ICON_GLYPHS) as IconName[]
+
+/**
+ * Renders one Icon per props object — pass nothing for a single default Icon.
+ * Cases needing several instances go through here too, so the component's
+ * baseline rendering is described once.
+ */
+const renderComponent = (...icons: Partial<IconProps>[]): RenderResult =>
+	renderWithProviders(
+		<>
+			{(icons.length > 0 ? icons : [{}]).map((props, index) => (
+				<Icon key={index} name="shuffle" {...props} />
+			))}
+		</>,
+	)
 
 /**
  * Accessibility criteria that do not apply to a non-interactive graphic, recorded
@@ -24,7 +39,7 @@ const iconNames = Object.keys(ICON_GLYPHS) as IconName[]
  */
 describe('Icon', () => {
 	it('is decorative by default — hidden from assistive technology', () => {
-		renderWithProviders(<Icon name="shuffle" />)
+		renderComponent()
 
 		const glyph = screen.getByTestId(ICON_TESTIDS.BASE)
 		const exposedGraphic = screen.queryByRole('img')
@@ -34,7 +49,7 @@ describe('Icon', () => {
 
 	it('takes an accessible name when the glyph carries the meaning', () => {
 		const label = 'Shuffle the board'
-		renderWithProviders(<Icon name="shuffle" label={label} />)
+		renderComponent({ label })
 
 		const glyph = screen.getByRole('img', { name: label })
 		expect(glyph).toBeVisible()
@@ -42,12 +57,8 @@ describe('Icon', () => {
 	})
 
 	it('maps every designed name to a distinct glyph', () => {
-		renderWithProviders(
-			<>
-				{iconNames.map((name) => (
-					<Icon key={name} name={name} dataTestId={`${ICON_TESTIDS.BASE}-${name}`} />
-				))}
-			</>,
+		renderComponent(
+			...iconNames.map((name) => ({ name, dataTestId: `${ICON_TESTIDS.BASE}-${name}` })),
 		)
 
 		const drawings = iconNames.map(
@@ -57,14 +68,14 @@ describe('Icon', () => {
 	})
 
 	it.each(ICON_SIZES)('reports the %s step of the icon scale', (size) => {
-		renderWithProviders(<Icon name="trophy" size={size} />)
+		renderComponent({ name: 'trophy', size })
 
 		const glyph = screen.getByTestId(ICON_TESTIDS.BASE)
 		expect(glyph).toHaveAttribute('data-size', size)
 	})
 
 	it('defaults to the md step', () => {
-		renderWithProviders(<Icon name="trophy" />)
+		renderComponent({ name: 'trophy' })
 
 		const glyph = screen.getByTestId(ICON_TESTIDS.BASE)
 		expect(glyph).toHaveAttribute('data-size', 'md')
@@ -74,23 +85,26 @@ describe('Icon', () => {
 	// — the surrounding Button/IconButton owns focus, activation and target size.
 	it('stays out of the tab order, labelled or not', async () => {
 		const user = userEvent.setup()
-		renderWithProviders(
-			<>
-				<Icon name="settings" />
-				<Icon name="trophy" label="Personal best" dataTestId={ICON_TESTIDS.BASE} />
-				<button type="button">{'after'}</button>
-			</>,
+		const label = 'Personal best'
+		const decorativeTestId = `decorative-${ICON_TESTIDS.BASE}`
+		renderComponent(
+			{ name: 'settings', dataTestId: decorativeTestId },
+			{ name: 'trophy', label },
 		)
 
-		const nextControl = screen.getByRole('button', { name: 'after' })
+		const decorativeGlyph = screen.getByTestId(decorativeTestId)
+		const labelledGlyph = screen.getByRole('img', { name: label })
 		await user.tab()
 
-		expect(nextControl).toHaveFocus()
+		// Nothing else here is focusable, so tab has nowhere to land — neither
+		// the hidden glyph nor the named one may take it.
+		expect(decorativeGlyph).not.toHaveFocus()
+		expect(labelledGlyph).not.toHaveFocus()
 	})
 
 	it('lets a collection override the base testid', () => {
 		const overrideTestId = `badge-${ICON_TESTIDS.BASE}`
-		renderWithProviders(<Icon name="flame" dataTestId={overrideTestId} />)
+		renderComponent({ name: 'flame', dataTestId: overrideTestId })
 
 		const glyph = screen.getByTestId(overrideTestId)
 		expect(glyph).toBeVisible()
@@ -99,11 +113,9 @@ describe('Icon', () => {
 	it('adds a consumer class on top of its own styling rather than replacing it', () => {
 		const consumerClass = 'badgeGlyph'
 		const plainTestId = `plain-${ICON_TESTIDS.BASE}`
-		renderWithProviders(
-			<>
-				<Icon name="check" dataTestId={plainTestId} />
-				<Icon name="check" className={consumerClass} />
-			</>,
+		renderComponent(
+			{ name: 'check', dataTestId: plainTestId },
+			{ name: 'check', className: consumerClass },
 		)
 
 		const plainGlyph = screen.getByTestId(plainTestId)

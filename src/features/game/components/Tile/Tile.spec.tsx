@@ -1,5 +1,7 @@
 import { createTranslate } from '@i18n'
 import { renderWithProviders } from '@testing'
+import type { RenderWithProvidersOptions } from '@testing'
+import type { RenderResult } from '@testing-library/react'
 import { screen } from '@testing-library/react'
 import { userEvent } from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
@@ -12,9 +14,14 @@ import { tileMessages } from './translation-messages'
 const { translate } = createTranslate()
 const tileName = (number: number) => translate(tileMessages.label, { number })
 
+const renderComponent = (
+	props: Partial<TileProps> = {},
+	options?: RenderWithProvidersOptions,
+): RenderResult => renderWithProviders(<Tile tile={0} {...props} />, options)
+
 describe('Tile', () => {
 	it('is a button named after its 1-based label', () => {
-		renderWithProviders(<Tile tile={0} />)
+		renderComponent()
 
 		const tileButton = screen.getByRole('button', { name: tileName(1) })
 		expect(tileButton).toBeVisible()
@@ -23,7 +30,7 @@ describe('Tile', () => {
 	it('reports its tile id when pressed while movable', async () => {
 		const user = userEvent.setup()
 		const onPress = vi.fn<NonNullable<TileProps['onPress']>>()
-		renderWithProviders(<Tile tile={3} movable onPress={onPress} />)
+		renderComponent({ tile: 3, movable: true, onPress })
 
 		const tileButton = screen.getByRole('button', { name: tileName(4) })
 		await user.click(tileButton)
@@ -34,7 +41,7 @@ describe('Tile', () => {
 	it('cannot produce a move when not movable, but stays keyboard-reachable', async () => {
 		const user = userEvent.setup()
 		const onPress = vi.fn<NonNullable<TileProps['onPress']>>()
-		renderWithProviders(<Tile tile={3} onPress={onPress} />)
+		renderComponent({ tile: 3, onPress })
 
 		const tileButton = screen.getByRole('button', { name: tileName(4) })
 
@@ -50,7 +57,7 @@ describe('Tile', () => {
 	})
 
 	it('hides the assist label without losing its accessible name', () => {
-		renderWithProviders(<Tile tile={7} showLabel={false} />)
+		renderComponent({ tile: 7, showLabel: false })
 
 		const tileButton = screen.getByRole('button', { name: tileName(8) })
 		const label = screen.queryByText('8')
@@ -63,14 +70,14 @@ describe('Tile', () => {
 		[4, 5],
 		[8, 9],
 	])('labels tile id %i as tile number %i', (tile, number) => {
-		renderWithProviders(<Tile tile={tile} />)
+		renderComponent({ tile })
 
 		const tileButton = screen.getByRole('button', { name: tileName(number) })
 		expect(tileButton).toBeVisible()
 	})
 
 	it('translates its accessible name into the active locale', () => {
-		renderWithProviders(<Tile tile={0} />, { locale: 'nl' })
+		renderComponent({}, { locale: 'nl' })
 
 		const dutchTranslate = createTranslate('nl').translate
 		const tileButton = screen.getByRole('button', {
@@ -81,7 +88,7 @@ describe('Tile', () => {
 
 	it('lets a collection override the base testid', () => {
 		const overrideTestId = `board-${TILE_TESTIDS.BASE}-2`
-		renderWithProviders(<Tile tile={2} dataTestId={overrideTestId} />)
+		renderComponent({ tile: 2, dataTestId: overrideTestId })
 
 		const tileButton = screen.getByTestId(overrideTestId)
 		expect(tileButton).toBeVisible()

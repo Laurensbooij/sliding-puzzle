@@ -6,6 +6,7 @@ import assignBeforeAssert from './assign-before-assert.mjs'
 import noInlineTestid from './no-inline-testid.mjs'
 import propsTypeInComponentFile from './props-type-in-component-file.mjs'
 import propsTypeNaming from './props-type-naming.mjs'
+import renderThroughRenderComponent from './render-through-render-component.mjs'
 import specInModuleFolder from './spec-in-module-folder.mjs'
 import storiesFileRequired from './stories-file-required.mjs'
 import testidsInConstantsFile from './testids-in-constants-file.mjs'
@@ -227,6 +228,46 @@ ruleTester.run('spec-in-module-folder', specInModuleFolder, {
 			code: 'export {}',
 			filename: '/src/lib/i18n/utils/detect-locale.spec.ts',
 			errors: [{ messageId: 'wrongFolder' }],
+		},
+	],
+})
+
+ruleTester.run('render-through-render-component', renderThroughRenderComponent, {
+	valid: [
+		{
+			code: 'const renderComponent = (props) => renderWithProviders(<Icon {...props} />)',
+			filename: 'Icon.spec.tsx',
+		},
+		{
+			code: 'const renderComponent = (props) => {\n\treturn renderWithProviders(<Icon {...props} />)\n}',
+			filename: 'Icon.spec.tsx',
+		},
+		{
+			code: 'it("renders", () => { renderComponent({ name: "x" }) })',
+			filename: 'Icon.spec.tsx',
+		},
+		// Node specs and non-spec sources are untouched — the helper is a
+		// component-spec pattern.
+		{
+			code: 'renderWithProviders(<Icon />)',
+			filename: 'render-with-providers.tsx',
+		},
+	],
+	invalid: [
+		{
+			code: 'it("renders", () => { renderWithProviders(<Icon />) })',
+			filename: 'Icon.spec.tsx',
+			errors: [{ messageId: 'renderThroughHelper' }],
+		},
+		{
+			code: 'const renderOther = (props) => renderWithProviders(<Icon {...props} />)',
+			filename: 'Icon.spec.tsx',
+			errors: [{ messageId: 'renderThroughHelper' }],
+		},
+		{
+			code: 'describe("Icon", () => { it("renders", () => { renderWithProviders(<Icon />) }) })',
+			filename: 'Icon.spec.tsx',
+			errors: [{ messageId: 'renderThroughHelper' }],
 		},
 	],
 })

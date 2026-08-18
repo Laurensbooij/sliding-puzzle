@@ -7,7 +7,11 @@ import { ICON_GLYPHS, ICON_SIZES } from './constants'
 const iconNames = Object.keys(ICON_GLYPHS) as IconName[]
 
 const cellStyle = { display: 'grid', gap: 'var(--space-1)', justifyItems: 'center' } as const
-const captionStyle = { font: 'var(--label)', color: 'var(--text-muted)' } as const
+const captionStyle = {
+	font: 'var(--label)',
+	color: 'var(--text-muted)',
+	textAlign: 'center',
+} as const
 
 const meta = {
 	title: 'Components/Icon',
@@ -41,7 +45,7 @@ export const GlyphSet: Story = {
 			}}
 		>
 			{iconNames.map((name) => (
-				<li key={name} style={{ ...cellStyle, width: '5rem', color: 'var(--text-body)' }}>
+				<li key={name} style={{ ...cellStyle, width: '7rem', color: 'var(--text-body)' }}>
 					<Icon name={name} />
 					<span style={captionStyle}>{name}</span>
 				</li>

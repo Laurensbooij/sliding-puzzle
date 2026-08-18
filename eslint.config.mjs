@@ -235,6 +235,7 @@ export default tseslint.config(
 		plugins: { 'sliding-puzzle': slidingPuzzle },
 		rules: {
 			'sliding-puzzle/assign-before-assert': 'error',
+			'sliding-puzzle/render-through-render-component': 'error',
 		},
 	},
 	{
