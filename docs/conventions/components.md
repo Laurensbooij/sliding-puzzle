@@ -76,7 +76,7 @@ None of this is machine-checked — guard it in review.
   them; the Setup screen will enumerate them. Same rationale as ADR-0009.
 - **Import only through the typed registry** — `src/source-images/index.ts` exports a
   `SourceImageName` union and a `Record<SourceImageName, string>` of Vite static
-  imports. Never hard-code an asset path: a missing artwork must be a type error,
+  imports. Never hard-code an asset path: a missing source image must be a type error,
   not a 404.
 - **Never serve assets from `public/`.** Vite imports give hashed URLs and dead-asset
   detection; `public/` gives neither.
