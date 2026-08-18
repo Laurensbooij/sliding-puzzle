@@ -37,8 +37,9 @@ export interface TileProps {
  * every move that would destroy a keyboard user's focus mid-game.
  *
  * The fragment is the whole source image, scaled to board size and shifted so
- * this tile's home cell lands in view — one cached asset serves every tile and
- * any board dimension works.
+ * this tile's home cell lands in view — no build-time slicing, and any board
+ * dimension works. The image is inlined so its `currentColor` strokes take the
+ * ink colour set here.
  */
 export const Tile: FC<TileProps> = ({
 	tile,
@@ -51,6 +52,7 @@ export const Tile: FC<TileProps> = ({
 	dataTestId,
 }) => {
 	const { translate } = useTranslate()
+	const SourceImage = SOURCE_IMAGES[sourceImage]
 	const base = dataTestId ?? TILE_TESTIDS.BASE
 	const label = tile + 1
 	const fragmentStyle: FragmentStyle = {
@@ -74,13 +76,14 @@ export const Tile: FC<TileProps> = ({
 		>
 			<span className={styles.glass} />
 			<span className={styles.fragment}>
-				<img
+				<SourceImage
 					className={styles.fragmentImage}
 					data-testid={`${base}${TILE_TESTIDS.IMAGE_SUFFIX}`}
-					src={SOURCE_IMAGES[sourceImage]}
 					style={fragmentStyle}
-					alt=""
-					draggable="false"
+					// Stretched to the board box like the board image it is, not
+					// letterboxed into it.
+					preserveAspectRatio="none"
+					aria-hidden
 				/>
 			</span>
 			<span className={styles.sheen} />

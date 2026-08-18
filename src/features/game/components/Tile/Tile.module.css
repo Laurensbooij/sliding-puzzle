@@ -46,6 +46,9 @@
 	inset: 0;
 	overflow: hidden;
 
+	/* The source image strokes in currentColor — this is where its ink is set. */
+	color: var(--art-ink);
+
 	/* Layer opacities and the press scale are Figma component-set values with
 	   no variable behind them — they belong to the Tile, not the token tiers. */
 	opacity: 0.9;

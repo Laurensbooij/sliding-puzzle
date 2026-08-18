@@ -60,7 +60,9 @@ from 'react'`). Props type named exactly **`ComponentNameProps`**, exported
 
 ## Dependencies
 
-- **Platform first — no runtime UI libraries** (ADR-0011). Primitives build on
+- **Platform first — no runtime UI libraries** (ADR-0011). Build-time transforms
+  (`vite-plugin-svgr`) are out of that ADR's scope — it governs what ships to the
+  browser. Primitives build on
   native elements (`<dialog>`, checkbox, radios, `<select>`) and platform APIs
   (popover, anchor positioning). Not machine-checked — guard it in review.
 - Design-driven packages are limited to `lucide-react` (icons) and
@@ -70,20 +72,25 @@ from 'react'`). Props type named exactly **`ComponentNameProps`**, exported
 
 ## Source images
 
-None of this is machine-checked — guard it in review.
-
 - **Source images are born shared in `src/source-images/`.** The game feature renders
   them; the Setup screen will enumerate them. Same rationale as ADR-0009.
 - **Import only through the typed registry** — `src/source-images/index.ts` exports a
-  `SourceImageName` union and a `Record<SourceImageName, string>` of Vite static
-  imports. Never hard-code an asset path: a missing source image must be a type error,
-  not a 404.
-- **Never serve assets from `public/`.** Vite imports give hashed URLs and dead-asset
-  detection; `public/` gives neither.
-- **A Tile shows its fragment with a full-board `<img alt="" draggable="false">`** —
-  sized `boardDimension × 100%`, offset by the tile's home-cell percentages. No
-  build-time slicing: one cached asset serves every tile, and any board dimension
-  works.
+  `SourceImageName` union and a `Record<SourceImageName, FC<SVGProps<SVGSVGElement>>>`
+  of `?react` imports. Never hard-code an asset path: a missing source image must be a
+  type error, not a 404 (lint-enforced: `no-restricted-imports` blocks
+  `@/source-images/vectors/*`).
+- **Never serve assets from `public/`.** A Vite import fails the build when the file
+  is gone and drops it from the bundle when nothing renders it; `public/` does
+  neither.
+- **A Tile shows its fragment with a full-board inline `<svg>`** — the registry entry
+  rendered as a component, sized `boardDimension × 100%`, offset by the tile's
+  home-cell percentages, `preserveAspectRatio="none"`, and `aria-hidden` because it is
+  decorative. No build-time slicing: any board dimension works.
+- **The ink is the consumer's, never the file's.** Source images paint in
+  `currentColor`; the renderer sets `color: var(--art-ink)`. An `<img>` cannot do this
+  — it renders in a document of its own where `currentColor` can only resolve to black
+  — which is why the fragment is inlined ([ADR-0012](../adr/0012-source-images-render-inline-not-as-img.md)).
+  A literal colour in a vector file is a test failure (`source-images.spec.ts`).
 
 ## Storybook
 

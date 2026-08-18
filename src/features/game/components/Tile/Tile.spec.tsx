@@ -1,4 +1,3 @@
-import { SOURCE_IMAGES } from '@/source-images'
 import type { TileId } from '@engine'
 import { createTranslate } from '@i18n'
 import { renderWithProviders } from '@testing'
@@ -119,14 +118,25 @@ describe('Tile', () => {
 		expect(fragmentImage).toBeVisible()
 	})
 
-	it('carries the whole source image as a decorative, undraggable fragment', () => {
-		renderWithProviders(<Tile tile={5} {...board} sourceImage="rocket" />)
+	it('carries the named source image inline, so the tile ink can reach it', () => {
+		const rocketTestId = `${TILE_TESTIDS.BASE}-rocket`
+		const catTestId = `${TILE_TESTIDS.BASE}-cat`
+		renderWithProviders(
+			<>
+				<Tile tile={5} {...board} sourceImage="rocket" dataTestId={rocketTestId} />
+				<Tile tile={5} {...board} sourceImage="cat" dataTestId={catTestId} />
+			</>,
+		)
 
-		const fragmentImage = fragmentImageOf()
-		expect(fragmentImage).toHaveAttribute('src', SOURCE_IMAGES.rocket)
+		const rocketFragment = fragmentImageOf(rocketTestId)
+		const catFragment = fragmentImageOf(catTestId)
+
+		// Inline rather than an `<img>`: an image document resolves the source
+		// image's `currentColor` strokes to black, out of the tile's reach.
+		expect(rocketFragment.tagName).toBe('svg')
 		// The tile's accessible name already names it; the image adds nothing.
-		expect(fragmentImage).toHaveAttribute('alt', '')
-		expect(fragmentImage).toHaveAttribute('draggable', 'false')
+		expect(rocketFragment).toHaveAttribute('aria-hidden', 'true')
+		expect(rocketFragment.innerHTML).not.toBe(catFragment.innerHTML)
 	})
 
 	it.each<[TileId, number, number, number, number]>([
