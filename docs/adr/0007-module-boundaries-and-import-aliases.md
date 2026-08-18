@@ -1,8 +1,9 @@
 # Module boundaries are named aliases, enforced in one direction
 
-Code flows one way — `engine → lib → components → features → app` — and features
-never import one another. Four modules carry a named import alias (`@engine`,
-`@i18n`, `@messages`, `@testing`), plus the glob alias `@components/*`;
+Code flows one way — `engine → lib → {machines | components} → features → app` —
+features never import one another, and machines and components never import each
+other. Four modules carry a named import alias (`@engine`, `@i18n`, `@messages`,
+`@testing`), plus the glob aliases `@components/*` and `@machines/*`;
 everything else uses `@/*`. An aliased module may **only** be reached through
 its alias; the long `@/...` spelling is a lint error.
 
@@ -23,6 +24,11 @@ made the shared tier's contents a design fact rather than a speculation;
 [ADR-0009](./0009-design-system-components-are-born-shared.md) records the
 decision and adds `@components/*` as a glob alias (per-component modules, no
 tree barrel).
+
+**Amended (machines tier):** `@machines/*` joins on the same shape —
+per-machine modules, no tree barrel;
+[ADR-0012](./0012-state-machines-are-born-shared.md) records the decision and
+the machines/components sibling rule.
 
 ## Considered options
 
