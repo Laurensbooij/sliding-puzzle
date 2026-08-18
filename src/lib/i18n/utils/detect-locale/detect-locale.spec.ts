@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
-import { DEFAULT_LOCALE } from '../constants'
-import type { Locale } from '../types'
+import { DEFAULT_LOCALE } from '../../constants'
+import type { Locale } from '../../types'
 import { detectLocale } from './detect-locale'
 
 describe('detectLocale', () => {

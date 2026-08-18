@@ -6,6 +6,7 @@ import assignBeforeAssert from './assign-before-assert.mjs'
 import noInlineTestid from './no-inline-testid.mjs'
 import propsTypeInComponentFile from './props-type-in-component-file.mjs'
 import propsTypeNaming from './props-type-naming.mjs'
+import specInModuleFolder from './spec-in-module-folder.mjs'
 import storiesFileRequired from './stories-file-required.mjs'
 import testidsInConstantsFile from './testids-in-constants-file.mjs'
 
@@ -204,6 +205,28 @@ ruleTester.run('stories-file-required', storiesFileRequired, {
 			code: 'export const Flat = () => null',
 			filename: `${FIXTURES}src/components/Flat.tsx`,
 			errors: [{ messageId: 'missingStories' }],
+		},
+	],
+})
+
+ruleTester.run('spec-in-module-folder', specInModuleFolder, {
+	valid: [
+		{ code: 'export {}', filename: '/src/engine/board/board.spec.ts' },
+		{ code: 'export {}', filename: '/src/machines/game-machine/game-machine.spec.ts' },
+		{ code: 'export {}', filename: '/src/features/game/components/Tile/Tile.spec.tsx' },
+		// Not a spec — the rule has no opinion on where plain modules sit.
+		{ code: 'export {}', filename: '/src/engine/types.ts' },
+	],
+	invalid: [
+		{
+			code: 'export {}',
+			filename: '/src/engine/board.spec.ts',
+			errors: [{ messageId: 'wrongFolder' }],
+		},
+		{
+			code: 'export {}',
+			filename: '/src/lib/i18n/utils/detect-locale.spec.ts',
+			errors: [{ messageId: 'wrongFolder' }],
 		},
 	],
 })

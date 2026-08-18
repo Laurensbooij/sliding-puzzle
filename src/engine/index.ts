@@ -4,8 +4,8 @@ export {
 	isSolved,
 	movableTiles,
 	movesForCell,
-	shuffle,
 	toPlacements,
-} from './board'
+} from './board/board'
+export { shuffle } from './shuffle/shuffle'
 export { GAP } from './types'
 export type { Board, CellIndex, Move, TileId, TilePlacement } from './types'

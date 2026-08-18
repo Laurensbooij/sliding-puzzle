@@ -1,29 +1,28 @@
-import type { Board, CellIndex, Move, TileId, TilePlacement } from './types'
-import { GAP } from './types'
+import type { Board, CellIndex, Move, TileId, TilePlacement } from '../types'
+import { GAP } from '../types'
 
 /** Thrown by every stub below until the implementation phase lands. */
 const notImplemented = (fn: string): never => {
 	throw new Error(`engine/${fn} is not implemented yet`)
 }
 
-const rowOf = (board: Board, cell: CellIndex): number => Math.floor(cell / board.cols)
+// Cell arithmetic, shared with ./shuffle. Engine-internal: `index.ts` is what
+// makes a name public, and these are not on it.
+export const rowOf = (board: Board, cell: CellIndex): number => Math.floor(cell / board.cols)
 
-const colOf = (board: Board, cell: CellIndex): number => cell % board.cols
+export const colOf = (board: Board, cell: CellIndex): number => cell % board.cols
 
-const gapCell = (board: Board): CellIndex => board.cells.indexOf(GAP)
+export const gapCell = (board: Board): CellIndex => board.cells.indexOf(GAP)
 
 /** Creates a solved board of the given dimensions, gap in the last cell. */
-export const createBoard = (_rows: number, _cols: number): Board => notImplemented('createBoard')
-
-/**
- * Generates a starting board by walking from the solved board: a run of random
- * legal moves, never immediately undoing the previous one, re-walked if it
- * lands back on solved. Solvable by construction — see ADR-0002.
- *
- * The walk length is derived from the board's dimensions and governs
- * difficulty; keep it as one named constant here, not at call sites.
- */
-export const shuffle = (_board: Board, _random: () => number): Board => notImplemented('shuffle')
+export const createBoard = (rows: number, cols: number): Board => {
+	const lastCell = rows * cols - 1
+	return {
+		rows,
+		cols,
+		cells: Array.from({ length: rows * cols }, (_, cell) => (cell === lastCell ? GAP : cell)),
+	}
+}
 
 /**
  * The moves produced by pressing the given cell: empty when the cell does not
@@ -70,7 +69,8 @@ export const movableTiles = (board: Board): readonly TileId[] =>
 	)
 
 /** True when every tile sits in its home cell. */
-export const isSolved = (_board: Board): boolean => notImplemented('isSolved')
+export const isSolved = (board: Board): boolean =>
+	board.cells.every((tile, cell) => tile === GAP || tile === cell)
 
 /**
  * Derives the render projection: one entry per tile in stable tile order, so

@@ -33,6 +33,10 @@ const aliasSpellingPatterns = [
 	},
 	{ group: ['@/testing', '@/testing/*'], message: 'Import test helpers as `@testing`.' },
 	{
+		group: ['@/machines', '@/machines/*'],
+		message: 'Import machines as `@machines/<name>`.',
+	},
+	{
 		group: ['@/components', '@/components/*'],
 		message: 'Import shared components as `@components/<Name>`.',
 	},
@@ -44,6 +48,16 @@ const reactIntlPattern = {
 	group: ['react-intl'],
 	message: 'Import from `@i18n` — react-intl is only imported inside src/lib/i18n.',
 }
+
+// Machines are logic, not presentation: engine + XState only. See ADR-0012.
+const machinesPurityPatterns = [
+	{
+		group: ['react', 'react-dom', 'react-dom/*', 'react/*', '@xstate/react'],
+		message:
+			'Machines import nothing from React (ADR-0012) — components subscribe, machines run.',
+	},
+	{ group: ['*.css'], message: 'Machines have no appearance (ADR-0012).' },
+]
 
 // The engine is pure: no React, no XState, no styling. See ADR-0001.
 const enginePurityPatterns = [
@@ -143,11 +157,18 @@ export default tseslint.config(
 						{ target: './src/engine', from: './src/components' },
 						{ target: './src/engine', from: './src/lib' },
 						{ target: './src/engine', from: './src/testing' },
+						{ target: './src/engine', from: './src/machines' },
 						{ target: './src/components', from: './src/features' },
 						{ target: './src/lib', from: './src/features' },
 						// lib sits *below* components in the direction, so it may not
 						// reach forward into them either.
 						{ target: './src/lib', from: './src/components' },
+						{ target: './src/lib', from: './src/machines' },
+						// Machines and components are siblings in the flow: logic and
+						// presentation meet in features, never in each other (ADR-0012).
+						{ target: './src/machines', from: './src/components' },
+						{ target: './src/machines', from: './src/features' },
+						{ target: './src/components', from: './src/machines' },
 						...featureNames.map((name) => ({
 							target: `${FEATURES_DIR}/${name}`,
 							from: FEATURES_DIR,
@@ -183,6 +204,21 @@ export default tseslint.config(
 		},
 	},
 	{
+		files: ['src/machines/**/*.ts'],
+		rules: {
+			'no-restricted-imports': [
+				'error',
+				{
+					patterns: [
+						...aliasSpellingPatterns,
+						reactIntlPattern,
+						...machinesPurityPatterns,
+					],
+				},
+			],
+		},
+	},
+	{
 		// The one place react-intl may be imported — that is what makes the
 		// facade a boundary rather than a suggestion.
 		files: ['src/lib/i18n/**/*.{ts,tsx}'],
@@ -199,6 +235,14 @@ export default tseslint.config(
 		plugins: { 'sliding-puzzle': slidingPuzzle },
 		rules: {
 			'sliding-puzzle/assign-before-assert': 'error',
+		},
+	},
+	{
+		// A specced module is a unit: module + spec share a folder named after it.
+		files: ['src/**/*.spec.{ts,tsx}'],
+		plugins: { 'sliding-puzzle': slidingPuzzle },
+		rules: {
+			'sliding-puzzle/spec-in-module-folder': 'error',
 		},
 	},
 	{
@@ -223,6 +267,7 @@ export default tseslint.config(
 					// casing there rests on the PascalCase filename rule.
 					'src/components/**': 'PASCAL_CASE',
 					'src/engine/**': 'KEBAB_CASE',
+					'src/machines/**': 'KEBAB_CASE',
 				},
 			],
 		},

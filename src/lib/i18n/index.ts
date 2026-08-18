@@ -3,7 +3,7 @@ export { Message } from './Message'
 export { useLocale } from './hooks/use-locale/use-locale'
 export { useTranslate } from './hooks/use-translate/use-translate'
 export { createTranslate } from './utils/create-translate'
-export { detectLocale } from './utils/detect-locale'
+export { detectLocale } from './utils/detect-locale/detect-locale'
 export { DEFAULT_LOCALE, SUPPORTED_LOCALES } from './constants'
 export type { Locale, MessageCatalogue, MessageValues, TranslationMessage } from './types'
 

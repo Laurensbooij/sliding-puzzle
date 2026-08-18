@@ -1,5 +1,5 @@
-import { DEFAULT_LOCALE, SUPPORTED_LOCALES } from '../constants'
-import type { Locale } from '../types'
+import { DEFAULT_LOCALE, SUPPORTED_LOCALES } from '../../constants'
+import type { Locale } from '../../types'
 
 const isSupportedLocale = (value: string): value is Locale =>
 	(SUPPORTED_LOCALES as readonly string[]).includes(value)

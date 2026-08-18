@@ -4,7 +4,7 @@ import { IntlProvider } from 'react-intl'
 import { CATALOGUES } from './catalogues'
 import { DEFAULT_LOCALE, SUPPORTED_LOCALES } from './constants'
 import type { Locale } from './types'
-import { detectLocale } from './utils/detect-locale'
+import { detectLocale } from './utils/detect-locale/detect-locale'
 
 export interface LocaleContextValue {
 	locale: Locale

@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest'
 
-import { applyMove, movableTiles, movesForCell } from './board'
-import type { Board, CellIndex, TileId } from './types'
-import { GAP } from './types'
+import type { Board, CellIndex, TileId } from '../types'
+import { GAP } from '../types'
+import { applyMove, createBoard, isSolved, movableTiles, movesForCell } from './board'
 
 const boardOf = (rows: number, cols: number, cells: readonly (TileId | typeof GAP)[]): Board => ({
 	rows,
@@ -123,5 +123,35 @@ describe('movableTiles', () => {
 				expect(moves).toEqual([])
 			}
 		})
+	})
+})
+
+describe('createBoard', () => {
+	it('places every tile in its home cell and the gap in the last cell', () => {
+		const board = createBoard(3, 3)
+		expect(board.cells).toEqual([0, 1, 2, 3, 4, 5, 6, 7, GAP])
+	})
+
+	it('carries the given dimensions on a non-square board', () => {
+		const board = createBoard(2, 4)
+		expect(board).toEqual(boardOf(2, 4, [0, 1, 2, 3, 4, 5, 6, GAP]))
+	})
+})
+
+describe('isSolved', () => {
+	it.each<[string, Board]>([
+		['every tile sits in its home cell', createBoard(3, 3)],
+		['the board is non-square and solved', createBoard(2, 4)],
+	])('is true when %s', (_case, board) => {
+		const solved = isSolved(board)
+		expect(solved).toBe(true)
+	})
+
+	it.each<[string, Board]>([
+		['two tiles are swapped', boardOf(3, 3, [1, 0, 2, 3, 4, 5, 6, 7, GAP])],
+		['the gap sits away from the last cell', gapCentre],
+	])('is false when %s', (_case, board) => {
+		const solved = isSolved(board)
+		expect(solved).toBe(false)
 	})
 })
