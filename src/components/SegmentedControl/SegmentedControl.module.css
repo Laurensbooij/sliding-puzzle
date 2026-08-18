@@ -1,0 +1,100 @@
+.group {
+	display: inline-block;
+	margin: 0;
+	padding: 0;
+	border: 0;
+	min-inline-size: 0;
+}
+
+/* The group name is for assistive tech only — the design has no visible legend.
+   Clipped rather than hidden: display:none or visibility:hidden would take the
+   group's accessible name with it. The 1px box stays a rem so it cannot outgrow
+   its clip at large root font sizes. */
+.legend {
+	position: absolute;
+	overflow: hidden;
+	clip-path: inset(50%);
+	width: 0.0625rem;
+	height: 0.0625rem;
+	white-space: nowrap;
+}
+
+.track {
+	/* Figma strokes the outline inside the 40px track, so a real border would
+	   push the control to 42. An inset ring draws the same line for free.
+	   Composed in a custom property because Stylelint's strict-value takes a
+	   single var(), not a var inside a longer shadow value. */
+	--segmented-control-ring: inset 0 0 0 1px var(--border-subtle);
+
+	display: flex;
+	gap: var(--space-1);
+	padding: var(--space-1);
+	border-radius: var(--radius-pill);
+	background-color: var(--ink-100);
+	box-shadow: var(--segmented-control-ring);
+}
+
+/* No overflow clipping anywhere on the track: the focus ring of an edge segment
+   sits outside it, and clipping would obscure it (SC 2.4.11). */
+.segment {
+	position: relative;
+	display: grid;
+	place-items: center;
+	height: var(--control-height-sm);
+	padding-inline: var(--space-4);
+}
+
+/* The radio itself is the pill: stripped of its native look and stretched over
+   the segment, so the focus ring, the hit target and the paint are one box. */
+.input {
+	position: absolute;
+	inset: 0;
+	appearance: none;
+	margin: 0;
+	border-radius: var(--radius-pill);
+	background-color: transparent;
+	transition: var(--transition-control);
+	cursor: pointer;
+}
+
+.input:checked {
+	background-color: var(--state-selected-bg);
+	box-shadow: var(--shadow-1);
+}
+
+.input:focus-visible {
+	outline: 2px solid var(--focus-ring);
+	outline-offset: 2px;
+}
+
+/* Press paints the selected pill only — the one pressed state the design set
+   draws. An unselected segment becomes checked on click, so it goes straight to
+   the pill with nothing to show in between. Scoping to `:checked` also outranks
+   the selected rule above instead of merely following it. */
+.input:checked:active {
+	background-color: var(--state-press-tint);
+	box-shadow: none;
+}
+
+.label {
+	position: relative;
+	font-family: var(--family-ui);
+	font-size: var(--font-size-sm);
+	font-weight: var(--weight-semibold);
+	color: var(--text-muted);
+	white-space: nowrap;
+	transition: var(--transition-control);
+	pointer-events: none;
+}
+
+.input:checked ~ .label {
+	color: var(--text-strong);
+}
+
+.group:disabled .track {
+	opacity: var(--state-disabled-opacity);
+}
+
+.group:disabled .input {
+	cursor: default;
+}
