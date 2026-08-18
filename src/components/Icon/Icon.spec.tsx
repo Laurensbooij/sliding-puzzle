@@ -6,6 +6,7 @@ import { describe, expect, it } from 'vitest'
 
 import { Icon } from './Icon'
 import type { IconName, IconProps } from './Icon'
+import styles from './Icon.module.css'
 import { ICON_GLYPHS, ICON_SIZES, ICON_TESTIDS } from './constants'
 
 const iconNames = Object.keys(ICON_GLYPHS) as IconName[]
@@ -72,18 +73,22 @@ describe('Icon', () => {
 		expect(new Set(drawings).size).toBe(iconNames.length)
 	})
 
+	// The scale selects a CSS-module class rather than a data attribute
+	// (docs/conventions/components.md), so the assertion is that each step
+	// reaches for its own class. The pixel that class resolves to lives in the
+	// stylesheet, and the stories are what accept it.
 	it.each(ICON_SIZES)('draws the %s step of the icon scale', (size) => {
 		renderComponent({ name: 'trophy', size })
 
 		const glyph = screen.getByTestId(ICON_TESTIDS.BASE)
-		expect(glyph).toHaveAttribute('data-size', size)
+		expect([...glyph.classList]).toContain(styles[size])
 	})
 
 	it('defaults to the md step', () => {
 		renderComponent({ name: 'trophy' })
 
 		const glyph = screen.getByTestId(ICON_TESTIDS.BASE)
-		expect(glyph).toHaveAttribute('data-size', 'md')
+		expect([...glyph.classList]).toContain(styles.md)
 	})
 
 	// Keyboard operation map: an Icon has none. It is a graphic, never a control

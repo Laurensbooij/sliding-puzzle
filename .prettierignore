@@ -5,3 +5,6 @@ dist
 coverage
 storybook-static
 src/styles/tokens.css
+
+# Agent worktrees — whole checkouts of this repo, each formatted on its own branch
+.claude/worktrees/

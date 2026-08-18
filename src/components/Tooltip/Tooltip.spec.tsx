@@ -5,6 +5,7 @@ import { describe, expect, it, vi } from 'vitest'
 
 import { Tooltip } from './Tooltip'
 import type { TooltipPlacement, TooltipProps } from './Tooltip'
+import styles from './Tooltip.module.css'
 import { TOOLTIP_TESTIDS } from './constants'
 
 const TRIGGER_NAME = 'Shuffle'
@@ -276,6 +277,10 @@ describe('Tooltip', () => {
 		expect(onClick).toHaveBeenCalledOnce()
 	})
 
+	// Placement selects a CSS-module class rather than a data attribute
+	// (docs/conventions/components.md), so the assertion is that each placement
+	// reaches for its own class. Which side that class puts the chip on is
+	// `position-area`, which jsdom cannot compute — the stories carry that half.
 	it.each<TooltipPlacement>(['top', 'right', 'bottom', 'left'])(
 		'renders on the %s of its trigger',
 		async (placement) => {
@@ -286,7 +291,7 @@ describe('Tooltip', () => {
 			await user.hover(trigger)
 
 			const tooltip = screen.getByRole('tooltip', { name: CONTENT })
-			expect(tooltip).toHaveAttribute('data-placement', placement)
+			expect([...tooltip.classList]).toContain(styles[placement])
 		},
 	)
 

@@ -31,6 +31,10 @@ const aliasSpellingPatterns = [
 		group: ['@/lib/i18n', '@/lib/i18n/*'],
 		message: 'Import the i18n facade as `@i18n`, or global messages as `@messages`.',
 	},
+	{
+		group: ['@/lib/css-utils', '@/lib/css-utils/*'],
+		message: 'Import the CSS helpers as `@css-utils`.',
+	},
 	{ group: ['@/testing', '@/testing/*'], message: 'Import test helpers as `@testing`.' },
 	{
 		group: ['@/machines', '@/machines/*'],
@@ -75,7 +79,18 @@ const enginePurityPatterns = [
 
 export default tseslint.config(
 	{
-		ignores: ['dist', 'coverage', 'storybook-static', 'src/styles/tokens.css', '.agents'],
+		// `.claude/worktrees` holds whole checkouts of this repo — agent worktrees,
+		// each with its own `.agents` fixtures. Flat-config ignore globs are
+		// anchored at the config's directory, so the bare `.agents` entry only
+		// covers the top-level one; without this line ESLint lints every worktree.
+		ignores: [
+			'dist',
+			'coverage',
+			'storybook-static',
+			'src/styles/tokens.css',
+			'.agents',
+			'.claude/worktrees',
+		],
 	},
 	{
 		files: [

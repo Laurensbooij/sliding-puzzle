@@ -1,3 +1,4 @@
+import { cx } from '@css-utils'
 import type { ComponentPropsWithoutRef, FC } from 'react'
 
 import styles from './Card.module.css'
@@ -31,9 +32,7 @@ export const Card: FC<CardProps> = ({
 	...sectionProps
 }) => (
 	<section
-		className={[styles.card, styles[padding], raised && styles.raised, className]
-			.filter(Boolean)
-			.join(' ')}
+		className={cx(styles.card, styles[padding], raised && styles.raised, className)}
 		data-testid={dataTestId ?? CARD_TESTIDS.BASE}
 		{...sectionProps}
 	>

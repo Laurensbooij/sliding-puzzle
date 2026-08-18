@@ -33,7 +33,6 @@
 	color: var(--text-inverse);
 	font: var(--label);
 	position-anchor: var(--tooltip-anchor);
-	position-area: block-start center;
 	position-try-fallbacks: flip-block, flip-inline;
 	opacity: 0;
 
@@ -60,15 +59,19 @@
 	inset: calc(-1 * var(--tooltip-offset));
 }
 
-.tooltip[data-placement='bottom'] {
+.top {
+	position-area: block-start center;
+}
+
+.bottom {
 	position-area: block-end center;
 }
 
-.tooltip[data-placement='left'] {
+.left {
 	position-area: center inline-start;
 }
 
-.tooltip[data-placement='right'] {
+.right {
 	position-area: center inline-end;
 }
 

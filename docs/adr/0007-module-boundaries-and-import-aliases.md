@@ -2,9 +2,9 @@
 
 Code flows one way — `engine → lib → {machines | components} → features → app` —
 features never import one another, and machines and components never import each
-other. Four modules carry a named import alias (`@engine`, `@i18n`, `@messages`,
-`@testing`), plus the glob aliases `@components/*` and `@machines/*`;
-everything else uses `@/*`. An aliased module may **only** be reached through
+other. Five modules carry a named import alias (`@engine`, `@i18n`, `@messages`,
+`@testing`, `@css-utils`), plus the glob aliases `@components/*` and
+`@machines/*`; everything else uses `@/*`. An aliased module may **only** be reached through
 its alias; the long `@/...` spelling is a lint error.
 
 Recorded because the alias set looks arbitrary without its rule, and because a
@@ -29,6 +29,11 @@ tree barrel).
 per-machine modules, no tree barrel;
 [ADR-0012](./0012-state-machines-are-born-shared.md) records the decision and
 the machines/components sibling rule.
+
+**Amended (CSS helpers):** `@css-utils` joins as a named alias for
+`src/lib/css-utils/`. It qualifies on the rule above — every component that
+composes class names depends on it, and its API is one function
+([SLI-36](https://linear.app/sliding-puzzle/issue/SLI-36)).
 
 ## Considered options
 

@@ -50,10 +50,28 @@ from 'react'`). Props type named exactly **`ComponentNameProps`**, exported
   whole-subtree re-export that `setup-ts-deep-modules` warns against. Do not
   add barrels that re-export a directory tree.
 
+## Variants and state
+
+- **A designed variant is a CSS-module class; transient state is a data
+  attribute.** Tone, size, padding, placement — anything the Figma component
+  carries as a variant property — selects a class (`styles[tone]`). Whether the
+  element is currently pressed, dragging, or open is a `data-*` attribute the
+  stylesheet matches on (`[data-pressed]`). Both mechanisms work; picking per
+  component is what made four components spell the same job three ways.
+- Reasoning: a variant is fixed for the life of the element and belongs to the
+  class list the component composes anyway; state flips at runtime and reads
+  better as an attribute that is present or absent than as a class toggled in
+  JSX. Being able to tell them apart in devtools is the point.
+- **Compose class names with `cx` from `@css-utils`** — never hand-roll
+  `[a, b].filter(Boolean).join(' ')` or a ternary. It drops falsy entries and
+  returns `undefined` when nothing survives, so React omits an empty `class`.
+- A component that accepts `className` puts the consumer's class **last**, so a
+  consumer can override without fighting specificity.
+
 ## Imports
 
 - Reach aliased modules by their alias only — `@engine`, `@i18n`, `@messages`,
-  `@testing`, and shared components as `@components/<Name>`. The long `@/...`
+  `@testing`, `@css-utils`, and shared components as `@components/<Name>`. The long `@/...`
   spelling for those targets is a lint error, and everything else uses `@/*`. See
   [ADR-0007](../adr/0007-module-boundaries-and-import-aliases.md).
 - **Features never import other features.** Compose them at the app level.

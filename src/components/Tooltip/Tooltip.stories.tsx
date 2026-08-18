@@ -1,3 +1,4 @@
+import { cx } from '@css-utils'
 import type { Meta, StoryObj } from '@storybook/react-vite'
 import { expect, userEvent, waitFor, within } from 'storybook/test'
 
@@ -18,7 +19,7 @@ const IconTrigger = () => (
 
 /** A trigger already named by its own text, so the chip describes it instead. */
 const TextTrigger = () => (
-	<button type="button" className={`${styles.trigger} ${styles.textTrigger}`}>
+	<button type="button" className={cx(styles.trigger, styles.textTrigger)}>
 		Stats
 	</button>
 )

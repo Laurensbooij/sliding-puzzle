@@ -1,3 +1,4 @@
+import { cx } from '@css-utils'
 import type { FC, SVGProps } from 'react'
 
 import styles from './Icon.module.css'
@@ -48,8 +49,7 @@ export const Icon: FC<IconProps> = ({
 	return (
 		<Glyph
 			{...svgProps}
-			className={className ? `${styles.icon} ${className}` : styles.icon}
-			data-size={size}
+			className={cx(styles.icon, styles[size], className)}
 			data-testid={dataTestId ?? ICON_TESTIDS.BASE}
 			aria-hidden={decorative || undefined}
 			role={decorative ? undefined : 'img'}

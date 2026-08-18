@@ -44,7 +44,7 @@
 	white-space: nowrap;
 }
 
-.default {
+.neutral {
 	border: 1px solid var(--border-subtle);
 	background-color: var(--surface-card);
 	color: var(--text-strong);
