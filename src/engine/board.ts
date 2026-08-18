@@ -13,7 +13,55 @@ const colOf = (board: Board, cell: CellIndex): number => cell % board.cols
 const gapCell = (board: Board): CellIndex => board.cells.indexOf(GAP)
 
 /** Creates a solved board of the given dimensions, gap in the last cell. */
-export const createBoard = (_rows: number, _cols: number): Board => notImplemented('createBoard')
+export const createBoard = (rows: number, cols: number): Board => {
+	const lastCell = rows * cols - 1
+	return {
+		rows,
+		cols,
+		cells: Array.from({ length: rows * cols }, (_, cell) => (cell === lastCell ? GAP : cell)),
+	}
+}
+
+/**
+ * Walk length per cell — the single difficulty dial, kept here rather than at
+ * call sites (ADR-0002).
+ */
+const SHUFFLE_MOVES_PER_CELL = 20
+
+/** The cells orthogonally adjacent to the given one, i.e. one move away from it. */
+const neighbourCells = (board: Board, cell: CellIndex): readonly CellIndex[] => {
+	const row = rowOf(board, cell)
+	const col = colOf(board, cell)
+	return [
+		row > 0 ? cell - board.cols : undefined,
+		row < board.rows - 1 ? cell + board.cols : undefined,
+		col > 0 ? cell - 1 : undefined,
+		col < board.cols - 1 ? cell + 1 : undefined,
+	].filter((neighbour) => neighbour !== undefined)
+}
+
+const walk = (board: Board, random: () => number, steps: number): Board => {
+	let walked = board
+	let lastMovedTile: TileId | undefined
+	for (let step = 0; step < steps; step += 1) {
+		const candidates = neighbourCells(walked, gapCell(walked)).filter(
+			(cell) => walked.cells[cell] !== lastMovedTile,
+		)
+		// Only a board one cell wide can run out: everywhere else the gap has at
+		// least two neighbours and the no-undo rule excludes at most one.
+		const pressedCell = candidates[Math.floor(random() * candidates.length)]
+		if (pressedCell === undefined) {
+			break
+		}
+		const [move] = movesForCell(walked, pressedCell)
+		if (move === undefined) {
+			break
+		}
+		walked = applyMove(walked, move)
+		lastMovedTile = move.tile
+	}
+	return walked
+}
 
 /**
  * Generates a starting board by walking from the solved board: a run of random
@@ -23,7 +71,14 @@ export const createBoard = (_rows: number, _cols: number): Board => notImplement
  * The walk length is derived from the board's dimensions and governs
  * difficulty; keep it as one named constant here, not at call sites.
  */
-export const shuffle = (_board: Board, _random: () => number): Board => notImplemented('shuffle')
+export const shuffle = (board: Board, random: () => number): Board => {
+	const steps = board.cells.length * SHUFFLE_MOVES_PER_CELL
+	let shuffled = walk(board, random, steps)
+	while (isSolved(shuffled)) {
+		shuffled = walk(board, random, steps)
+	}
+	return shuffled
+}
 
 /**
  * The moves produced by pressing the given cell: empty when the cell does not
@@ -70,7 +125,8 @@ export const movableTiles = (board: Board): readonly TileId[] =>
 	)
 
 /** True when every tile sits in its home cell. */
-export const isSolved = (_board: Board): boolean => notImplemented('isSolved')
+export const isSolved = (board: Board): boolean =>
+	board.cells.every((tile, cell) => tile === GAP || tile === cell)
 
 /**
  * Derives the render projection: one entry per tile in stable tile order, so
