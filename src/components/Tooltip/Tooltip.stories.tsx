@@ -2,45 +2,23 @@ import type { Meta, StoryObj } from '@storybook/react-vite'
 import { expect, userEvent, waitFor, within } from 'storybook/test'
 
 import { Tooltip } from './Tooltip'
+import styles from './Tooltip.stories.module.css'
 
-/**
- * Stands in for the IconButton this tooltip will label in real UI — including
- * its focus ring, so the stories show that an open tooltip never covers it
- * (SC 2.4.11).
- */
-const triggerStyles = `
-	.sb-tooltip-trigger {
-		display: grid;
-		place-items: center;
-		width: 2.5rem;
-		height: 2.5rem;
-		border: 1px solid var(--border-default);
-		border-radius: var(--radius-md);
-		background: var(--surface-card);
-		color: var(--text-body);
-		font: var(--label);
-		cursor: pointer;
-	}
-	.sb-tooltip-trigger:focus-visible {
-		outline: 2px solid var(--focus-ring);
-		outline-offset: 2px;
-	}
-`
-
+/** Stands in for the IconButton this tooltip will label in real UI. */
 const TriggerButton = () => (
-	<button type="button" className="sb-tooltip-trigger">
+	<button type="button" className={styles.trigger}>
 		i
 	</button>
 )
 
+type Canvas = ReturnType<typeof within>
+
 /**
- * Opens the tooltip so the story renders — and axe scans — its settled open
- * state. The wait is the entry fade: mid-transition the tooltip is still at
- * opacity 0, which is neither what a reviewer should see nor what axe should
- * measure contrast against.
+ * Waits out the entry fade, so the story settles on the open state a reviewer
+ * and axe should see. Mid-transition the tooltip is still at opacity 0, which
+ * is neither.
  */
-const settleOpen = async (canvasElement: HTMLElement) => {
-	const canvas = within(canvasElement)
+const settleOpen = async (canvas: Canvas) => {
 	const tooltip = await canvas.findByRole('tooltip')
 	await waitFor(() => expect(tooltip).toBeVisible())
 }
@@ -49,7 +27,7 @@ const openOnHover = async ({ canvasElement }: { canvasElement: HTMLElement }) =>
 	const canvas = within(canvasElement)
 	const trigger = canvas.getByRole('button')
 	await userEvent.hover(trigger)
-	await settleOpen(canvasElement)
+	await settleOpen(canvas)
 }
 
 const meta = {
@@ -61,15 +39,7 @@ const meta = {
 	},
 	decorators: [
 		(Story) => (
-			<div
-				style={{
-					display: 'grid',
-					placeItems: 'center',
-					minHeight: '12rem',
-					background: 'var(--surface-page)',
-				}}
-			>
-				<style>{triggerStyles}</style>
+			<div className={styles.canvas}>
 				<Story />
 			</div>
 		),
@@ -117,6 +87,6 @@ export const OpenedByFocus: Story = {
 		const trigger = canvas.getByRole('button')
 		await userEvent.tab()
 		await expect(trigger).toHaveFocus()
-		await settleOpen(canvasElement)
+		await settleOpen(canvas)
 	},
 }

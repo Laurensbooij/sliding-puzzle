@@ -16,6 +16,10 @@
 
 	/* Uniform gap from the trigger, whatever the placement. */
 	margin: var(--space-2);
+
+	/* The popover UA sheet sets overflow: auto, which would clip the hover
+	   bridge below back to the padding box and undo it. */
+	overflow: visible;
 	border: none;
 	border-radius: var(--radius-sm);
 	padding: var(--space-2) var(--space-3);

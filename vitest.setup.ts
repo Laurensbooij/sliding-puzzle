@@ -20,11 +20,4 @@ if (typeof HTMLElement !== 'undefined' && !HTMLElement.prototype.showPopover) {
 	HTMLElement.prototype.hidePopover = function hidePopover() {
 		this.style.display = 'none'
 	}
-	HTMLElement.prototype.togglePopover = function togglePopover(options) {
-		const force = typeof options === 'boolean' ? options : options?.force
-		const shouldOpen = force ?? this.style.display !== 'block'
-		if (shouldOpen) this.showPopover()
-		else this.hidePopover()
-		return shouldOpen
-	}
 }

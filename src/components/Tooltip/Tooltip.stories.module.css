@@ -1,0 +1,27 @@
+/* Stand-in for the IconButton this tooltip will label in real UI — including
+   its focus ring, so the stories show that an open tooltip never covers it
+   (SC 2.4.11). */
+.trigger {
+	display: grid;
+	place-items: center;
+	width: 2.5rem;
+	height: 2.5rem;
+	border: 1px solid var(--border-default);
+	border-radius: var(--radius-md);
+	background-color: var(--surface-card);
+	color: var(--text-body);
+	font: var(--label);
+	cursor: pointer;
+}
+
+.trigger:focus-visible {
+	outline: 2px solid var(--focus-ring);
+	outline-offset: 2px;
+}
+
+.canvas {
+	display: grid;
+	place-items: center;
+	min-height: 12rem;
+	background-color: var(--surface-page);
+}

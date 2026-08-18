@@ -4,13 +4,13 @@ import { userEvent } from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 
 import { Tooltip } from './Tooltip'
-import type { TooltipPlacement } from './Tooltip'
+import type { TooltipPlacement, TooltipProps } from './Tooltip'
 import { TOOLTIP_TESTIDS } from './constants'
 
 const TRIGGER_NAME = 'Shuffle'
 const CONTENT = 'Shuffle the board'
 
-const renderTooltip = (props: Partial<Parameters<typeof Tooltip>[0]> = {}) =>
+const renderTooltip = (props: Partial<TooltipProps> = {}) =>
 	renderWithProviders(
 		<Tooltip content={CONTENT} {...props}>
 			<button type="button">{TRIGGER_NAME}</button>
@@ -107,6 +107,48 @@ describe('Tooltip', () => {
 		await user.unhover(tooltip)
 		const dismissed = screen.queryByRole('tooltip')
 		expect(dismissed).not.toBeInTheDocument()
+	})
+
+	it('stays open when the pointer leaves a trigger that still has focus', async () => {
+		const user = userEvent.setup()
+		renderTooltip()
+
+		const trigger = screen.getByRole('button', { name: TRIGGER_NAME })
+		await user.tab()
+		await user.hover(trigger)
+		await user.unhover(trigger)
+
+		const tooltip = screen.getByRole('tooltip', { name: CONTENT })
+		expect(trigger).toHaveFocus()
+		expect(tooltip).toBeVisible()
+	})
+
+	it('stays dismissed when the pointer returns to a trigger that still has focus', async () => {
+		const user = userEvent.setup()
+		renderTooltip()
+
+		const trigger = screen.getByRole('button', { name: TRIGGER_NAME })
+		await user.tab()
+		await user.keyboard('{Escape}')
+		await user.hover(trigger)
+
+		const tooltip = screen.queryByRole('tooltip')
+		expect(trigger).toHaveFocus()
+		expect(tooltip).not.toBeInTheDocument()
+	})
+
+	it('re-opens once hover and focus have both left after a dismissal', async () => {
+		const user = userEvent.setup()
+		renderTooltip()
+
+		const trigger = screen.getByRole('button', { name: TRIGGER_NAME })
+		await user.hover(trigger)
+		await user.keyboard('{Escape}')
+		await user.unhover(trigger)
+		await user.hover(trigger)
+
+		const tooltip = screen.getByRole('tooltip', { name: CONTENT })
+		expect(tooltip).toBeVisible()
 	})
 
 	it('closes when focus leaves the trigger', async () => {
