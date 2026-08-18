@@ -1,0 +1,25 @@
+.icon {
+	flex-shrink: 0;
+	width: var(--icon-size-md);
+	height: var(--icon-size-md);
+}
+
+.icon[data-size='xs'] {
+	width: var(--icon-size-xs);
+	height: var(--icon-size-xs);
+}
+
+.icon[data-size='sm'] {
+	width: var(--icon-size-sm);
+	height: var(--icon-size-sm);
+}
+
+.icon[data-size='lg'] {
+	width: var(--icon-size-lg);
+	height: var(--icon-size-lg);
+}
+
+.icon[data-size='xl'] {
+	width: var(--icon-size-xl);
+	height: var(--icon-size-xl);
+}
