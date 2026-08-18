@@ -95,6 +95,16 @@ None of this is machine-checked — guard it in review.
   truth; the Claude Design prototypes are input, not canon.
 - Feature components may have stories (Tile does); only the shared tier requires
   them.
+- **Pointer-transient states (`:hover`, `:active`) are forced via
+  `storybook-addon-pseudo-states`**, not simulated: `parameters: { pseudo:
+{ hover: true, active: true } }`. Play-function `userEvent` dispatches
+  synthetic events, which never match CSS pseudo-classes — a "hover story"
+  built that way renders the default state and asserts nothing. Real focus is
+  different: `userEvent.tab()` moves actual DOM focus, so `:focus-visible`
+  stories use it and stay honest. The addon is dev tooling, not a runtime UI
+  library, so ADR-0011 is untouched. Limitation: it rewrites stylesheets, so
+  user-agent pseudo styles don't show — irrelevant while controls paint their
+  own states over tokens.
 
 ## Test ids
 

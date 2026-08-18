@@ -54,3 +54,24 @@ export const Focused: Story = {
 		await userEvent.tab()
 	},
 }
+
+// The pointer-transient states are forced through the pseudo-states addon:
+// play-function events are synthetic and never match :hover/:active.
+
+export const Hovered: Story = {
+	parameters: { pseudo: { hover: true } },
+}
+
+export const HoveredOn: Story = {
+	args: { defaultChecked: true },
+	parameters: { pseudo: { hover: true } },
+}
+
+export const Pressed: Story = {
+	parameters: { pseudo: { hover: true, active: true } },
+}
+
+export const PressedOn: Story = {
+	args: { defaultChecked: true },
+	parameters: { pseudo: { hover: true, active: true } },
+}
