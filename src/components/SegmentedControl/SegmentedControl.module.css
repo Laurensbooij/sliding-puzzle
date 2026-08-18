@@ -30,7 +30,7 @@
 	gap: var(--space-1);
 	padding: var(--space-1);
 	border-radius: var(--radius-pill);
-	background-color: var(--ink-100);
+	background-color: var(--surface-sunken);
 	box-shadow: var(--segmented-control-ring);
 }
 
@@ -55,6 +55,14 @@
 	background-color: transparent;
 	transition: var(--transition-control);
 	cursor: pointer;
+}
+
+/* Hover tints an unselected segment one step darker than the sunken track. It
+   sits above `:checked` deliberately: same specificity, so the selected pill
+   wins on source order and stays white — hovering the current choice is a
+   no-op interaction and the design gives it no paint. */
+.input:hover {
+	background-color: var(--state-hover-tint);
 }
 
 .input:checked {

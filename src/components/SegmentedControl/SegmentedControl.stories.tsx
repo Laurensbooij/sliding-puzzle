@@ -56,11 +56,11 @@ export const FourOptions: Story = {
 	args: { options: gridSizesWithSix },
 }
 
-// The pseudo-state stories target the selected segment, matching the Figma
-// variants: hover carries no paint of its own there, press swaps the pill to
-// the press tint, focus adds the ring.
+// Press and focus target the selected segment, matching the Figma variants.
+// Hover targets an unselected one — that is where the affordance lives, and the
+// selected pill is designed not to react.
 export const Hovered: Story = {
-	parameters: { pseudo: { hover: ['input:checked'] } },
+	parameters: { pseudo: { hover: ['input[value="4"]'] } },
 }
 
 export const Pressed: Story = {
