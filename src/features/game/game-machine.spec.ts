@@ -50,7 +50,7 @@ describe('gameMachine', () => {
 
 	it('shuffles the board and begins playing on START', () => {
 		const game = gameOf()
-		game.send({ type: 'START' })
+		game.send({ type: 'game.start' })
 		const { value, context } = game.getSnapshot()
 		expect(value).toBe('playing')
 		expect(isSolved(context.board)).toBe(false)
@@ -60,7 +60,7 @@ describe('gameMachine', () => {
 	it('ignores a press before the game has started', () => {
 		const game = gameOf()
 		const boardWhenIdle = game.getSnapshot().context.board
-		game.send({ type: 'PRESS_CELL', cell: 0 })
+		game.send({ type: 'cell.press', cell: 0 })
 		const { value, context } = game.getSnapshot()
 		expect(value).toBe('idle')
 		expect(context.board).toEqual(boardWhenIdle)
@@ -69,12 +69,12 @@ describe('gameMachine', () => {
 	describe('pressing a cell', () => {
 		it('counts one move per tile of the run and leaves the gap on the pressed cell', () => {
 			const game = gameOf({ rows: 4, cols: 4 })
-			game.send({ type: 'START' })
+			game.send({ type: 'game.start' })
 			const boardBeforePress = game.getSnapshot().context.board
 			const pressedCell = cellWithRun(boardBeforePress)
 			const runLength = movesForCell(boardBeforePress, pressedCell).length
 
-			game.send({ type: 'PRESS_CELL', cell: pressedCell })
+			game.send({ type: 'cell.press', cell: pressedCell })
 
 			const { context } = game.getSnapshot()
 			// A run of N tiles shifts every one of them by a cell and lands the gap
@@ -90,14 +90,14 @@ describe('gameMachine', () => {
 
 		it('accumulates the move count across presses', () => {
 			const game = gameOf({ rows: 4, cols: 4 })
-			game.send({ type: 'START' })
+			game.send({ type: 'game.start' })
 			const firstPress = cellWithRun(game.getSnapshot().context.board)
 			const firstMoves = movesForCell(game.getSnapshot().context.board, firstPress)
-			game.send({ type: 'PRESS_CELL', cell: firstPress })
+			game.send({ type: 'cell.press', cell: firstPress })
 			const secondPress = cellWithRun(game.getSnapshot().context.board)
 			const secondMoves = movesForCell(game.getSnapshot().context.board, secondPress)
 
-			game.send({ type: 'PRESS_CELL', cell: secondPress })
+			game.send({ type: 'cell.press', cell: secondPress })
 
 			const { context } = game.getSnapshot()
 			expect(context.moveCount).toBe(firstMoves.length + secondMoves.length)
@@ -105,11 +105,11 @@ describe('gameMachine', () => {
 
 		it('leaves the game untouched when the cell yields no move', () => {
 			const game = gameOf()
-			game.send({ type: 'START' })
+			game.send({ type: 'game.start' })
 			const boardBeforePress = game.getSnapshot().context.board
 			const gapCell = boardBeforePress.cells.indexOf(GAP)
 
-			game.send({ type: 'PRESS_CELL', cell: gapCell })
+			game.send({ type: 'cell.press', cell: gapCell })
 
 			const { value, context } = game.getSnapshot()
 			expect(value).toBe('playing')
@@ -121,9 +121,9 @@ describe('gameMachine', () => {
 	describe('win detection', () => {
 		it('reaches solved on the move that puts the last tile in its home cell', () => {
 			const game = gameOf(solvableInOnePress)
-			game.send({ type: 'START' })
+			game.send({ type: 'game.start' })
 
-			game.send({ type: 'PRESS_CELL', cell: LAST_CELL_OF_1X3 })
+			game.send({ type: 'cell.press', cell: LAST_CELL_OF_1X3 })
 
 			const { value, context } = game.getSnapshot()
 			expect(value).toBe('solved')
@@ -133,11 +133,11 @@ describe('gameMachine', () => {
 
 		it('ignores further presses once the board is solved', () => {
 			const game = gameOf(solvableInOnePress)
-			game.send({ type: 'START' })
-			game.send({ type: 'PRESS_CELL', cell: LAST_CELL_OF_1X3 })
+			game.send({ type: 'game.start' })
+			game.send({ type: 'cell.press', cell: LAST_CELL_OF_1X3 })
 			const solvedGame = game.getSnapshot().context
 
-			game.send({ type: 'PRESS_CELL', cell: 0 })
+			game.send({ type: 'cell.press', cell: 0 })
 
 			const { value, context } = game.getSnapshot()
 			expect(value).toBe('solved')
@@ -149,10 +149,10 @@ describe('gameMachine', () => {
 	describe('restarting', () => {
 		it('deals a fresh shuffle and clears the move count from solved', () => {
 			const game = gameOf(solvableInOnePress)
-			game.send({ type: 'START' })
-			game.send({ type: 'PRESS_CELL', cell: LAST_CELL_OF_1X3 })
+			game.send({ type: 'game.start' })
+			game.send({ type: 'cell.press', cell: LAST_CELL_OF_1X3 })
 
-			game.send({ type: 'RESTART' })
+			game.send({ type: 'game.restart' })
 
 			const { value, context } = game.getSnapshot()
 			expect(value).toBe('playing')
@@ -163,11 +163,11 @@ describe('gameMachine', () => {
 
 		it('deals a fresh shuffle and clears the move count mid-game', () => {
 			const game = gameOf()
-			game.send({ type: 'START' })
+			game.send({ type: 'game.start' })
 			const pressedCell = cellWithRun(game.getSnapshot().context.board)
-			game.send({ type: 'PRESS_CELL', cell: pressedCell })
+			game.send({ type: 'cell.press', cell: pressedCell })
 
-			game.send({ type: 'RESTART' })
+			game.send({ type: 'game.restart' })
 
 			const { value, context } = game.getSnapshot()
 			expect(value).toBe('playing')
@@ -178,7 +178,7 @@ describe('gameMachine', () => {
 		it('deals the first game straight from idle', () => {
 			const game = gameOf()
 
-			game.send({ type: 'RESTART' })
+			game.send({ type: 'game.restart' })
 
 			const { value, context } = game.getSnapshot()
 			expect(value).toBe('playing')
@@ -196,7 +196,7 @@ describe('gameMachine', () => {
 		it('runs with the clock while the game is playing', () => {
 			const clock = stoppedClock()
 			const game = gameOf({ now: clock.now })
-			game.send({ type: 'START' })
+			game.send({ type: 'game.start' })
 			clock.advance(5000)
 
 			const elapsed = elapsedMs(game.getSnapshot().context)
@@ -206,9 +206,9 @@ describe('gameMachine', () => {
 		it('freezes at the instant the board was solved', () => {
 			const clock = stoppedClock()
 			const game = gameOf({ ...solvableInOnePress, now: clock.now })
-			game.send({ type: 'START' })
+			game.send({ type: 'game.start' })
 			clock.advance(5000)
-			game.send({ type: 'PRESS_CELL', cell: LAST_CELL_OF_1X3 })
+			game.send({ type: 'cell.press', cell: LAST_CELL_OF_1X3 })
 			clock.advance(3000)
 
 			const elapsed = elapsedMs(game.getSnapshot().context)
@@ -218,11 +218,11 @@ describe('gameMachine', () => {
 		it('restarts from zero when the game is dealt again', () => {
 			const clock = stoppedClock()
 			const game = gameOf({ ...solvableInOnePress, now: clock.now })
-			game.send({ type: 'START' })
+			game.send({ type: 'game.start' })
 			clock.advance(5000)
-			game.send({ type: 'PRESS_CELL', cell: LAST_CELL_OF_1X3 })
+			game.send({ type: 'cell.press', cell: LAST_CELL_OF_1X3 })
 
-			game.send({ type: 'RESTART' })
+			game.send({ type: 'game.restart' })
 
 			const elapsed = elapsedMs(game.getSnapshot().context)
 			expect(elapsed).toBe(0)

@@ -27,11 +27,11 @@ export interface GameContext {
 }
 
 export type GameEvent =
-	| { type: 'START' }
+	| { type: 'game.start' }
 	/** Presses a cell; ignored unless it yields at least one move. */
-	| { type: 'PRESS_CELL'; cell: CellIndex }
+	| { type: 'cell.press'; cell: CellIndex }
 	/** Deals a new game, from anywhere in the lifecycle. */
-	| { type: 'RESTART' }
+	| { type: 'game.restart' }
 
 /**
  * Milliseconds spent playing: zero before the game starts, live while playing,
@@ -82,12 +82,12 @@ export const gameMachine = setup({
 	// rather than being repeated in each of them. `reenter` makes it re-run
 	// `startClock` even when the game was already playing.
 	on: {
-		RESTART: { target: '.playing', actions: 'shuffleBoard', reenter: true },
+		'game.restart': { target: '.playing', actions: 'shuffleBoard', reenter: true },
 	},
 	states: {
 		idle: {
 			on: {
-				START: { target: 'playing', actions: 'shuffleBoard' },
+				'game.start': { target: 'playing', actions: 'shuffleBoard' },
 			},
 		},
 		playing: {
@@ -97,8 +97,8 @@ export const gameMachine = setup({
 			always: { guard: 'boardIsSolved', target: 'solved' },
 			on: {
 				// Inlined rather than named in `setup(…)` above: only a transition's
-				// own implementations see the event narrowed to PRESS_CELL.
-				PRESS_CELL: {
+				// own implementations see the event narrowed to cell.press.
+				'cell.press': {
 					guard: ({ context, event }) =>
 						movesForCell(context.board, event.cell).length > 0,
 					actions: assign(({ context, event }) => {
