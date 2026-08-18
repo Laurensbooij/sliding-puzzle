@@ -3,6 +3,7 @@ import type { SourceImageName } from '@/source-images'
 import type { TileId } from '@engine'
 import { useTranslate } from '@i18n'
 import type { FC } from 'react'
+import { useState } from 'react'
 
 import styles from './Tile.module.css'
 import { TILE_TESTIDS } from './constants'
@@ -32,9 +33,18 @@ export interface TileProps {
  * image, with an optional numbered assist label. Purely presentational — move
  * legality lives in the engine.
  *
- * A tile that cannot move is `aria-disabled`, not `disabled`: the native
- * attribute drops it from the tab order, and since movability changes after
- * every move that would destroy a keyboard user's focus mid-game.
+ * A tile that cannot move is skipped by Tab, but it is `aria-disabled` with
+ * `tabIndex={-1}` rather than natively `disabled`. Both drop it as a tab stop;
+ * only the native attribute also blurs it. Movability flips after every move,
+ * so the tile under a keyboard user's focus can turn unmovable beneath them —
+ * `disabled` would strand that focus on the body mid-game, while `tabIndex`
+ * leaves it focused until they choose to move on. It stays in the
+ * accessibility tree either way, so screen-reader users still find it.
+ *
+ * Holding Space shows the pressed state for as long as it is held, mirroring
+ * what a pointer does. The browser's own `:active` covers the pointer; it is
+ * not dependable for keyboard activation, so that half is tracked here and
+ * styled through `data-pressed`.
  *
  * The fragment is the whole source image, scaled to board size and shifted so
  * this tile's home cell lands in view — no build-time slicing, and any board
@@ -51,6 +61,7 @@ export const Tile: FC<TileProps> = ({
 	onPress,
 	dataTestId,
 }) => {
+	const [pressedByKey, setPressedByKey] = useState(false)
 	const { translate } = useTranslate()
 	const SourceImage = SOURCE_IMAGES[sourceImage]
 	const base = dataTestId ?? TILE_TESTIDS.BASE
@@ -69,10 +80,21 @@ export const Tile: FC<TileProps> = ({
 			data-testid={base}
 			aria-label={translate(tileMessages.label, { number: label })}
 			aria-disabled={!movable}
+			tabIndex={movable ? 0 : -1}
+			data-pressed={pressedByKey || undefined}
 			onClick={() => {
 				if (!movable) return
 				onPress?.(tile)
 			}}
+			// Space activates a button on key *up*, so the press reads as held.
+			onKeyDown={(event) => {
+				if (event.key === ' ' && movable) setPressedByKey(true)
+			}}
+			onKeyUp={(event) => {
+				if (event.key === ' ') setPressedByKey(false)
+			}}
+			// Focus can leave mid-hold; the key-up would never arrive.
+			onBlur={() => setPressedByKey(false)}
 		>
 			<span className={styles.glass} />
 			<span className={styles.fragment}>

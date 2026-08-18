@@ -69,22 +69,66 @@ describe('Tile', () => {
 		expect(onPress.mock.calls).toEqual([[3], [3]])
 	})
 
-	it('cannot produce a move when not movable, but stays keyboard-reachable', async () => {
+	it('shows the pressed state for as long as Space is held', async () => {
+		const user = userEvent.setup()
+		const onPress = vi.fn<NonNullable<TileProps['onPress']>>()
+		renderComponent({ tile: 3, movable: true, onPress })
+
+		const tileButton = screen.getByRole('button', { name: tileName(4) })
+		await user.tab()
+
+		// `:active` is the pointer's half of this and jsdom cannot report it;
+		// the keyboard's half is an attribute precisely so it can be asserted.
+		await user.keyboard('{ >}')
+		expect(tileButton).toHaveAttribute('data-pressed')
+		expect(onPress).not.toHaveBeenCalled()
+
+		await user.keyboard('{/ }')
+		expect(tileButton).not.toHaveAttribute('data-pressed')
+		expect(onPress).toHaveBeenCalledExactlyOnceWith(3)
+	})
+
+	it('does not show the pressed state on a tile that cannot move', async () => {
+		const user = userEvent.setup()
+		renderComponent({ tile: 3 })
+
+		const tileButton = screen.getByRole('button', { name: tileName(4) })
+		tileButton.focus()
+		await user.keyboard('{ >}')
+
+		expect(tileButton).not.toHaveAttribute('data-pressed')
+		await user.keyboard('{/ }')
+	})
+
+	it('is skipped by Tab and produces no move when not movable', async () => {
 		const user = userEvent.setup()
 		const onPress = vi.fn<NonNullable<TileProps['onPress']>>()
 		renderComponent({ tile: 3, onPress })
 
 		const tileButton = screen.getByRole('button', { name: tileName(4) })
 
-		// Never `disabled`: movability flips every move, and dropping out of the
-		// tab order would destroy a keyboard user's focus mid-game.
 		await user.tab()
-		expect(tileButton).toHaveFocus()
-		expect(tileButton).toBeEnabled()
+		expect(tileButton).not.toHaveFocus()
 
 		await user.click(tileButton)
 		expect(tileButton).toHaveAttribute('aria-disabled', 'true')
 		expect(onPress).not.toHaveBeenCalled()
+	})
+
+	it('keeps a tile that turns unmovable focused rather than stranding the user', async () => {
+		const user = userEvent.setup()
+		const { rerender } = renderComponent({ tile: 3, movable: true })
+
+		const tileButton = screen.getByRole('button', { name: tileName(4) })
+		await user.tab()
+		expect(tileButton).toHaveFocus()
+
+		// Movability flips after every move. `aria-disabled` + tabIndex only drops
+		// the tile as a tab stop; native `disabled` would blur it mid-game.
+		rerender(<Tile {...DEFAULT_PROPS} tile={3} movable={false} />)
+
+		expect(tileButton).toHaveFocus()
+		expect(tileButton).toBeEnabled()
 	})
 
 	it('hides the assist label without losing its accessible name', () => {
