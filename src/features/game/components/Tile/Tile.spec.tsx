@@ -1,6 +1,7 @@
 import type { TileId } from '@engine'
 import { createTranslate } from '@i18n'
 import { renderWithProviders } from '@testing'
+import type { RenderWithProvidersOptions } from '@testing'
 import { screen } from '@testing-library/react'
 import { userEvent } from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
@@ -13,11 +14,16 @@ import { tileMessages } from './translation-messages'
 const { translate } = createTranslate()
 const tileName = (number: number) => translate(tileMessages.label, { number })
 
-/** The board a tile needs to size and place its fragment. */
-const board = { sourceImage: 'sailboat', rows: 3, cols: 3 } satisfies Pick<
-	TileProps,
-	'sourceImage' | 'rows' | 'cols'
->
+/** The first tile of a solved 3×3 board — each test overrides only what it is about. */
+const DEFAULT_PROPS = {
+	tile: 0,
+	sourceImage: 'sailboat',
+	rows: 3,
+	cols: 3,
+} satisfies TileProps
+
+const renderComponent = (props: Partial<TileProps> = {}, options?: RenderWithProvidersOptions) =>
+	renderWithProviders(<Tile {...DEFAULT_PROPS} {...props} />, options)
 
 const fragmentImageOf = (testId: string = TILE_TESTIDS.BASE) =>
 	screen.getByTestId(`${testId}${TILE_TESTIDS.IMAGE_SUFFIX}`)
@@ -28,7 +34,7 @@ const fragmentImageOf = (testId: string = TILE_TESTIDS.BASE) =>
  */
 describe('Tile', () => {
 	it('is a button named after its 1-based label', () => {
-		renderWithProviders(<Tile tile={0} {...board} />)
+		renderComponent()
 
 		const tileButton = screen.getByRole('button', { name: tileName(1) })
 		expect(tileButton).toBeVisible()
@@ -37,7 +43,7 @@ describe('Tile', () => {
 	it('reports its tile id when pressed while movable', async () => {
 		const user = userEvent.setup()
 		const onPress = vi.fn<NonNullable<TileProps['onPress']>>()
-		renderWithProviders(<Tile tile={3} movable onPress={onPress} {...board} />)
+		renderComponent({ tile: 3, movable: true, onPress })
 
 		const tileButton = screen.getByRole('button', { name: tileName(4) })
 		await user.click(tileButton)
@@ -48,7 +54,7 @@ describe('Tile', () => {
 	it('is operable from the keyboard with Enter and Space', async () => {
 		const user = userEvent.setup()
 		const onPress = vi.fn<NonNullable<TileProps['onPress']>>()
-		renderWithProviders(<Tile tile={3} movable onPress={onPress} {...board} />)
+		renderComponent({ tile: 3, movable: true, onPress })
 
 		const tileButton = screen.getByRole('button', { name: tileName(4) })
 		await user.tab()
@@ -63,7 +69,7 @@ describe('Tile', () => {
 	it('cannot produce a move when not movable, but stays keyboard-reachable', async () => {
 		const user = userEvent.setup()
 		const onPress = vi.fn<NonNullable<TileProps['onPress']>>()
-		renderWithProviders(<Tile tile={3} onPress={onPress} {...board} />)
+		renderComponent({ tile: 3, onPress })
 
 		const tileButton = screen.getByRole('button', { name: tileName(4) })
 
@@ -79,7 +85,7 @@ describe('Tile', () => {
 	})
 
 	it('hides the assist label without losing its accessible name', () => {
-		renderWithProviders(<Tile tile={7} showLabel={false} {...board} />)
+		renderComponent({ tile: 7, showLabel: false })
 
 		const tileButton = screen.getByRole('button', { name: tileName(8) })
 		const label = screen.queryByText('8')
@@ -92,14 +98,14 @@ describe('Tile', () => {
 		[4, 5],
 		[8, 9],
 	])('labels tile id %i as tile number %i', (tile, number) => {
-		renderWithProviders(<Tile tile={tile} {...board} />)
+		renderComponent({ tile })
 
 		const tileButton = screen.getByRole('button', { name: tileName(number) })
 		expect(tileButton).toBeVisible()
 	})
 
 	it('translates its accessible name into the active locale', () => {
-		renderWithProviders(<Tile tile={0} {...board} />, { locale: 'nl' })
+		renderComponent({}, { locale: 'nl' })
 
 		const dutchTranslate = createTranslate('nl').translate
 		const tileButton = screen.getByRole('button', {
@@ -110,7 +116,7 @@ describe('Tile', () => {
 
 	it('lets a collection override the base testid', () => {
 		const overrideTestId = `board-${TILE_TESTIDS.BASE}-2`
-		renderWithProviders(<Tile tile={2} dataTestId={overrideTestId} {...board} />)
+		renderComponent({ tile: 2, dataTestId: overrideTestId })
 
 		const tileButton = screen.getByTestId(overrideTestId)
 		const fragmentImage = fragmentImageOf(overrideTestId)
@@ -121,12 +127,8 @@ describe('Tile', () => {
 	it('carries the named source image inline, so the tile ink can reach it', () => {
 		const rocketTestId = `${TILE_TESTIDS.BASE}-rocket`
 		const catTestId = `${TILE_TESTIDS.BASE}-cat`
-		renderWithProviders(
-			<>
-				<Tile tile={5} {...board} sourceImage="rocket" dataTestId={rocketTestId} />
-				<Tile tile={5} {...board} sourceImage="cat" dataTestId={catTestId} />
-			</>,
-		)
+		renderComponent({ sourceImage: 'rocket', dataTestId: rocketTestId })
+		renderComponent({ sourceImage: 'cat', dataTestId: catTestId })
 
 		const rocketFragment = fragmentImageOf(rocketTestId)
 		const catFragment = fragmentImageOf(catTestId)
@@ -147,7 +149,7 @@ describe('Tile', () => {
 	])(
 		'sizes tile %i to a %i×%i board and offsets it to column %i, row %i',
 		(tile, rows, cols, column, row) => {
-			renderWithProviders(<Tile tile={tile} sourceImage="cat" rows={rows} cols={cols} />)
+			renderComponent({ tile, rows, cols })
 
 			const fragmentImage = fragmentImageOf()
 			const geometry = {
