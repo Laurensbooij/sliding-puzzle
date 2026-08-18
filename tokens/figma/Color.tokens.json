@@ -396,6 +396,14 @@
         "$extensions": {
           "mode": {}
         }
+      },
+      "soft-text": {
+        "$type": "color",
+        "$value": "{Primitives.rose.700}",
+        "$description": "",
+        "$extensions": {
+          "mode": {}
+        }
       }
     },
     "reward": {
@@ -408,6 +416,14 @@
       "deep": {
         "$type": "color",
         "$value": "{Primitives.amber.700}",
+        "$description": "",
+        "$extensions": {
+          "mode": {}
+        }
+      },
+      "soft-text": {
+        "$type": "color",
+        "$value": "{Primitives.amber.800}",
         "$description": "",
         "$extensions": {
           "mode": {}
@@ -486,7 +502,7 @@
         "spec": "https://www.designtokens.org/tr/2025.10/format/",
         "colorMode": "hex",
         "variableCollections": ["Primitives", "Color", "Spacing", "Typography", "Motion"],
-        "createdAt": "2026-08-18T07:11:14.482Z"
+        "createdAt": "2026-08-18T18:25:53.350Z"
       }
     }
   }
