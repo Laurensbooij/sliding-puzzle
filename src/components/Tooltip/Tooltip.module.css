@@ -1,0 +1,71 @@
+.anchor {
+	display: inline-flex;
+	anchor-name: var(--tooltip-anchor);
+}
+
+.tooltip {
+	/* The popover UA sheet stretches the element edge to edge and centres it
+	   with auto margins; anchor positioning needs both released. */
+	inset: auto;
+
+	/* The position area is only as wide as the trigger, and the UA's
+	   `width: fit-content` would collapse the text to that. Size to the content
+	   instead and let max-width do the wrapping. */
+	width: max-content;
+	max-width: 18rem;
+
+	/* Uniform gap from the trigger, whatever the placement. */
+	margin: var(--space-2);
+	border: none;
+	border-radius: var(--radius-sm);
+	padding: var(--space-2) var(--space-3);
+	background-color: var(--surface-inverse);
+	box-shadow: var(--shadow-2);
+	color: var(--text-inverse);
+	font: var(--body-sm);
+	position-anchor: var(--tooltip-anchor);
+	position-area: block-start center;
+	position-try-fallbacks: flip-block, flip-inline;
+	opacity: 0;
+
+	/* A fade and nothing that moves. --dur-fast is one of the two durations
+	   motion-preferences.css deliberately leaves live under reduced motion,
+	   precisely because a sub-150ms fade carries no movement — so the tooltip
+	   needs no reduced-motion exception of its own. display and overlay are
+	   discrete, and only transition at all once told to allow that; without
+	   them the top layer would drop the tooltip before the fade out ran. */
+	transition:
+		opacity var(--dur-fast) var(--ease-standard),
+		display var(--dur-fast) allow-discrete,
+		overlay var(--dur-fast) allow-discrete;
+}
+
+/* WCAG 1.4.13 hoverable: a transparent bridge across the margin gap, so the
+   pointer reaches the tooltip without ever leaving the anchor's subtree. */
+.tooltip::before {
+	content: '';
+	position: absolute;
+	inset: calc(-1 * var(--space-2));
+}
+
+.tooltip[data-placement='bottom'] {
+	position-area: block-end center;
+}
+
+.tooltip[data-placement='left'] {
+	position-area: center inline-start;
+}
+
+.tooltip[data-placement='right'] {
+	position-area: center inline-end;
+}
+
+.tooltip:popover-open {
+	opacity: 1;
+}
+
+@starting-style {
+	.tooltip:popover-open {
+		opacity: 0;
+	}
+}
