@@ -13,4 +13,10 @@ export const globalMessages = defineMessages({
 		defaultMessage: 'Sliding Puzzle',
 		description: 'The name of the application',
 	},
+	close: {
+		id: 'common.close',
+		defaultMessage: 'Close',
+		description:
+			'Accessible name and tooltip of a control that dismisses the surface it sits in; the icon is a cross',
+	},
 })

@@ -47,6 +47,11 @@ export const ICON_SIZES = ['xs', 'sm', 'md', 'lg', 'xl'] as const
  *
  * Adding a glyph means adding it in Figma first; the keys mirror Lucide's own
  * kebab-case names so the two stay comparable by eye.
+ *
+ * Not every entry has a product consumer, and that is not a leftover: `keyboard`
+ * lost its only one when SettingsDialog dropped the hint row Figma draws, the
+ * way `Badge` has none. The set is what the design system defines, not what the
+ * app currently renders (ADR-0009).
  */
 export const ICON_GLYPHS = {
 	'arrow-left': ArrowLeft,

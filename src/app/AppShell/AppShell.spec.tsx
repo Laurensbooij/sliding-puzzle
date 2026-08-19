@@ -1,8 +1,11 @@
 import type { RouteHandle } from '@/app/routes/types'
+import { SettingsProvider } from '@/lib/settings'
 import { type TranslationMessage, createTranslate } from '@i18n'
+import { globalMessages } from '@messages'
 import { type RenderWithProvidersOptions, renderWithProviders } from '@testing'
 import { type RenderResult, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { APP_HEADER_TESTIDS } from '@widgets/AppHeader'
 import type { FC } from 'react'
 import { Link, RouterProvider, createMemoryRouter } from 'react-router'
 import { describe, expect, it } from 'vitest'
@@ -10,6 +13,15 @@ import { describe, expect, it } from 'vitest'
 import { AppShell } from './AppShell'
 
 const { translate } = createTranslate()
+
+const CLOSE_LABEL = translate(globalMessages.close)
+
+/**
+ * The gear by testid rather than by its accessible name: the name comes from a
+ * message colocated inside the AppHeader widget, and a widget's barrel is its
+ * whole public API (ADR-0007). Its own spec is where that name is asserted.
+ */
+const GEAR_TESTID = `${APP_HEADER_TESTIDS.BASE}${APP_HEADER_TESTIDS.SETTINGS_SUFFIX}`
 
 const FIRST_PATH = '/first'
 const SECOND_PATH = '/second'
@@ -77,9 +89,13 @@ const renderComponent = (
 	options?: RenderWithProvidersOptions,
 ): RenderResult =>
 	renderWithProviders(
-		<RouterProvider
-			router={createMemoryRouter(specRoutes, { initialEntries: [initialEntry] })}
-		/>,
+		// The dialog the shell owns writes through this provider, which the app
+		// mounts above the router.
+		<SettingsProvider>
+			<RouterProvider
+				router={createMemoryRouter(specRoutes, { initialEntries: [initialEntry] })}
+			/>
+		</SettingsProvider>,
 		options,
 	)
 
@@ -191,6 +207,53 @@ describe('AppShell', () => {
 
 		const heading = screen.getByRole('heading', { level: 1, name: 'Second screen' })
 		expect(heading).toHaveFocus()
+	})
+
+	it('keeps Settings shut until the gear asks for it', () => {
+		renderComponent()
+
+		const settings = screen.queryByRole('dialog')
+		expect(settings).not.toBeInTheDocument()
+	})
+
+	// Every route, not just the first: the gear is chrome, and a settings surface
+	// that came and went per screen would be worse than one that is inert.
+	it.each([FIRST_PATH, SECOND_PATH, UNTITLED_PATH])(
+		'opens Settings from the gear on %s',
+		async (path) => {
+			const user = userEvent.setup()
+			renderComponent(path)
+			const gear = screen.getByTestId(GEAR_TESTID)
+
+			await user.click(gear)
+
+			const settings = screen.getByRole('dialog')
+			expect(settings).toBeVisible()
+		},
+	)
+
+	it('shuts Settings again when its close control is pressed', async () => {
+		const user = userEvent.setup()
+		renderComponent()
+		const gear = screen.getByTestId(GEAR_TESTID)
+
+		await user.click(gear)
+		const close = screen.getByRole('button', { name: CLOSE_LABEL })
+		await user.click(close)
+
+		const settings = screen.queryByRole('dialog')
+		expect(settings).not.toBeInTheDocument()
+	})
+
+	it('opens Settings over the screen rather than navigating away from it', async () => {
+		const user = userEvent.setup()
+		renderComponent()
+		const gear = screen.getByTestId(GEAR_TESTID)
+
+		await user.click(gear)
+
+		const heading = screen.getByRole('heading', { level: 1, name: 'First screen' })
+		expect(heading).toBeInTheDocument()
 	})
 
 	it('moves focus nowhere when the new screen has no heading', async () => {

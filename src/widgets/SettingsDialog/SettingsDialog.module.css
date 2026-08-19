@@ -1,0 +1,47 @@
+/* Figma `settings sheet`. `Modal` undoes the dialog UA sheet; everything here is
+   the design's own. Its padding/background override the shell's reset on source
+   order, not specificity — keep the `Modal` import above this stylesheet.
+
+   One width for both designed frames: 480 is what desktop draws, and the cap
+   takes it down to the 358 mobile draws inside a 390 viewport (390 − 2 × 16).
+   Nothing about the tree changes across the breakpoint, so nothing branches. */
+.settingsDialog {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-5);
+	width: 30rem;
+	max-width: calc(100vw - var(--space-8));
+	border-radius: var(--radius-xl);
+	padding: var(--space-6);
+	background-color: var(--surface-card);
+	box-shadow: var(--shadow-4);
+}
+
+/* The ✕ sits on the heading's row, in flow — `Dialog`'s corner variant is out
+   of flow because it must not shift a centred head, and this head is not
+   centred. The gap only bites once a translated heading grows into the button. */
+.head {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: var(--space-4);
+}
+
+/* The font shorthand carries family, size, weight and leading; tracking is the
+   one part of the Figma text style it has no slot for. */
+.title {
+	margin: 0;
+	color: var(--text-strong);
+	font: var(--title);
+	letter-spacing: var(--tracking-tight);
+}
+
+/* `flex-start` rather than the default stretch: a Switch is an inline-flex label
+   and stretching it would make the whole card width clickable, well past the row
+   the design draws. */
+.rows {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	gap: var(--space-5);
+}

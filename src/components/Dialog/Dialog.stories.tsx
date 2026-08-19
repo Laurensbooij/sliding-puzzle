@@ -1,5 +1,6 @@
 import { Button } from '@components/Button'
 import { createTranslate } from '@i18n'
+import { globalMessages } from '@messages'
 import type { Meta, StoryObj } from '@storybook/react-vite'
 import type { FC } from 'react'
 import { useState } from 'react'
@@ -8,7 +9,6 @@ import { expect, userEvent, waitFor, within } from 'storybook/test'
 import { Dialog } from './Dialog'
 import type { DialogProps } from './Dialog'
 import styles from './Dialog.stories.module.css'
-import { dialogMessages } from './translation-messages'
 
 const { translate } = createTranslate()
 
@@ -199,7 +199,7 @@ export const OpensFromATrigger: Story = {
 		await expect(trigger).not.toHaveFocus()
 		await expect(dialog).toHaveFocus()
 
-		const close = canvas.getByRole('button', { name: translate(dialogMessages.close) })
+		const close = canvas.getByRole('button', { name: translate(globalMessages.close) })
 		await userEvent.click(close)
 
 		await waitFor(() => expect(dialog).not.toBeVisible())
