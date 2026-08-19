@@ -143,7 +143,7 @@ from 'react'`). Props type named exactly **`ComponentNameProps`**, exported
 
 ## Source images
 
-- **Source images are born shared in `src/source-images/`.** The game feature renders
+- **Source images are born shared in `src/source-images/`.** The Board widget renders
   them; the Setup screen will enumerate them. Same rationale as ADR-0009.
 - **Import only through the typed registry** — `src/source-images/index.ts` exports a
   `SourceImageName` union and a `Record<SourceImageName, FC<SVGProps<SVGSVGElement>>>`
