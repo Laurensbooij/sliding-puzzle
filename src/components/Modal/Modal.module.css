@@ -7,6 +7,11 @@
 	background: none;
 	color: inherit;
 
+	/* The UA sheet's `overflow: auto` clips anything a child paints past its
+	   own box — the card's shadow included, since the dialog's fit-content
+	   box matches the card exactly with no slack for it to bleed into. */
+	overflow: visible;
+
 	/* A focus target, not a tab stop, so it takes no ring of its own. */
 	outline: none;
 
