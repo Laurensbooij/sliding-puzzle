@@ -1,5 +1,7 @@
 import { useGameConfig } from '@/lib/game-config'
 import { useSettings } from '@/lib/settings'
+import { Button } from '@components/Button'
+import { Dialog } from '@components/Dialog'
 import { Icon } from '@components/Icon'
 import { StatCard } from '@components/StatCard'
 import { cx } from '@css-utils'
@@ -34,6 +36,12 @@ const selectIsPlaying = (snapshot: GameSnapshot): boolean => snapshot.matches('p
 
 const selectIsSolved = (snapshot: GameSnapshot): boolean => snapshot.matches('solved')
 
+/**
+ * Which question is on screen, if either. Only a game in progress raises one —
+ * a solved board has nothing left to protect.
+ */
+type Confirmation = 'abandon' | 'restart'
+
 export interface PlayProps {
 	/**
 	 * The game on screen. Created and started by the route that mounts this
@@ -41,6 +49,12 @@ export interface PlayProps {
 	 * one, and never has to reconcile a game with a size it was not dealt at.
 	 */
 	game: ActorRefFrom<typeof gameMachine>
+	/**
+	 * Called once the game is over by the player's choice — confirmed on the ✕,
+	 * or taken straight from a solved board. Where that leaves them is the
+	 * route's business (ADR-0017); the screen only reports that it happened.
+	 */
+	onAbandon: () => void
 }
 
 /**
@@ -63,15 +77,22 @@ export interface PlayProps {
  * "Solved". Escape closes the card to that board — a destination the mobile
  * Solved frame draws deliberately, with the read-outs standing at their final
  * values and both board controls still live. It does not come back for that
- * solve — but the next win raises it again, however the game got there.
+ * solve; the next win raises it again, however the game got there.
+ *
+ * The footer's two controls each destroy a game in progress, so each asks
+ * first. Both questions are plain `Dialog` compositions rather than one shared
+ * confirm wrapper: they differ in copy, in consequence and in who acts on the
+ * answer, and a wrapper would be sugar over that. A solved game is asked
+ * nothing — its result is already in hand, so ✕ and ↺ act at once.
  */
-export const Play: FC<PlayProps> = ({ game }) => {
+export const Play: FC<PlayProps> = ({ game, onAbandon }) => {
 	const { rows, cols, sourceImage, setBoardSize } = useGameConfig()
 	const { showTimer } = useSettings()
 	const context = useSelector(game, selectContext)
 	const isPlaying = useSelector(game, selectIsPlaying)
 	const isSolved = useSelector(game, selectIsSolved)
-	// The board an Escape closed the card over, rather than a flag: the same
+	const [confirming, setConfirming] = useState<Confirmation | null>(null)
+	// The board an Escape closed the win card over, rather than a flag: the same
 	// actor plays every game here, so a dismissal has to name the solve it
 	// belongs to or it would swallow every win after it. Every deal assigns a
 	// new board, and no state between two of them is guaranteed to be rendered —
@@ -83,7 +104,34 @@ export const Play: FC<PlayProps> = ({ game }) => {
 	useElapsedTick(isPlaying && showTimer)
 
 	const handleCellPress = (cell: CellIndex) => game.send({ type: 'cell.press', cell })
-	const handleRestart = () => game.send({ type: 'game.restart' })
+	const restart = () => game.send({ type: 'game.restart' })
+	const keepPlaying = () => setConfirming(null)
+
+	const handleAbandonPress = () => {
+		if (isSolved) {
+			onAbandon()
+			return
+		}
+		setConfirming('abandon')
+	}
+
+	const handleRestartPress = () => {
+		if (isSolved) {
+			restart()
+			return
+		}
+		setConfirming('restart')
+	}
+
+	const handleAbandonConfirmed = () => {
+		setConfirming(null)
+		onAbandon()
+	}
+
+	const handleRestartConfirmed = () => {
+		setConfirming(null)
+		restart()
+	}
 
 	return (
 		<div className={styles.play} data-testid={PLAY_TESTIDS.BASE}>
@@ -132,7 +180,8 @@ export const Play: FC<PlayProps> = ({ game }) => {
 					board={context.board}
 					sourceImage={sourceImage}
 					onCellPress={handleCellPress}
-					onRestart={handleRestart}
+					onRestart={handleRestartPress}
+					onAbandon={handleAbandonPress}
 					footer
 					// The Board cannot work this out itself — an unshuffled board is
 					// solved too — so the screen owning the lifecycle says it.
@@ -147,12 +196,69 @@ export const Play: FC<PlayProps> = ({ game }) => {
 				moveCount={context.moveCount}
 				elapsed={elapsedMs(context)}
 				boardSize={rows}
-				onPlayAgain={handleRestart}
+				onPlayAgain={restart}
 				// The size goes to the config provider, which is what deals the new
 				// game: the actor is keyed on it a tier up (ADR-0017). The player
 				// stays on Play — this is a play-again variant, not a trip to Setup.
 				onTryNextSize={setBoardSize}
 				onClose={() => setDismissedBoard(context.board)}
+			/>
+			{/* `Keep playing` leads both action rows, because focus lands on the
+			    card and the first Tab off it should reach the way out rather than
+			    the way through. Tab order is DOM order here — nothing reorders the
+			    row in CSS, so what a keyboard reaches first is what the eye reads
+			    first (SC 2.4.3). */}
+			<Dialog
+				open={confirming === 'abandon'}
+				title={<Message message={playMessages.abandonTitle} />}
+				description={<Message message={playMessages.abandonDescription} />}
+				onClose={keepPlaying}
+				dataTestId={`${PLAY_TESTIDS.BASE}${PLAY_TESTIDS.ABANDON_DIALOG_SUFFIX}`}
+				actions={
+					<>
+						<Button
+							variant="ghost"
+							onClick={keepPlaying}
+							dataTestId={`${PLAY_TESTIDS.BASE}${PLAY_TESTIDS.ABANDON_CANCEL_SUFFIX}`}
+						>
+							<Message message={playMessages.keepPlaying} />
+						</Button>
+						<Button
+							variant="danger"
+							iconStart="x"
+							onClick={handleAbandonConfirmed}
+							dataTestId={`${PLAY_TESTIDS.BASE}${PLAY_TESTIDS.ABANDON_CONFIRM_SUFFIX}`}
+						>
+							<Message message={playMessages.abandonConfirm} />
+						</Button>
+					</>
+				}
+			/>
+			<Dialog
+				open={confirming === 'restart'}
+				title={<Message message={playMessages.restartTitle} />}
+				description={<Message message={playMessages.restartDescription} />}
+				onClose={keepPlaying}
+				dataTestId={`${PLAY_TESTIDS.BASE}${PLAY_TESTIDS.RESTART_DIALOG_SUFFIX}`}
+				actions={
+					<>
+						<Button
+							variant="ghost"
+							onClick={keepPlaying}
+							dataTestId={`${PLAY_TESTIDS.BASE}${PLAY_TESTIDS.RESTART_CANCEL_SUFFIX}`}
+						>
+							<Message message={playMessages.keepPlaying} />
+						</Button>
+						<Button
+							variant="danger"
+							iconStart="rotate-ccw"
+							onClick={handleRestartConfirmed}
+							dataTestId={`${PLAY_TESTIDS.BASE}${PLAY_TESTIDS.RESTART_CONFIRM_SUFFIX}`}
+						>
+							<Message message={playMessages.restartConfirm} />
+						</Button>
+					</>
+				}
 			/>
 		</div>
 	)

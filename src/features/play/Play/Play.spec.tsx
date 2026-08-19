@@ -1,19 +1,17 @@
 import { DEFAULT_GAME_CONFIG, GAME_CONFIG_STORAGE_KEY, GameConfigProvider } from '@/lib/game-config'
 import type { BoardSize } from '@/lib/game-config'
 import { DEFAULT_SETTINGS, SETTINGS_STORAGE_KEY, SettingsProvider } from '@/lib/settings'
-import { applyMove, cellForDirection, createBoard, movesForCell, shuffle } from '@engine'
-import type { Board as BoardModel } from '@engine'
 import { createTranslate } from '@i18n'
 import { gameMachine } from '@machines/game-machine'
 import { renderWithProviders, seedStorage } from '@testing'
 import type { RenderResult } from '@testing-library/react'
-import { act, screen } from '@testing-library/react'
+import { act, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import type { UserEvent } from '@testing-library/user-event'
 import { BOARD_TESTIDS } from '@widgets/Board'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { ActorRefFrom } from 'xstate'
-import { assign, createActor } from 'xstate'
+import { createActor } from 'xstate'
 
 import { Play } from './Play'
 import { solvedMessages } from './components/Solved/translation-messages'
@@ -28,12 +26,17 @@ interface PlayCase {
 	boardSize?: BoardSize
 	showTimer?: boolean
 	game?: GameActor
+	onAbandon?: () => void
 }
 
 const MOVES_LABEL = translate(playMessages.movesLabel)
 const TIME_LABEL = translate(playMessages.timeLabel)
 const BEST_LABEL = translate(playMessages.bestLabel)
 const BOARD_SIZE_LABEL = translate(playMessages.boardSizeLabel)
+
+const ABANDON_TITLE = translate(playMessages.abandonTitle)
+const RESTART_TITLE = translate(playMessages.restartTitle)
+const KEEP_PLAYING = translate(playMessages.keepPlaying)
 
 const SECOND_MS = 1000
 
@@ -51,86 +54,37 @@ const startGame = (boardSize: BoardSize = 3, now: () => number = () => 0): GameA
 
 /**
  * The clock a finished game is timed by, handing out its two instants in order.
- * The machine reads one when the game starts and one when it finishes, and a
- * game that is already over by the first render leaves no other moment to move
- * time in.
+ * The machine reads one when the game starts and one when it finishes, so a
+ * game won in a single press leaves no other moment to move time in.
  */
 const clockStoppingAt = (elapsed: number): (() => number) => {
 	const readings = [0, elapsed]
 	return () => readings.shift() ?? elapsed
 }
 
-interface NearlySolvedGameCase {
-	boardSize?: BoardSize
-	/** Milliseconds the finished game takes, as the two clock readings above. */
-	elapsed?: number
-	/** How many of this game's deals land one move from solved; later ones shuffle for real. */
-	dealsNearlySolved?: number
-}
-
 /**
- * The dealt board, walked one move back from solved: a tile slid right into the
- * gap, which sliding it left again undoes.
- */
-const oneMoveFromSolved = (board: BoardModel): BoardModel => {
-	const cell = cellForDirection(board, 'right')
-	if (cell === null) throw new Error('The dealt board has no tile to unsolve it with')
-	return movesForCell(board, cell).reduce(applyMove, board)
-}
-
-/**
- * A game one move from winning: the route's own actor, with the deal walked
- * back a single move instead of shuffled. The engine never returns a solved
- * board from a shuffle — deliberately, see ADR-0002 — and nothing solves one,
- * so this is how a spec reaches the win the way a player does: by playing the
- * last move.
+ * A game one move from being solved: a 1×2 board can only be shuffled by
+ * sliding its single tile aside, so pressing that tile finishes the game. Every
+ * size Setup actually offers is walked twenty moves per cell, and no spec can
+ * play a walk that long back out.
  *
- * Every later deal shuffles as the app's does, so `Play again` from the card
- * lands on a real board rather than on another game already won.
+ * The screen's own board size comes from the config, not from this actor, so
+ * the Grid read-out still says whatever the case seeded — irrelevant here,
+ * where what is under test is what the footer's controls do once a game is
+ * over.
  */
-const nearlySolvedGame = ({
-	boardSize = 3,
-	elapsed = 0,
-	dealsNearlySolved = 1,
-}: NearlySolvedGameCase = {}): GameActor => {
-	let deals = 0
-	const machine = gameMachine.provide({
-		actions: {
-			shuffleBoard: assign({
-				board: ({ context }) => {
-					deals += 1
-					const dealt = createBoard(context.board.rows, context.board.cols)
-					return deals <= dealsNearlySolved
-						? oneMoveFromSolved(dealt)
-						: shuffle(dealt, context.random)
-				},
-			}),
-		},
-	})
-
-	const game = createActor(machine, {
-		input: { rows: boardSize, cols: boardSize, now: clockStoppingAt(elapsed) },
-	})
+const startNearlySolvedGame = (now: () => number = () => 0): GameActor => {
+	const game = createActor(gameMachine, { input: { rows: 1, cols: 2, now } })
 	game.start()
 	game.send({ type: 'game.start' })
 	return game
-}
-
-/**
- * Wins a game dealt by `nearlySolvedGame`: the arrow names the tile that travels
- * back into the gap (ADR-0014), and only reaches the board's handler from inside
- * it — so focus is placed on a tile rather than tabbed to, which would depend on
- * wherever the case left it.
- */
-const winTheGame = async (user: UserEvent): Promise<void> => {
-	firstMovableTile().focus()
-	await user.keyboard('{ArrowLeft}')
 }
 
 const renderComponent = ({
 	boardSize = 3,
 	showTimer = true,
 	game = startGame(boardSize),
+	onAbandon = vi.fn(),
 }: PlayCase = {}): RenderResult => {
 	// Both providers hydrate from storage on mount, so a case states its config
 	// and settings the way a returning player's browser would.
@@ -142,7 +96,7 @@ const renderComponent = ({
 	return renderWithProviders(
 		<GameConfigProvider>
 			<SettingsProvider>
-				<Play game={game} />
+				<Play game={game} onAbandon={onAbandon} />
 			</SettingsProvider>
 		</GameConfigProvider>,
 	)
@@ -165,6 +119,13 @@ const firstMovableTile = (): HTMLElement => {
 	if (!tile) throw new Error('The board rendered no movable tile')
 	return tile
 }
+
+/**
+ * A footer control, by testid: its name is the Board's own message, which the
+ * widget's barrel deliberately does not publish.
+ */
+const boardControl = (suffix: string): HTMLElement =>
+	screen.getByTestId(`${BOARD_TESTIDS.BASE}${suffix}`)
 
 const statValue = (label: string): HTMLElement => screen.getByRole('definition', { name: label })
 
@@ -191,7 +152,11 @@ const readOutTestIds = [
  *   below. A value that changes once a second makes a live region unusable
  *   noise; it stays in the accessibility tree and reads as "Time, 01:18" on
  *   demand. Moves are already spoken by the Board's live region, as the tile
- *   movement that produced them.
+ *   movement that produced them. **N/A for the two confirmations** as well:
+ *   a card's arrival is announced by its role, name and description, which the
+ *   cases below assert, and neither holds a value that changes while it is
+ *   open. Cancelling changes nothing to speak of, and confirming replaces the
+ *   screen or the board — the Board's own region owns whatever is left to say.
  * - Reduced motion — N/A: this screen declares no transition or animation.
  */
 describe('Play', () => {
@@ -379,43 +344,204 @@ describe('Play', () => {
 		})
 	})
 
-	// The confirmation the design puts in front of this belongs to another
-	// ticket; what this screen owes is that the control reaches the machine at
-	// all. Queried by testid because the control's name is the Board's own
-	// message, which its barrel deliberately does not publish.
-	it('deals a new game when the board asks to restart', async () => {
-		const user = userEvent.setup()
-		renderComponent()
-		await user.click(firstMovableTile())
-		const restart = screen.getByTestId(`${BOARD_TESTIDS.BASE}${BOARD_TESTIDS.RESTART_SUFFIX}`)
-		const announcer = screen.getByRole('status')
-		const announcedByTheMove = announcer.textContent
+	/**
+	 * The two confirmations. Both are plain `Dialog` compositions — no shared
+	 * confirm wrapper — so what these cases own is the wiring: which control
+	 * asks, what each answer does, and that neither asks once the game is over.
+	 *
+	 * Focus lands on the card rather than on an action, which is Dialog's
+	 * behaviour and deliberately not overridden here: the destructive action
+	 * cannot be fired by a stray Enter, and `Keep playing` is what the first Tab
+	 * off the card reaches. The focus trap, the restore and the real Escape are
+	 * `showModal()`'s, and jsdom implements none of them — the shim in
+	 * `vitest.setup.ts` restores open/closed state and the Escape route only, so
+	 * the stories in Chromium are what prove the rest.
+	 */
+	describe('abandoning', () => {
+		it('asks before a game in progress is thrown away', async () => {
+			const user = userEvent.setup()
+			const onAbandon = vi.fn()
+			renderComponent({ onAbandon })
+			const abandon = boardControl(BOARD_TESTIDS.ABANDON_SUFFIX)
 
-		await user.click(restart)
+			await user.click(abandon)
 
-		const moves = statValue(MOVES_LABEL)
-		expect(moves).toHaveTextContent('00')
-		// A fresh deal is not a move, however many tiles it put somewhere else —
-		// so the region gains nothing to say and stays on its last sentence.
-		expect(announcer.textContent).toBe(announcedByTheMove)
+			const confirmation = screen.getByRole('dialog', { name: ABANDON_TITLE })
+			expect(confirmation).toBeVisible()
+			expect(onAbandon).not.toHaveBeenCalled()
+		})
+
+		it('says what abandoning costs', async () => {
+			const user = userEvent.setup()
+			renderComponent()
+			const abandon = boardControl(BOARD_TESTIDS.ABANDON_SUFFIX)
+
+			await user.click(abandon)
+
+			const confirmation = screen.getByRole('dialog', { name: ABANDON_TITLE })
+			expect(confirmation).toHaveAccessibleDescription(
+				translate(playMessages.abandonDescription),
+			)
+		})
+
+		it('offers Keep playing before the destructive action', async () => {
+			const user = userEvent.setup()
+			renderComponent()
+			await user.click(boardControl(BOARD_TESTIDS.ABANDON_SUFFIX))
+			const confirmation = screen.getByRole('dialog', { name: ABANDON_TITLE })
+			const keepPlaying = within(confirmation).getByRole('button', { name: KEEP_PLAYING })
+			// Scoped to the card: the footer control that opened it carries the
+			// same name, which is the point — one act, named once.
+			const confirm = within(confirmation).getByRole('button', {
+				name: translate(playMessages.abandonConfirm),
+			})
+
+			await user.tab()
+			expect(keepPlaying).toHaveFocus()
+
+			await user.tab()
+			expect(confirm).toHaveFocus()
+		})
+
+		it('leaves the game exactly as it was when the player keeps playing', async () => {
+			const user = userEvent.setup()
+			const onAbandon = vi.fn()
+			renderComponent({ onAbandon })
+			await user.click(firstMovableTile())
+			const moves = statValue(MOVES_LABEL)
+			const movesPlayed = moves.textContent
+			await user.click(boardControl(BOARD_TESTIDS.ABANDON_SUFFIX))
+			const confirmation = screen.getByRole('dialog', { name: ABANDON_TITLE })
+			const keepPlaying = screen.getByRole('button', { name: KEEP_PLAYING })
+
+			await user.click(keepPlaying)
+
+			expect(confirmation).not.toBeVisible()
+			expect(moves.textContent).toBe(movesPlayed)
+			expect(onAbandon).not.toHaveBeenCalled()
+		})
+
+		// Escape is the other way out of the card, and it must never be the
+		// destructive path — Dialog asks to close, and closing here is cancelling.
+		it('keeps playing on Escape', async () => {
+			const user = userEvent.setup()
+			const onAbandon = vi.fn()
+			renderComponent({ onAbandon })
+			await user.click(boardControl(BOARD_TESTIDS.ABANDON_SUFFIX))
+			const confirmation = screen.getByRole('dialog', { name: ABANDON_TITLE })
+
+			await user.keyboard('{Escape}')
+
+			expect(confirmation).not.toBeVisible()
+			expect(onAbandon).not.toHaveBeenCalled()
+		})
+
+		// Where the game goes next is the route's business (ADR-0017): the screen
+		// only reports that it is over.
+		it('reports the abandonment once it is confirmed', async () => {
+			const user = userEvent.setup()
+			const onAbandon = vi.fn()
+			renderComponent({ onAbandon })
+			await user.click(boardControl(BOARD_TESTIDS.ABANDON_SUFFIX))
+			const confirmation = screen.getByRole('dialog', { name: ABANDON_TITLE })
+			const confirm = within(confirmation).getByRole('button', {
+				name: translate(playMessages.abandonConfirm),
+			})
+
+			await user.click(confirm)
+
+			expect(onAbandon).toHaveBeenCalledOnce()
+		})
+	})
+
+	describe('restarting', () => {
+		it('asks before a game in progress is reshuffled', async () => {
+			const user = userEvent.setup()
+			renderComponent()
+			await user.click(firstMovableTile())
+			const moves = statValue(MOVES_LABEL)
+			const movesPlayed = moves.textContent
+
+			await user.click(boardControl(BOARD_TESTIDS.RESTART_SUFFIX))
+
+			const confirmation = screen.getByRole('dialog', { name: RESTART_TITLE })
+			expect(confirmation).toBeVisible()
+			expect(moves.textContent).toBe(movesPlayed)
+		})
+
+		it('says what restarting costs', async () => {
+			const user = userEvent.setup()
+			renderComponent()
+
+			await user.click(boardControl(BOARD_TESTIDS.RESTART_SUFFIX))
+
+			const confirmation = screen.getByRole('dialog', { name: RESTART_TITLE })
+			expect(confirmation).toHaveAccessibleDescription(
+				translate(playMessages.restartDescription),
+			)
+		})
+
+		it('leaves the game exactly as it was when the player keeps playing', async () => {
+			const user = userEvent.setup()
+			renderComponent()
+			await user.click(firstMovableTile())
+			const moves = statValue(MOVES_LABEL)
+			const movesPlayed = moves.textContent
+			await user.click(boardControl(BOARD_TESTIDS.RESTART_SUFFIX))
+			const confirmation = screen.getByRole('dialog', { name: RESTART_TITLE })
+			const keepPlaying = screen.getByRole('button', { name: KEEP_PLAYING })
+
+			await user.click(keepPlaying)
+
+			expect(confirmation).not.toBeVisible()
+			expect(moves.textContent).toBe(movesPlayed)
+		})
+
+		it('deals a fresh game once it is confirmed', async () => {
+			const user = userEvent.setup()
+			renderComponent()
+			await user.click(firstMovableTile())
+			const announcer = screen.getByRole('status')
+			const announcedByTheMove = announcer.textContent
+			await user.click(boardControl(BOARD_TESTIDS.RESTART_SUFFIX))
+			const confirmation = screen.getByRole('dialog', { name: RESTART_TITLE })
+			const confirm = within(confirmation).getByRole('button', {
+				name: translate(playMessages.restartConfirm),
+			})
+
+			await user.click(confirm)
+
+			const moves = statValue(MOVES_LABEL)
+			expect(confirmation).not.toBeVisible()
+			expect(moves).toHaveTextContent('00')
+			// A fresh deal is not a move, however many tiles it put somewhere else
+			// — so the region gains nothing to say and stays on its last sentence.
+			expect(announcer.textContent).toBe(announcedByTheMove)
+		})
 	})
 
 	/**
-	 * The win, reached the way a player reaches it: every case here is dealt a
-	 * board one move from solved and plays that move, so the card counts a real
-	 * game and the board's live region has already said its piece about it.
+	 * The win: the card the solved board raises, and the two footer controls
+	 * behind it. Every case is dealt a game one press from solved and plays that
+	 * press, so the card counts a real game and the board's live region has
+	 * already said its piece about the move that won it.
 	 */
-	describe('once the board is solved', () => {
+	describe('once the game is solved', () => {
 		const WON_IN_ONE_MOVE = translate(solvedMessages.title, { count: 1 })
 		const SOLVED_HINT = translate(playMessages.solvedHint)
 
 		const winCard = (): HTMLElement => screen.getByRole('dialog', { name: WON_IN_ONE_MOVE })
 
+		/** Plays the one press between the dealt board and a solved one. */
+		const win = async (user: UserEvent): Promise<void> => {
+			await user.click(firstMovableTile())
+		}
+
 		it('raises the win card, named by the moves the game took', async () => {
 			const user = userEvent.setup()
-			renderComponent({ game: nearlySolvedGame() })
+			renderComponent({ game: startNearlySolvedGame() })
 
-			await winTheGame(user)
+			await win(user)
 
 			const card = winCard()
 			expect(card).toBeVisible()
@@ -423,9 +549,9 @@ describe('Play', () => {
 
 		it('describes the win with the elapsed time, frozen where the clock stopped', async () => {
 			const user = userEvent.setup()
-			renderComponent({ game: nearlySolvedGame({ elapsed: 78 * SECOND_MS }) })
+			renderComponent({ game: startNearlySolvedGame(clockStoppingAt(78 * SECOND_MS)) })
 
-			await winTheGame(user)
+			await win(user)
 
 			const card = winCard()
 			expect(card).toHaveAccessibleDescription(
@@ -435,9 +561,9 @@ describe('Play', () => {
 
 		it('changes the board footer line to Solved', async () => {
 			const user = userEvent.setup()
-			renderComponent({ game: nearlySolvedGame() })
+			renderComponent({ game: startNearlySolvedGame() })
 
-			await winTheGame(user)
+			await win(user)
 
 			const hint = screen.getByText(SOLVED_HINT)
 			expect(hint).toBeVisible()
@@ -451,10 +577,10 @@ describe('Play', () => {
 		 */
 		it('never pushes the win through the board’s live region', async () => {
 			const user = userEvent.setup()
-			renderComponent({ game: nearlySolvedGame() })
+			renderComponent({ game: startNearlySolvedGame() })
 			const announcer = screen.getByRole('status')
 
-			await winTheGame(user)
+			await win(user)
 
 			const card = winCard()
 			expect(card).toBeVisible()
@@ -464,8 +590,8 @@ describe('Play', () => {
 
 		it('closes to the solved board on Escape, footer line intact', async () => {
 			const user = userEvent.setup()
-			renderComponent({ game: nearlySolvedGame() })
-			await winTheGame(user)
+			renderComponent({ game: startNearlySolvedGame() })
+			await win(user)
 
 			await user.keyboard('{Escape}')
 
@@ -480,8 +606,8 @@ describe('Play', () => {
 		it('deals a new game at the same size from Play again', async () => {
 			const user = userEvent.setup()
 			const boardSize: BoardSize = 4
-			renderComponent({ boardSize, game: nearlySolvedGame({ boardSize }) })
-			await winTheGame(user)
+			renderComponent({ boardSize, game: startNearlySolvedGame() })
+			await win(user)
 			const playAgain = screen.getByRole('button', {
 				name: translate(solvedMessages.playAgain),
 			})
@@ -491,13 +617,11 @@ describe('Play', () => {
 			const card = screen.queryByRole('dialog')
 			const grid = statValue(BOARD_SIZE_LABEL)
 			const solvedHint = screen.queryByText(SOLVED_HINT)
-			const moves = statValue(MOVES_LABEL)
 			expect(card).not.toBeInTheDocument()
 			expect(grid).toHaveTextContent(
 				translate(playMessages.boardSizeValue, { rows: boardSize, cols: boardSize }),
 			)
 			expect(solvedHint).not.toBeInTheDocument()
-			expect(moves).toHaveTextContent('00')
 		})
 
 		/**
@@ -507,8 +631,8 @@ describe('Play', () => {
 		 */
 		it('starts the next size up in place, without leaving Play', async () => {
 			const user = userEvent.setup()
-			renderComponent({ game: nearlySolvedGame() })
-			await winTheGame(user)
+			renderComponent({ game: startNearlySolvedGame() })
+			await win(user)
 			const trySize = screen.getByRole('button', {
 				name: translate(solvedMessages.tryNextSize, { size: 4 }),
 			})
@@ -530,18 +654,55 @@ describe('Play', () => {
 		 */
 		it('raises the card again for the next win, after an Escape closed the last', async () => {
 			const user = userEvent.setup()
-			renderComponent({ game: nearlySolvedGame({ dealsNearlySolved: 2 }) })
-			await winTheGame(user)
+			renderComponent({ game: startNearlySolvedGame() })
+			await win(user)
 			await user.keyboard('{Escape}')
-			const restart = screen.getByTestId(
-				`${BOARD_TESTIDS.BASE}${BOARD_TESTIDS.RESTART_SUFFIX}`,
-			)
-			await user.click(restart)
+			await user.click(boardControl(BOARD_TESTIDS.RESTART_SUFFIX))
 
-			await winTheGame(user)
+			await win(user)
 
 			const card = winCard()
 			expect(card).toBeVisible()
+		})
+
+		/**
+		 * A solved game holds nothing worth protecting: its result is already in
+		 * hand, so both controls act at once (SLI-42). Each case dismisses the
+		 * win card first — it is modal, so in a browser nothing behind it can be
+		 * pressed until Escape closes it to the solved board.
+		 */
+		describe('the footer controls behind the card', () => {
+			const dismissTheCard = async (user: UserEvent): Promise<void> => {
+				await win(user)
+				await user.keyboard('{Escape}')
+			}
+
+			it('abandons without asking', async () => {
+				const user = userEvent.setup()
+				const onAbandon = vi.fn()
+				renderComponent({ game: startNearlySolvedGame(), onAbandon })
+				await dismissTheCard(user)
+
+				await user.click(boardControl(BOARD_TESTIDS.ABANDON_SUFFIX))
+
+				const confirmation = screen.queryByRole('dialog')
+				expect(confirmation).not.toBeInTheDocument()
+				expect(onAbandon).toHaveBeenCalledOnce()
+			})
+
+			it('restarts without asking', async () => {
+				const user = userEvent.setup()
+				renderComponent({ game: startNearlySolvedGame() })
+				await dismissTheCard(user)
+				const moves = statValue(MOVES_LABEL)
+				const solvedMoves = moves.textContent
+
+				await user.click(boardControl(BOARD_TESTIDS.RESTART_SUFFIX))
+
+				const confirmation = screen.queryByRole('dialog')
+				expect(confirmation).not.toBeInTheDocument()
+				expect(moves.textContent).not.toBe(solvedMoves)
+			})
 		})
 	})
 })
