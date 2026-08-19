@@ -20,9 +20,10 @@ export interface SolvedProps {
 	boardSize: BoardSize
 	/**
 	 * Whether the solve just recorded is a record at that size. Adds a line to
-	 * the description — it never replaces the time.
+	 * the description — it never replaces the time. Stated rather than
+	 * defaulted: a caller that forgets it would silently swallow the record.
 	 */
-	isNewBest?: boolean
+	isNewBest: boolean
 	/** Deal a new board at the size just solved. */
 	onPlayAgain: () => void
 	/** Start a game at the size named by the second action, which it is called with. */
@@ -55,7 +56,7 @@ export const Solved: FC<SolvedProps> = ({
 	moveCount,
 	elapsed,
 	boardSize,
-	isNewBest = false,
+	isNewBest,
 	onPlayAgain,
 	onTryNextSize,
 	onClose,

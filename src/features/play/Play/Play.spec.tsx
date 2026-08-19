@@ -136,6 +136,14 @@ const firstMovableTile = (): HTMLElement => {
 }
 
 /**
+ * Plays the one press between a nearly-solved board and a solved one, which is
+ * how every case that needs a win gets one.
+ */
+const win = async (user: UserEvent): Promise<void> => {
+	await user.click(firstMovableTile())
+}
+
+/**
  * A footer control, by testid: its name is the Board's own message, which the
  * widget's barrel deliberately does not publish.
  */
@@ -168,7 +176,8 @@ const readOutTestIds = [
  *   noise; it stays in the accessibility tree and reads as "Time, 01:18" on
  *   demand. **N/A for the Best card too**, on the same reasoning and also
  *   asserted below: a record is spoken once, through the win card's
- *   description, and the number behind it reads as "Best, 42" on demand. Moves are already spoken by the Board's live region, as the tile
+ *   description, and the number behind it reads as "Best, 42" on demand.
+ *   Moves are already spoken by the Board's live region, as the tile
  *   movement that produced them. **N/A for the two confirmations** as well:
  *   a card's arrival is announced by its role, name and description, which the
  *   cases below assert, and neither holds a value that changes while it is
@@ -222,8 +231,8 @@ describe('Play', () => {
 			)
 		})
 
-		// Records exist, but nothing writes one yet — so the card stands empty
-		// rather than inventing a number to fill itself with.
+		// A player with nothing solved at this size: the card stands empty rather
+		// than inventing a number to fill itself with.
 		it('leaves the best empty until there is a record to show', () => {
 			renderComponent()
 
@@ -544,12 +553,6 @@ describe('Play', () => {
 	 * belongs to.
 	 */
 	describe('the record', () => {
-		const winningGame = (): GameActor => startNearlySolvedGame()
-
-		const win = async (user: UserEvent): Promise<void> => {
-			await user.click(firstMovableTile())
-		}
-
 		const bestCard = (): HTMLElement =>
 			screen.getByTestId(`${PLAY_TESTIDS.BASE}${PLAY_TESTIDS.BEST_SUFFIX}`)
 
@@ -567,7 +570,7 @@ describe('Play', () => {
 
 		it('fills the best card the moment the solve is recorded', async () => {
 			const user = userEvent.setup()
-			renderComponent({ game: winningGame() })
+			renderComponent({ game: startNearlySolvedGame() })
 
 			await win(user)
 
@@ -579,7 +582,7 @@ describe('Play', () => {
 		// holding a record wears.
 		it('tints the best card once it holds a record', async () => {
 			const user = userEvent.setup()
-			renderComponent({ game: winningGame() })
+			renderComponent({ game: startNearlySolvedGame() })
 			expect(toneClasses()).toEqual([])
 
 			await win(user)
@@ -591,13 +594,16 @@ describe('Play', () => {
 			renderComponent({ bests: { 3: 42 } })
 
 			const best = statValue(BEST_LABEL)
+			// Name and value together are what a screen reader reads off the
+			// card: "Best, 42", the label carried by StatCard's aria-labelledby.
+			expect(best).toHaveAccessibleName(BEST_LABEL)
 			expect(best).toHaveTextContent('42')
 			expect(toneClasses()).toEqual([expect.stringContaining('accent')])
 		})
 
 		it('writes the solve to storage, so a reload still shows it', async () => {
 			const user = userEvent.setup()
-			renderComponent({ game: winningGame() })
+			renderComponent({ game: startNearlySolvedGame() })
 
 			await win(user)
 
@@ -606,7 +612,7 @@ describe('Play', () => {
 
 		it('replaces a record the game beat', async () => {
 			const user = userEvent.setup()
-			renderComponent({ bests: { 3: 5 }, game: winningGame() })
+			renderComponent({ bests: { 3: 5 }, game: startNearlySolvedGame() })
 
 			await win(user)
 
@@ -618,7 +624,7 @@ describe('Play', () => {
 		// A tie is not a best: the run that first got there keeps it.
 		it('leaves a record the game only matched', async () => {
 			const user = userEvent.setup()
-			renderComponent({ bests: { 3: 1 }, game: winningGame() })
+			renderComponent({ bests: { 3: 1 }, game: startNearlySolvedGame() })
 
 			await win(user)
 
@@ -630,6 +636,18 @@ describe('Play', () => {
 			renderComponent()
 
 			await user.click(firstMovableTile())
+
+			expect(storedBests()).toEqual({})
+		})
+
+		// A refresh is an unmount with the game unfinished: whatever was played
+		// goes with it, and the records key is never touched.
+		it('records nothing when a game in progress is left', async () => {
+			const user = userEvent.setup()
+			const { unmount } = renderComponent()
+			await user.click(firstMovableTile())
+
+			unmount()
 
 			expect(storedBests()).toEqual({})
 		})
@@ -650,7 +668,7 @@ describe('Play', () => {
 
 		it('records one solve once, however long the solved board stays on screen', async () => {
 			const user = userEvent.setup()
-			renderComponent({ bests: { 3: 5 }, game: winningGame() })
+			renderComponent({ bests: { 3: 5 }, game: startNearlySolvedGame() })
 			await win(user)
 
 			// Escape closes the win card to the solved board, which re-renders the
@@ -670,14 +688,14 @@ describe('Play', () => {
 			const card = screen.getByRole('dialog', {
 				name: translate(solvedMessages.title, { count: 1 }),
 			})
-			expect(card).toHaveAccessibleDescription(
-				`${translate(solvedMessages.newBest, { size: 3 })} ${translate(solvedMessages.description, { time: '01:18' })}`,
-			)
+			const recordLine = translate(solvedMessages.newBest, { size: 3 })
+			const timeLine = translate(solvedMessages.description, { time: '01:18' })
+			expect(card).toHaveAccessibleDescription(`${recordLine} ${timeLine}`)
 		})
 
 		it('claims no record for a game that only matched one', async () => {
 			const user = userEvent.setup()
-			renderComponent({ bests: { 3: 1 }, game: winningGame() })
+			renderComponent({ bests: { 3: 1 }, game: startNearlySolvedGame() })
 
 			await win(user)
 
@@ -693,7 +711,7 @@ describe('Play', () => {
 		 */
 		it('never announces the record it just wrote', async () => {
 			const user = userEvent.setup()
-			renderComponent({ game: winningGame() })
+			renderComponent({ game: startNearlySolvedGame() })
 			const announcer = screen.getByRole('status')
 
 			await win(user)
@@ -715,11 +733,6 @@ describe('Play', () => {
 		const SOLVED_HINT = translate(playMessages.solvedHint)
 
 		const winCard = (): HTMLElement => screen.getByRole('dialog', { name: WON_IN_ONE_MOVE })
-
-		/** Plays the one press between the dealt board and a solved one. */
-		const win = async (user: UserEvent): Promise<void> => {
-			await user.click(firstMovableTile())
-		}
 
 		it('raises the win card, named by the moves the game took', async () => {
 			const user = userEvent.setup()

@@ -1,19 +1,12 @@
-import type { BoardSize } from '@/lib/game-config'
 import { RECORDS_STORAGE_KEY, RecordsProvider, useRecords } from '@/lib/records'
 import type { Records } from '@/lib/records'
-import { type Board, createBoard } from '@engine'
+import { createBoard } from '@engine'
 import { readStorage, renderHookWithProviders, seedStorage } from '@testing'
 import type { RenderHookResult } from '@testing-library/react'
 import { beforeEach, describe, expect, it } from 'vitest'
 
 import { useRecordedSolve } from './use-recorded-solve'
-
-interface SolveOnScreen {
-	solved: boolean
-	board: Board
-	boardSize: BoardSize
-	moveCount: number
-}
+import type { RecordedSolveInput } from './use-recorded-solve'
 
 interface HookResult {
 	isNewBest: boolean
@@ -25,9 +18,9 @@ interface HookResult {
  * the hook takes plain values: only a re-render can give it new ones, and a
  * case moves them between renders exactly as a played move would.
  */
-let onScreen: SolveOnScreen
+let onScreen: RecordedSolveInput
 
-interface SolveCase extends Partial<SolveOnScreen> {
+interface SolveCase extends Partial<RecordedSolveInput> {
 	/** Seeded into the records key, the way a returning player's browser holds it. */
 	bests?: Records['bests']
 }

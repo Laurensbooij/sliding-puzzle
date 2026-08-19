@@ -22,6 +22,7 @@ const renderComponent = (props: Partial<SolvedProps> = {}): RenderResult =>
 			moveCount={42}
 			elapsed={78 * SECOND_MS}
 			boardSize={3}
+			isNewBest={false}
 			onPlayAgain={vi.fn()}
 			onTryNextSize={vi.fn()}
 			onClose={vi.fn()}
@@ -87,9 +88,9 @@ describe('Solved', () => {
 		renderComponent({ boardSize: 3, elapsed: 78 * SECOND_MS, isNewBest: true })
 
 		const card = screen.getByRole('dialog', { name: titleFor(42) })
-		expect(card).toHaveAccessibleDescription(
-			`${translate(solvedMessages.newBest, { size: 3 })} ${translate(solvedMessages.description, { time: '01:18' })}`,
-		)
+		const recordLine = translate(solvedMessages.newBest, { size: 3 })
+		const timeLine = translate(solvedMessages.description, { time: '01:18' })
+		expect(card).toHaveAccessibleDescription(`${recordLine} ${timeLine}`)
 	})
 
 	// The fallback is permanent (SLI-44): the record line is the addition, and a

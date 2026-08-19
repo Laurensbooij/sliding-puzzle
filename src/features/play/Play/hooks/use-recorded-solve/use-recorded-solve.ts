@@ -1,5 +1,5 @@
 import type { BoardSize } from '@/lib/game-config'
-import { useRecords } from '@/lib/records'
+import { isNewBest, useRecords } from '@/lib/records'
 import type { Board } from '@engine'
 import { useEffect, useRef, useState } from 'react'
 
@@ -26,9 +26,13 @@ export interface RecordedSolveInput {
  * of the seam: the screen watches the machine reach `solved` and this hook
  * turns that into a `recordSolve`. Nothing sends the machine an event about it.
  *
- * "New best" is read **before** the write. The records hold the solve by the
- * time it lands, so a comparison afterwards would call every solve a best —
- * and the first solve at a size is a best, having nothing to beat.
+ * "New best" is read **before** the write, through the records' own
+ * `isNewBest`: the records hold the solve by the time it lands, so a comparison
+ * afterwards would call every solve a best.
+ *
+ * Once per solve means once per solve *on screen*. A remount starts a fresh
+ * guard, which in the app means a fresh actor and a fresh board anyway — and a
+ * solve recorded twice ties with itself, which changes nothing.
  */
 export const useRecordedSolve = ({
 	solved,
@@ -47,8 +51,7 @@ export const useRecordedSolve = ({
 		if (!solved || recordedBoard.current === board) return
 
 		recordedBoard.current = board
-		const previousBest = bestFor(boardSize)
-		if (previousBest === undefined || moveCount < previousBest) setBestBoard(board)
+		if (isNewBest(moveCount, bestFor(boardSize))) setBestBoard(board)
 
 		recordSolve({ boardSize, moveCount })
 	}, [solved, board, boardSize, moveCount, bestFor, recordSolve])
