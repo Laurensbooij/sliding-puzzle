@@ -1,5 +1,6 @@
 import type { Board as BoardModel, CellIndex, TileId } from '@engine'
 import { GAP, applyMove, movesForCell } from '@engine'
+import type { TranslationMessage } from '@i18n'
 import { createTranslate } from '@i18n'
 import type { RenderWithProvidersOptions } from '@testing'
 import { renderWithProviders } from '@testing'
@@ -23,6 +24,12 @@ const boardOf = (
 	cols: number,
 	cells: readonly (TileId | typeof GAP)[],
 ): BoardModel => ({ rows, cols, cells })
+
+/** The footer's two controls, in the order they take focus. */
+const GAME_CONTROLS: [string, TranslationMessage][] = [
+	['abandon', boardMessages.abandon],
+	['restart', boardMessages.restart],
+]
 
 // 3x3, gap in the centre (cell 4), so all four arrows have a tile to name.
 const gapCentre = boardOf(3, 3, [0, 1, 2, 3, GAP, 4, 5, 6, 7])
@@ -313,21 +320,29 @@ describe('Board', () => {
 	})
 
 	describe('footer', () => {
-		it('shows neither the hint nor the game controls by default', () => {
+		it('shows no hint by default', () => {
 			renderComponent()
-			for (const message of [boardMessages.restart, boardMessages.abandon]) {
-				const control = screen.queryByRole('button', { name: translate(message) })
-				expect(control).not.toBeInTheDocument()
-			}
+			const hint = screen.queryByText(translate(boardMessages.hint))
+			expect(hint).not.toBeInTheDocument()
 		})
 
-		it('names both game controls for assistive technology', () => {
-			renderComponent({ footer: true })
-			for (const message of [boardMessages.abandon, boardMessages.restart]) {
+		it.each(GAME_CONTROLS)(
+			'keeps the %s control off a board with no footer',
+			(_name, message) => {
+				renderComponent()
+				const control = screen.queryByRole('button', { name: translate(message) })
+				expect(control).not.toBeInTheDocument()
+			},
+		)
+
+		it.each(GAME_CONTROLS)(
+			'names the %s control for assistive technology',
+			(_name, message) => {
+				renderComponent({ footer: true })
 				const control = screen.getByRole('button', { name: translate(message) })
 				expect(control).toBeInTheDocument()
-			}
-		})
+			},
+		)
 
 		it('shows the solved picture, named rather than hidden', () => {
 			renderComponent({ footer: true })
@@ -417,15 +432,16 @@ describe('Board', () => {
 			expect(announcer).toHaveTextContent('')
 		})
 
-		it('translates the footer with the rest of the board', () => {
-			renderComponent({ footer: true }, { locale: 'nl' })
+		it.each(GAME_CONTROLS)(
+			'translates the %s control with the rest of the board',
+			(_name, message) => {
+				renderComponent({ footer: true }, { locale: 'nl' })
 
-			const { translate: translateDutch } = createTranslate('nl')
-			for (const message of [boardMessages.abandon, boardMessages.restart]) {
+				const { translate: translateDutch } = createTranslate('nl')
 				const control = screen.getByRole('button', { name: translateDutch(message) })
 				expect(control).toBeInTheDocument()
-			}
-		})
+			},
+		)
 	})
 
 	it('marks the empty cell without giving it an accessible identity', () => {

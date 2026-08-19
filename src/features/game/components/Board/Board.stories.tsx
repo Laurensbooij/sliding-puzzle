@@ -29,8 +29,18 @@ const meta = {
 	},
 	decorators: [
 		// The frame casts a wide drop shadow; the room keeps it off the edges.
+		// Sized against the viewport, not the parent: Storybook's centered layout
+		// shrink-wraps its root to this element, so a percentage here resolves
+		// against a width this element is itself deciding. The 2rem is that root's
+		// own padding, which the viewport has to cover too.
 		(Story) => (
-			<div style={{ width: '38rem', maxWidth: '100%', padding: 'var(--space-6)' }}>
+			<div
+				style={{
+					boxSizing: 'border-box',
+					width: 'min(38rem, calc(100vw - 2rem))',
+					padding: 'var(--space-6)',
+				}}
+			>
 				<Story />
 			</div>
 		),
@@ -96,6 +106,9 @@ export const NonSquare: Story = {
  * announces: Board reports the board it is given, not the press it sent out, so
  * a story with no state has nothing to report. Real lifecycle lives in the game
  * machine (ADR-0003); this stand-in is not a pattern to copy.
+ *
+ * Abandon stays inert here on purpose: leaving a game is a screen's decision, so
+ * a story has nothing to hand it.
  */
 export const Playable: Story = {
 	args: { footer: true },
@@ -115,9 +128,6 @@ export const Playable: Story = {
 					onRestart={() =>
 						setBoard(shuffle(createBoard(BOARD_ROWS, BOARD_COLS), Math.random))
 					}
-					// Abandoning is the composer's job — leaving the game is a screen
-					// concern, so the story just resets to the arrangement Figma draws.
-					onAbandon={() => setBoard(midGame)}
 				/>
 			)
 		}

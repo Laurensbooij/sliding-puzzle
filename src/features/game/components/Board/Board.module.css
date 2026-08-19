@@ -8,12 +8,10 @@
 
 .board {
 	/*
-	 * The frame is proportional to the board, not to a fixed grid: Figma binds
-	 * the padding to frame/padding on desktop screens and frame/padding-compact
-	 * on phones, and the tile gap scales with the well. Two steps in the design
-	 * become one interpolation here — the vmin terms are the same ones the
-	 * prototype uses, and they track the board because the board is itself
-	 * viewport-sized (see the width below).
+	 * Figma binds the padding to frame/padding on desktop screens and to
+	 * frame/padding-compact on phones. Two bound steps there, one interpolation
+	 * here — vmin, because in portrait it is the width the frame has to stay
+	 * proportional to, and in landscape it is the height.
 	 */
 	--board-frame-padding: clamp(var(--frame-padding-compact), 2.2vmin, var(--frame-padding));
 	--board-tile-gap: clamp(var(--space-1), 1vmin, var(--tile-gap));
@@ -32,12 +30,17 @@
 	isolation: isolate;
 
 	/*
-	 * `--board-max` caps a wide screen; the vmin term caps a short one, where a
+	 * `--board-max` caps a wide screen; the dvh term caps a short one, where a
 	 * 35rem square plus its footer runs off the bottom and the player has to
-	 * scroll to see the board they are playing. A screen that wants a different
-	 * cap sets `--board-viewport-cap` on any ancestor.
+	 * scroll to see the board they are playing. It has to be dvh and not vmin:
+	 * on a portrait phone vmin *is* the width, so a vmin cap steals width the
+	 * design gives the board.
+	 *
+	 * The board is square plus what sits under it, so the reserve is the whole
+	 * of that: three compact paddings and a footer the preview sets the height
+	 * of. In rem, so it grows with the footer text it is reserving room for.
 	 */
-	width: min(100%, var(--board-max), var(--board-viewport-cap, 78vmin));
+	width: min(100%, var(--board-max), calc(100dvh - 5.625rem));
 	padding: var(--board-frame-padding);
 	border: var(--material-frame-edge);
 	border-radius: var(--radius-frame);
@@ -66,7 +69,7 @@
 	/* Exact for a square board, which is the only shape Figma specifies; the
 	   gap terms make it approximate otherwise, and Tile keeps itself square. */
 	aspect-ratio: var(--board-cols) / var(--board-rows);
-	border-radius: var(--radius-sm);
+	border-radius: var(--radius-lg);
 	background-image: var(--material-frame-well);
 	box-shadow: var(--inset-frame);
 }
@@ -191,6 +194,9 @@
 }
 
 .hint {
+	/* `min-width: 0` on the leading group lets the line wrap; this lets a single
+	   long word wrap too, which some locales compound into. */
+	overflow-wrap: break-word;
 	font: var(--body-sm);
 	color: var(--text-on-wood);
 

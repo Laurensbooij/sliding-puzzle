@@ -77,9 +77,10 @@ from any other height.
   shouldn't scale.
 - Unitless `line-height`. Mobile-first `min-width` media queries in `rem`/`em`.
 - **Viewport units** (`vw`/`vh`/`dvh`/`vmin`) only where a box must stay inside the
-  viewport whatever its content says. `vmin` is the one that keeps a square on
-  screen in both orientations — the Board sizes its frame padding and its width
-  cap against it, because a board taller than the viewport is unplayable.
+  viewport whatever its content says. Pick the axis deliberately: `dvh` to cap
+  against a short viewport, `vmin` to stay proportional in both orientations. A
+  `vmin` cap on a width silently steals width in portrait, where `vmin` _is_ the
+  width.
 
 ## Motion
 

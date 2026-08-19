@@ -30,8 +30,8 @@ export default {
 		],
 		// rem scales with user font size; px only where scaling would be wrong:
 		// borders, outlines, and shadow geometry. Viewport units earn their place
-		// where the box must fit the screen regardless of content — `vmin` because
-		// a square has to survive both orientations (the Board's width cap).
+		// where the box must fit the screen regardless of content; `vmin` is the
+		// one that holds a proportion across both orientations.
 		'declaration-property-unit-allowed-list': [
 			{
 				'/^(margin|padding|gap|inset|top|right|bottom|left|width|height|min-width|min-height|max-width|max-height|font-size|border-radius)/':
