@@ -17,6 +17,7 @@ interface SolvedStoryProps {
 	boardSize: BoardSize
 	moveCount: number
 	elapsed: number
+	isNewBest: boolean
 }
 
 /**
@@ -24,7 +25,7 @@ interface SolvedStoryProps {
  * reading "Solved". The board behind is decoration here — the screen that plays
  * one lives a tier up, and every story below varies only the game just won.
  */
-const SolvedStory: FC<SolvedStoryProps> = ({ boardSize, moveCount, elapsed }) => (
+const SolvedStory: FC<SolvedStoryProps> = ({ boardSize, moveCount, elapsed, isNewBest }) => (
 	<>
 		<Board
 			board={createBoard(boardSize, boardSize)}
@@ -39,6 +40,7 @@ const SolvedStory: FC<SolvedStoryProps> = ({ boardSize, moveCount, elapsed }) =>
 			moveCount={moveCount}
 			elapsed={elapsed}
 			boardSize={boardSize}
+			isNewBest={isNewBest}
 			onPlayAgain={noop}
 			onTryNextSize={noop}
 			onClose={noop}
@@ -49,15 +51,27 @@ const SolvedStory: FC<SolvedStoryProps> = ({ boardSize, moveCount, elapsed }) =>
 const meta = {
 	title: 'Features/Play/Solved',
 	component: SolvedStory,
-	args: { boardSize: 3, moveCount: 42, elapsed: 78 * SECOND_MS },
+	args: { boardSize: 3, moveCount: 42, elapsed: 78 * SECOND_MS, isNewBest: true },
 	parameters: { layout: 'centered' },
 } satisfies Meta<typeof SolvedStory>
 
 export default meta
 type Story = StoryObj<typeof meta>
 
-/** The designed card: the 3×3 win, offering the 4×4 above it. */
+/**
+ * The designed card: the 3×3 win, offering the 4×4 above it. The description
+ * reads the way the Solved frame draws it — the record line over the permanent
+ * time line.
+ */
 export const ThreeByThree: Story = {}
+
+/**
+ * The same win, having beaten nothing: a tie or a worse game keeps the time
+ * line and drops the celebration. It adds, it never replaces (SLI-44).
+ */
+export const NoRecord: Story = {
+	args: { isNewBest: false },
+}
 
 export const FourByFour: Story = {
 	args: { boardSize: 4, moveCount: 96, elapsed: 214 * SECOND_MS },

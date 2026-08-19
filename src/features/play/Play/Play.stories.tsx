@@ -1,5 +1,7 @@
 import { DEFAULT_GAME_CONFIG, GAME_CONFIG_STORAGE_KEY, GameConfigProvider } from '@/lib/game-config'
 import type { BoardSize } from '@/lib/game-config'
+import { RECORDS_STORAGE_KEY, RecordsProvider } from '@/lib/records'
+import type { Records } from '@/lib/records'
 import { DEFAULT_SETTINGS, SETTINGS_STORAGE_KEY, SettingsProvider } from '@/lib/settings'
 import { createTranslate } from '@i18n'
 import { gameMachine } from '@machines/game-machine'
@@ -50,14 +52,16 @@ interface PlayStoryProps {
 	referenceImage: boolean
 	numberedTiles: boolean
 	solved: boolean
+	/** The records the player arrives with — what the Best card reads. */
+	bests: Records['bests']
 	onAbandon: () => void
 }
 
 /**
- * The app around the screen: the two providers it reads, holding what each
- * story wants them to hold.
+ * The app around the screen: the providers it reads, holding what each story
+ * wants them to hold.
  *
- * Both hydrate from storage when they mount and expose no way to be seeded
+ * Each hydrates from storage when it mounts and exposes no way to be seeded
  * directly, so the story writes the same keys a returning player's browser
  * would — before the providers below it are constructed.
  */
@@ -67,6 +71,7 @@ const PlayStory: FC<PlayStoryProps> = ({
 	referenceImage,
 	numberedTiles,
 	solved,
+	bests,
 	onAbandon,
 }) => {
 	localStorage.setItem(
@@ -77,11 +82,14 @@ const PlayStory: FC<PlayStoryProps> = ({
 		SETTINGS_STORAGE_KEY,
 		JSON.stringify({ ...DEFAULT_SETTINGS, showTimer, referenceImage, numberedTiles }),
 	)
+	localStorage.setItem(RECORDS_STORAGE_KEY, JSON.stringify({ bests } satisfies Records))
 
 	return (
 		<GameConfigProvider>
 			<SettingsProvider>
-				<PlayGame boardSize={boardSize} solved={solved} onAbandon={onAbandon} />
+				<RecordsProvider>
+					<PlayGame boardSize={boardSize} solved={solved} onAbandon={onAbandon} />
+				</RecordsProvider>
 			</SettingsProvider>
 		</GameConfigProvider>
 	)
@@ -96,6 +104,7 @@ const meta = {
 		referenceImage: DEFAULT_SETTINGS.referenceImage,
 		numberedTiles: DEFAULT_SETTINGS.numberedTiles,
 		solved: false,
+		bests: {},
 		onAbandon: fn(),
 	},
 	parameters: { layout: 'fullscreen' },
@@ -121,6 +130,15 @@ type Story = StoryObj<typeof meta>
 
 /** The designed screen: four read-outs above a freshly dealt 3×3 board. */
 export const Playing: Story = {}
+
+/**
+ * The Best card holding one. Nothing has been solved at this size in the
+ * stories above, so the card stands at an em dash; a player who has gets the
+ * accent-tinted treatment the Solved frame draws.
+ */
+export const WithRecord: Story = {
+	args: { bests: { 3: 42 } },
+}
 
 /**
  * Show timer off. No Figma frame draws this — the row keeps its two columns on
@@ -218,6 +236,11 @@ export const RestartConfirmation: Story = {
  * footer now reads "Solved". The read-outs stand at nought moves and no time —
  * this game was won by never being shuffled, and the card counts what the
  * machine counted. `Features/Play/Solved` is where the played numbers are.
+ *
+ * The solve is recorded as it lands, so the Best card behind the card is filled
+ * and tinted and the card itself celebrates: nought moves beats anything, which
+ * is the fixture talking. The card without that line is
+ * `Features/Play/Solved/NoRecord`, where the flag is a plain prop.
  */
 export const SolvedGame: Story = {
 	args: { solved: true },

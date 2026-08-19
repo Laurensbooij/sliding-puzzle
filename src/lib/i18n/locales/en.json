@@ -18,6 +18,7 @@
   "play.restart.description": "You get a fresh shuffle at the same size. Your moves and time so far are lost.",
   "play.restart.title": "Restart this game?",
   "play.solved.description": "Finished in {time}.",
+  "play.solved.new-best": "A new best at {size}×{size}.",
   "play.solved.play-again": "Play again",
   "play.solved.title": "Solved in {count, plural, one {# move} other {# moves}}",
   "play.solved.try-next-size": "Try {size} × {size}",
