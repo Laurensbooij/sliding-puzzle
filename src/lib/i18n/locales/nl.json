@@ -1,5 +1,6 @@
 {
   "app.name": "Schuifpuzzel",
+  "board.abandon": "Opgeven",
   "board.hint": "Tik op een tegel naast het gat",
   "board.label": "Bord, {rows} bij {cols}",
   "board.move-announcement": "{direction, select, up {{count, plural, one {# tegel omhoog verplaatst} other {# tegels omhoog verplaatst}}} down {{count, plural, one {# tegel omlaag verplaatst} other {# tegels omlaag verplaatst}}} left {{count, plural, one {# tegel naar links verplaatst} other {# tegels naar links verplaatst}}} other {{count, plural, one {# tegel naar rechts verplaatst} other {# tegels naar rechts verplaatst}}}}",

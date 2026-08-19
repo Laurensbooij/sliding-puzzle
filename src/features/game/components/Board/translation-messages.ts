@@ -22,6 +22,12 @@ export const boardMessages = defineMessages({
 		defaultMessage: 'Restart',
 		description: 'Accessible name and tooltip of the control that deals a new board',
 	},
+	abandon: {
+		id: 'board.abandon',
+		defaultMessage: 'Abandon',
+		description:
+			'Accessible name and tooltip of the control that leaves the game in progress; the icon is a cross',
+	},
 	moveAnnouncement: {
 		id: 'board.move-announcement',
 		defaultMessage:

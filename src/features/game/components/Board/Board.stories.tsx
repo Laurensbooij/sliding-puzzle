@@ -29,8 +29,18 @@ const meta = {
 	},
 	decorators: [
 		// The frame casts a wide drop shadow; the room keeps it off the edges.
+		// Sized against the viewport, not the parent: Storybook's centered layout
+		// shrink-wraps its root to this element, so a percentage here resolves
+		// against a width this element is itself deciding. The 2rem is that root's
+		// own padding, which the viewport has to cover too.
 		(Story) => (
-			<div style={{ width: '38rem', maxWidth: '100%', padding: 'var(--space-6)' }}>
+			<div
+				style={{
+					boxSizing: 'border-box',
+					width: 'min(38rem, calc(100vw - 2rem))',
+					padding: 'var(--space-6)',
+				}}
+			>
 				<Story />
 			</div>
 		),
@@ -53,9 +63,9 @@ export const Solved: Story = {
 
 /**
  * Figma `Footer=true, Preview=true`: the solved picture, the standing hint and
- * the restart control, inside the wood below the well. The restart is the
- * shared IconButton on its `onWood` variant — the only one the design allows on
- * the frame.
+ * both game controls — abandon, then restart — inside the wood below the well.
+ * They are the shared IconButton on its `onWood` variant, the only one the
+ * design allows on the frame.
  */
 export const WithFooter: Story = {
 	args: { footer: true },
@@ -96,6 +106,9 @@ export const NonSquare: Story = {
  * announces: Board reports the board it is given, not the press it sent out, so
  * a story with no state has nothing to report. Real lifecycle lives in the game
  * machine (ADR-0003); this stand-in is not a pattern to copy.
+ *
+ * Abandon stays inert here on purpose: leaving a game is a screen's decision, so
+ * a story has nothing to hand it.
  */
 export const Playable: Story = {
 	args: { footer: true },

@@ -32,8 +32,8 @@ export interface BoardProps {
 	 */
 	onCellPress?: (cell: CellIndex) => void
 	/**
-	 * Shows the designed footer inside the wood: the standing hint and the
-	 * restart control. Off by default — the board Figma draws by default has none.
+	 * Shows the designed footer inside the wood: the standing hint and both game
+	 * controls. Off by default — the board Figma draws by default has none.
 	 */
 	footer?: boolean
 	/**
@@ -47,6 +47,12 @@ export interface BoardProps {
 	 * board; `game.restart` belongs to whoever composes it.
 	 */
 	onRestart?: () => void
+	/**
+	 * Called when the abandon control is pressed. Board neither confirms nor
+	 * leaves: the design's "your moves will not be recorded" Dialog and the
+	 * navigation behind it belong to whoever composes it.
+	 */
+	onAbandon?: () => void
 	/** Overrides the BASE testid. */
 	dataTestId?: string
 }
@@ -76,9 +82,10 @@ const NO_ANNOUNCEMENT: Announcement = { text: '', move: 0 }
  * Tiles render in tile order rather than cell order, so a move animates the same
  * element from its old cell to its new one instead of remounting it elsewhere.
  *
- * With `footer`, the restart control becomes the last tab stop after the movable
- * tiles. Arrows stay board-wide there: they name a tile by the gap, not by what
- * holds focus, and a button has no native arrow behaviour to displace.
+ * With `footer`, the two game controls become the last tab stops after the
+ * movable tiles — abandon, then restart. Arrows stay board-wide there: they name
+ * a tile by the gap, not by what holds focus, and a button has no native arrow
+ * behaviour to displace.
  */
 export const Board: FC<BoardProps> = ({
 	board,
@@ -87,6 +94,7 @@ export const Board: FC<BoardProps> = ({
 	preview = true,
 	onCellPress,
 	onRestart,
+	onAbandon,
 	dataTestId,
 }) => {
 	const [announcement, setAnnouncement] = useState(NO_ANNOUNCEMENT)
@@ -202,14 +210,24 @@ export const Board: FC<BoardProps> = ({
 							<Message message={boardMessages.hint} />
 						</p>
 					</div>
-					<IconButton
-						icon="rotate-ccw"
-						label={translate(boardMessages.restart)}
-						variant="onWood"
-						size="md"
-						onClick={onRestart}
-						dataTestId={`${base}${BOARD_TESTIDS.RESTART_SUFFIX}`}
-					/>
+					<div className={styles.actions}>
+						<IconButton
+							icon="x"
+							label={translate(boardMessages.abandon)}
+							variant="onWood"
+							size="md"
+							onClick={onAbandon}
+							dataTestId={`${base}${BOARD_TESTIDS.ABANDON_SUFFIX}`}
+						/>
+						<IconButton
+							icon="rotate-ccw"
+							label={translate(boardMessages.restart)}
+							variant="onWood"
+							size="md"
+							onClick={onRestart}
+							dataTestId={`${base}${BOARD_TESTIDS.RESTART_SUFFIX}`}
+						/>
+					</div>
 				</div>
 			)}
 			{/* `role="status"` already implies polite and atomic; both are spelled

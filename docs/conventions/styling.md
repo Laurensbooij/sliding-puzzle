@@ -76,6 +76,11 @@ from any other height.
 - **`px`** only for borders, outlines, and shadow geometry — device-pixel details that
   shouldn't scale.
 - Unitless `line-height`. Mobile-first `min-width` media queries in `rem`/`em`.
+- **Viewport units** (`vw`/`vh`/`dvh`/`vmin`) only where a box must stay inside the
+  viewport whatever its content says. Pick the axis deliberately: `dvh` to cap
+  against a short viewport, `vmin` to stay proportional in both orientations. A
+  `vmin` cap on a width silently steals width in portrait, where `vmin` _is_ the
+  width.
 
 ## Motion
 

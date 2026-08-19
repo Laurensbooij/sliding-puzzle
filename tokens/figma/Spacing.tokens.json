@@ -349,6 +349,17 @@
         "$extensions": {
           "mode": {}
         }
+      },
+      "padding-compact": {
+        "$type": "dimension",
+        "$value": {
+          "value": 10,
+          "unit": "px"
+        },
+        "$description": "Phone end of the fluid frame padding. The board frame interpolates between this and frame/padding as the board width grows.",
+        "$extensions": {
+          "mode": {}
+        }
       }
     },
     "$extensions": {
@@ -357,7 +368,7 @@
         "spec": "https://www.designtokens.org/tr/2025.10/format/",
         "colorMode": "hex",
         "variableCollections": ["Primitives", "Color", "Spacing", "Typography", "Motion"],
-        "createdAt": "2026-08-18T18:25:53.350Z"
+        "createdAt": "2026-08-19T11:08:11.530Z"
       }
     }
   }
