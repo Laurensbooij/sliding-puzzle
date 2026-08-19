@@ -22,6 +22,13 @@ else still climbs the ladder. The inventory at the time of this decision:
 Badge, Button, Card, Dialog, Icon, IconButton, SegmentedControl, Select,
 StatCard, Switch, Tooltip — shared; Board, Tile, Frame — game feature.
 
+This ADR names one route into a shared tier, not the only one: a component may
+also arrive by the ordinary colocation ladder, so `src/components/` is a
+superset of the Figma set rather than a mirror of it. `Modal` is the first such
+component — the `<dialog>` shell `Dialog` and the two screen dialogs share, an
+implementation seam with no Figma counterpart
+([SLI-62](https://linear.app/sliding-puzzle/issue/SLI-62)).
+
 ## Amended: the split was always generic-vs-domain
 
 This ADR parked "Board, Tile, Frame — game feature" for want of a home, not

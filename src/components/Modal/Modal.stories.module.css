@@ -1,0 +1,53 @@
+/* Something for the scrim to blur. A modal over a blank canvas proves nothing
+   about a 3px backdrop-filter, and the blur is the one part of the shell that
+   only exists in front of content.
+
+   Full-bleed on purpose: Storybook's body carries no background of its own, so
+   a page layer that only covers its own content leaves the scrim compositing
+   over nothing for the rest of the viewport — which reads far darker than
+   surface/scrim over the real app, and would bake that into the snapshot. */
+.page {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-4);
+	align-items: flex-start;
+	min-height: 100dvh;
+	padding: var(--space-8);
+	background-color: var(--surface-page);
+	color: var(--text-body);
+	font: var(--body);
+}
+
+/* Stand-in for a designed card. The shell paints nothing — no box, no padding,
+   no background — so without a card inside it these stories would show copy
+   floating on the scrim. Deliberately not `Dialog`: what these stories are for
+   is the shell on its own, and the shell's only contract with what sits in it
+   is that it centres it and gets out of the way. */
+.card {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-4);
+	width: 25rem;
+	max-width: calc(100vw - var(--space-8));
+	border-radius: var(--radius-xl);
+	padding: var(--space-6);
+	background-color: var(--surface-card);
+	box-shadow: var(--shadow-4);
+}
+
+.title {
+	color: var(--text-strong);
+	font: var(--title);
+	letter-spacing: var(--tracking-tight);
+}
+
+.description {
+	color: var(--text-muted);
+	font: var(--body);
+}
+
+.actions {
+	display: flex;
+	gap: var(--space-2);
+	justify-content: flex-end;
+}

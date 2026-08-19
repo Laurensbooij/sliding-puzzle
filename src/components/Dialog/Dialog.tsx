@@ -1,9 +1,11 @@
 import { Icon } from '@components/Icon'
 import { IconButton } from '@components/IconButton'
+import { Modal } from '@components/Modal'
+import type { ModalProps } from '@components/Modal'
 import { cx } from '@css-utils'
 import { useTranslate } from '@i18n'
-import type { ComponentPropsWithoutRef, FC, ReactNode, SyntheticEvent } from 'react'
-import { useId, useLayoutEffect, useRef } from 'react'
+import type { FC, ReactNode } from 'react'
+import { useId } from 'react'
 
 import styles from './Dialog.module.css'
 import { DIALOG_KINDS, DIALOG_KIND_GLYPHS, DIALOG_TESTIDS } from './constants'
@@ -13,19 +15,11 @@ import { dialogMessages } from './translation-messages'
 export type DialogKind = (typeof DIALOG_KINDS)[number]
 
 export interface DialogProps extends Omit<
-	ComponentPropsWithoutRef<'dialog'>,
-	// The card owns its semantics, its accessible name and every route into and
-	// out of the top layer. Leaving these open would let a caller name it twice,
-	// or open it behind the component's back and lose the scroll lock with it.
-	| 'aria-describedby'
-	| 'aria-labelledby'
-	| 'children'
-	| 'onCancel'
-	| 'onClose'
-	| 'open'
-	| 'role'
-	| 'tabIndex'
-	| 'title'
+	ModalProps,
+	// The card names itself from its own title and description, so the two
+	// ARIA hooks the shell exposes are not the caller's to point anywhere else.
+	// The scrim stays shut for a reason of the card's own — see the docblock.
+	'children' | 'describedBy' | 'labelledBy' | 'scrimClose' | 'title'
 > {
 	/** Whether the card is showing. The card never opens or closes on its own. */
 	open: boolean
@@ -53,8 +47,7 @@ export interface DialogProps extends Omit<
 	 * Asked to close: Escape, and the close control when there is one.
 	 *
 	 * A request, not a notification — the card stays up until `open` goes false,
-	 * so this is where the owner decides. Shadows the native `close`-event
-	 * handler of the same name, which the card keeps to itself.
+	 * so this is where the owner decides.
 	 */
 	onClose: () => void
 	/**
@@ -70,26 +63,18 @@ export interface DialogProps extends Omit<
 }
 
 /**
- * The modal card: a tone badge, a title, a supporting line and a row of
+ * The designed card: a tone badge, a title, a supporting line and a row of
  * actions, over a blurred scrim.
  *
- * A native `<dialog>` opened with `showModal()` (ADR-0011), so the browser
- * supplies what is otherwise the hard half of a modal — the top layer, the
- * focus trap, the inert background, Escape, and focus restored to whatever
- * opened it. Only two pieces are not native and are hand-added here: the scroll
- * lock on the page behind, and where focus lands on open.
+ * The card and nothing else — `Modal` is the `<dialog>` under it, and owns the
+ * top layer, the focus landing, the scroll lock and the controlled Escape. This
+ * component contributes the Figma component set's two variants, `win` and
+ * `confirm`, and the ids that name and describe the shell.
  *
  * Focus lands on the card itself rather than the first action. A screen reader
  * then reads the title and its description before any control, and a stray
  * Enter cannot fire a destructive primary — the confirm card's is `Abandon`.
- * The card takes no focus ring of its own, for the same reason it is not a tab
- * stop: it is somewhere focus rests to be read, not a control being operated.
- * Everything operable inside it keeps its own indicator, unclipped (SC 2.4.11).
  *
- * Fully controlled: Escape and the close control call `onClose` and nothing
- * else, so `open` stays the single answer to whether the card is up. The
- * browser's own Escape close is prevented for the same reason — letting it
- * through would leave the DOM and the owner's state disagreeing for a render.
  * Clicking the scrim does nothing, deliberately: the design draws no such
  * affordance, and a stray click should not throw away a game.
  */
@@ -103,9 +88,8 @@ export const Dialog: FC<DialogProps> = ({
 	dismissible = false,
 	dataTestId,
 	className,
-	...dialogProps
+	...modalProps
 }) => {
-	const dialogRef = useRef<HTMLDialogElement>(null)
 	const generatedId = useId()
 	const { translate } = useTranslate()
 
@@ -113,55 +97,16 @@ export const Dialog: FC<DialogProps> = ({
 	const titleId = `dialog-title-${generatedId}`
 	const descriptionId = `dialog-description-${generatedId}`
 
-	// Layout effects, not passive ones: focus has to land and the page behind
-	// has to stop scrolling before the browser paints the open card, or the
-	// first frame shows a focus ring in the wrong place and a scrollbar that is
-	// about to vanish.
-	useLayoutEffect(() => {
-		const dialog = dialogRef.current
-		if (!dialog) return
-
-		if (!open) {
-			dialog.close()
-			return
-		}
-
-		// `showModal` throws on an already-open dialog, and this effect re-runs
-		// whenever the card is re-mounted under an unchanged `open`.
-		if (!dialog.open) dialog.showModal()
-		dialog.focus()
-	}, [open])
-
-	useLayoutEffect(() => {
-		if (!open) return
-
-		const { body } = document
-		const previousOverflow = body.style.overflow
-		body.style.overflow = 'hidden'
-		return () => {
-			body.style.overflow = previousOverflow
-		}
-	}, [open])
-
-	// Escape reaches the card as the UA's `cancel`, and preventing it is what
-	// keeps the close controlled: the card goes down when `open` does, not when
-	// the browser decides.
-	const handleCancel = (event: SyntheticEvent<HTMLDialogElement>) => {
-		event.preventDefault()
-		onClose()
-	}
-
 	return (
-		<dialog
-			{...dialogProps}
-			ref={dialogRef}
-			// Focusable only by the effect above — never a tab stop of its own.
-			tabIndex={-1}
-			aria-labelledby={titleId}
-			aria-describedby={descriptionId}
+		<Modal
+			{...modalProps}
+			open={open}
+			onClose={onClose}
+			labelledBy={titleId}
+			describedBy={descriptionId}
+			scrimClose={false}
 			className={cx(styles.dialog, className)}
-			data-testid={base}
-			onCancel={handleCancel}
+			dataTestId={base}
 		>
 			{dismissible && (
 				<div className={styles.dismiss}>
@@ -198,6 +143,6 @@ export const Dialog: FC<DialogProps> = ({
 				</div>
 			</div>
 			<div className={styles.actions}>{actions}</div>
-		</dialog>
+		</Modal>
 	)
 }
