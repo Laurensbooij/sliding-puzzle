@@ -143,6 +143,40 @@ describe('SegmentedControl', () => {
 		expect(alertRegion).not.toBeInTheDocument()
 	})
 
+	it.each<[string, boolean]>([
+		['clipped', false],
+		['visible', true],
+	])('names the group once with a %s legend', (_treatment, labelVisible) => {
+		renderComponent({ labelVisible })
+
+		const group = screen.getByRole('group', { name: GROUP_LABEL })
+		const namingElements = screen.getAllByText(GROUP_LABEL)
+
+		// One string, one element, either way: a second copy of the name is how a
+		// caller-rendered caption would double-announce the group.
+		expect(group).toBeVisible()
+		expect(namingElements).toHaveLength(1)
+	})
+
+	it('keeps the native radio model when the legend is visible', async () => {
+		const user = userEvent.setup()
+		const { onChange } = renderComponent({ labelVisible: true, value: first.value })
+
+		const selected = screen.getByRole('radio', { name: first.label })
+
+		// The legend is not focusable, so the group still takes one tab stop, and
+		// the arrow keys still wrap — jsdom applies no styles, so which of the two
+		// legend treatments paints is a story and Chromatic question.
+		await user.tab()
+		expect(selected).toHaveFocus()
+
+		await user.keyboard('{ArrowLeft}')
+		expect(onChange).toHaveBeenCalledExactlyOnceWith(third.value)
+
+		await user.tab()
+		expect(selected).not.toHaveFocus()
+	})
+
 	it('disables every segment together and keeps them out of the tab order', async () => {
 		const user = userEvent.setup()
 		const { onChange } = renderComponent({ disabled: true })
