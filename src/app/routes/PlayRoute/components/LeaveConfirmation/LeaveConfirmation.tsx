@@ -20,6 +20,11 @@ export interface LeaveConfirmationProps {
  * The question a navigation away from a game in progress raises: leaving
  * abandons the game, so it is asked before the router is let through.
  *
+ * The act is Abandon (CONTEXT.md) — the same one the board's ✕ performs. Only
+ * the trigger differs, and the copy is named after the trigger because that is
+ * what the player just did: they pressed the wordmark, not the ✕. Hence two
+ * cards, "Leave this game?" and "Abandon this game?", for one domain act.
+ *
  * A plain `Dialog` composition rather than a shared confirm wrapper, exactly
  * like the ✕ and ↺ questions on the Play screen. The three differ in copy, in
  * consequence and in who acts on the answer; a wrapper would be sugar over that.

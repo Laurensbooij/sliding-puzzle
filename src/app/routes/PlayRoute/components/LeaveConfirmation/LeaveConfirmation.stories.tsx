@@ -1,3 +1,4 @@
+import { ROUTES } from '@/lib/routes'
 import { createTranslate } from '@i18n'
 import { globalMessages } from '@messages'
 import type { Meta, StoryObj } from '@storybook/react-vite'
@@ -14,9 +15,7 @@ const { translate } = createTranslate()
 const TITLE = translate(leaveConfirmationMessages.title)
 const KEEP_PLAYING = translate(globalMessages.keepPlaying)
 
-const PLAY_PATH = '/play'
-const SETUP_PATH = '/'
-const WORDMARK = 'Sliding Puzzle'
+const WORDMARK = translate(globalMessages.appName)
 
 /** The two frames the design draws, by width — same card at both. */
 const VIEWPORTS = {
@@ -42,7 +41,7 @@ const GuardedGame: FC = () => {
 
 	return (
 		<>
-			<Link to={SETUP_PATH}>{WORDMARK}</Link>
+			<Link to={ROUTES.setup}>{WORDMARK}</Link>
 			<LeaveConfirmation
 				open={guard.asking}
 				onLeave={guard.leave}
@@ -56,10 +55,10 @@ const GuardedRouter: FC = () => (
 	<RouterProvider
 		router={createMemoryRouter(
 			[
-				{ path: PLAY_PATH, element: <GuardedGame /> },
-				{ path: SETUP_PATH, element: <h1>Setup</h1> },
+				{ path: ROUTES.play, element: <GuardedGame /> },
+				{ path: ROUTES.setup, element: <h1>Setup</h1> },
 			],
-			{ initialEntries: [PLAY_PATH] },
+			{ initialEntries: [ROUTES.play] },
 		)}
 	/>
 )

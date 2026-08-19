@@ -1,5 +1,9 @@
 import { useRef } from 'react'
+import type { Location } from 'react-router'
 import { useBlocker } from 'react-router'
+
+/** Everything that makes two locations different places, not just two paths. */
+const href = ({ pathname, search, hash }: Location): string => `${pathname}${search}${hash}`
 
 export interface LeaveGuard {
 	/** Whether a held navigation is waiting on an answer. */
@@ -28,13 +32,18 @@ export interface LeaveGuard {
 export const useLeaveGuard = (active: boolean): LeaveGuard => {
 	// A ref, not state: the blocker is consulted during the very navigation the
 	// handler kicked off, which is before any state set beside it has rendered.
-	// It is never cleared — the navigation it lets through unmounts the route
-	// that owns the guard, so there is nothing left to re-arm.
 	const agreedRef = useRef(false)
 
 	const blocker = useBlocker(({ currentLocation, nextLocation }) => {
-		if (!active || agreedRef.current) return false
-		return currentLocation.pathname !== nextLocation.pathname
+		// One navigation per agreement, consumed by the one it was given for.
+		// A latch that stayed set would disarm the guard for good the first time
+		// an agreed navigation left the route still mounted.
+		if (agreedRef.current) {
+			agreedRef.current = false
+			return false
+		}
+		if (!active) return false
+		return href(currentLocation) !== href(nextLocation)
 	})
 
 	return {

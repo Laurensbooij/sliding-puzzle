@@ -6,6 +6,7 @@ import { RecordsProvider } from '@/lib/records'
 import { ROUTES } from '@/lib/routes'
 import { SettingsProvider } from '@/lib/settings'
 import { createTranslate } from '@i18n'
+import { globalMessages } from '@messages'
 import { type RenderWithProvidersOptions, renderWithProviders } from '@testing'
 import { type RenderResult, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
@@ -15,7 +16,6 @@ import { SETTINGS_DIALOG_TESTIDS } from '@widgets/SettingsDialog'
 import { RouterProvider, createMemoryRouter } from 'react-router'
 import { describe, expect, it } from 'vitest'
 
-import { LEAVE_CONFIRMATION_TESTIDS } from './PlayRoute/components/LeaveConfirmation'
 import { leaveConfirmationMessages } from './PlayRoute/components/LeaveConfirmation/translation-messages'
 import { routes } from './routes'
 import { routeMessages } from './translation-messages'
@@ -23,29 +23,40 @@ import { routeMessages } from './translation-messages'
 const { translate } = createTranslate()
 
 const LEAVE_TITLE = translate(leaveConfirmationMessages.title)
+const LEAVE = translate(leaveConfirmationMessages.leave)
+const KEEP_PLAYING = translate(globalMessages.keepPlaying)
+const WORDMARK = translate(globalMessages.appName)
 
 /**
- * The header's two controls by testid rather than by accessible name: both
- * names come from messages colocated inside the AppHeader widget, and a
- * widget's barrel is its whole public API (ADR-0007). Its own spec is where
- * those names are asserted.
+ * The gear by testid rather than by its accessible name: that name comes from a
+ * message colocated inside the AppHeader widget, and a widget's barrel is its
+ * whole public API (ADR-0007). The wordmark needs no such escape hatch — it is
+ * a link named by the app name, which `@messages` carries.
  */
-const WORDMARK_TESTID = `${APP_HEADER_TESTIDS.BASE}${APP_HEADER_TESTIDS.WORDMARK_SUFFIX}`
 const GEAR_TESTID = `${APP_HEADER_TESTIDS.BASE}${APP_HEADER_TESTIDS.SETTINGS_SUFFIX}`
+
+const wordmark = (): HTMLElement => screen.getByRole('link', { name: WORDMARK })
 
 const leaveConfirmation = (): HTMLElement | null =>
 	screen.queryByRole('dialog', { name: LEAVE_TITLE })
 
-const leaveControl = (suffix: string): HTMLElement =>
-	screen.getByTestId(`${LEAVE_CONFIRMATION_TESTIDS.BASE}${suffix}`)
+/** Scoped to the card: the answers are only ever pressed from inside it. */
+const leaveControl = (name: string): HTMLElement => {
+	const confirmation = screen.getByRole('dialog', { name: LEAVE_TITLE })
+	return within(confirmation).getByRole('button', { name })
+}
 
 /** The read-out that says whether the game underneath survived the question. */
 const moveCount = (): HTMLElement =>
 	screen.getByTestId(`${PLAY_TESTIDS.BASE}${PLAY_TESTIDS.MOVES_SUFFIX}`)
 
-/** The tiles a press would move — the only buttons the board leaves enabled. */
+/**
+ * The tiles a press would move — the only buttons the board leaves enabled.
+ * Scoped to the board, so the header's controls can never be mistaken for one.
+ */
 const firstMovableTile = (): HTMLElement => {
-	const tile = screen
+	const board = screen.getByTestId(BOARD_TESTIDS.BASE)
+	const tile = within(board)
 		.getAllByRole('button')
 		.find((button) => button.getAttribute('aria-disabled') === 'false')
 	if (!tile) throw new Error('The board rendered no movable tile')
@@ -201,9 +212,9 @@ describe('routes', () => {
 	it('asks before the wordmark takes the player off a game in progress', async () => {
 		const user = userEvent.setup()
 		renderComponent(ROUTES.play)
-		const wordmark = screen.getByTestId(WORDMARK_TESTID)
+		const home = wordmark()
 
-		await user.click(wordmark)
+		await user.click(home)
 
 		const confirmation = leaveConfirmation()
 		expect(confirmation).toBeVisible()
@@ -218,9 +229,9 @@ describe('routes', () => {
 	it('leaves for Setup once the player confirms, taking the game with it', async () => {
 		const user = userEvent.setup()
 		renderComponent(ROUTES.play)
-		const wordmark = screen.getByTestId(WORDMARK_TESTID)
-		await user.click(wordmark)
-		const leave = leaveControl(LEAVE_CONFIRMATION_TESTIDS.LEAVE_SUFFIX)
+		const home = wordmark()
+		await user.click(home)
+		const leave = leaveControl(LEAVE)
 
 		await user.click(leave)
 
@@ -240,9 +251,9 @@ describe('routes', () => {
 		await user.click(firstMovableTile())
 		const moves = moveCount()
 		const movesPlayed = moves.textContent
-		const wordmark = screen.getByTestId(WORDMARK_TESTID)
-		await user.click(wordmark)
-		const keepPlaying = leaveControl(LEAVE_CONFIRMATION_TESTIDS.KEEP_PLAYING_SUFFIX)
+		const home = wordmark()
+		await user.click(home)
+		const keepPlaying = leaveControl(KEEP_PLAYING)
 
 		await user.click(keepPlaying)
 
