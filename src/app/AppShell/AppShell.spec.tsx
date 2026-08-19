@@ -98,8 +98,8 @@ const renderComponent = (
  * - Announcements — N/A as a live region: a route change announces itself by
  *   moving focus to the new heading, asserted below. A second live region saying
  *   the same thing would double-speak.
- * - Target size (SC 2.5.8) — N/A: the shell renders no target. The header's two
- *   buttons arrive with SLI-53 and are sized there.
+ * - Target size (SC 2.5.8) — N/A: the shell renders no target of its own. The
+ *   header's two are sized in AppHeader and asserted in its spec.
  * - Contrast — N/A here, and deliberately unevidenced: contrast is only
  *   computable in the real-Chromium story project, and this shell ships no
  *   story (it has no designed variant beyond one padding value). The tokens it
@@ -119,6 +119,15 @@ describe('AppShell', () => {
 		const heading = screen.getByRole('heading', { level: 1, name: 'First screen' })
 
 		expect(pageContent).toContainElement(heading)
+	})
+
+	it('mounts the header outside the routed screen', () => {
+		renderComponent()
+
+		const banner = screen.getByRole('banner')
+		const pageContent = screen.getByRole('main')
+
+		expect(pageContent).not.toContainElement(banner)
 	})
 
 	it('titles the document from the matched route', () => {
@@ -172,6 +181,10 @@ describe('AppShell', () => {
 		renderComponent()
 		const toSecond = screen.getByRole('link', { name: 'To second' })
 
+		// The header owns the first two stops — wordmark, then gear — so the
+		// screen's own tab order starts on the third.
+		await user.tab()
+		await user.tab()
 		await user.tab()
 		expect(toSecond).toHaveFocus()
 		await user.keyboard('{Enter}')

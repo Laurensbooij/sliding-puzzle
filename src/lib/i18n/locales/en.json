@@ -1,4 +1,5 @@
 {
+  "app-header.settings": "Settings",
   "app.name": "Sliding Puzzle",
   "board.abandon": "Abandon",
   "board.hint": "Tap a tile beside the gap",
