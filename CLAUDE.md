@@ -60,6 +60,11 @@ widgets → features → app`. Features never import each other, and neither do
 - **Responsive layout branches in JS** (ADR-0016): a screen that changes shape
   across `--breakpoint-desktop` picks its tree with `useIsDesktop()`, never by
   rendering both and hiding one. CSS `@media` stays for restyling a stable tree.
+- **Routing lives in `src/app/`** (ADR-0017): the router, the route table, and
+  every `useNavigate` / `useBlocker` call. A widget may render a `<Link>` — the
+  header's wordmark is one — but **features never import react-router**: a
+  screen that knows where it is mounted takes a callback instead, and the app
+  tier wires it to a route. Paths are declared once in `src/lib/routes/`.
 
 To add or change a convention, use the `/update-conventions` skill.
 

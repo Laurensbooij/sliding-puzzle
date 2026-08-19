@@ -7,5 +7,11 @@
   "board.preview": "De opgeloste afbeelding",
   "board.restart": "Opnieuw",
   "dialog.close": "Sluiten",
+  "placeholder.link.play": "Beginnen met spelen",
+  "placeholder.link.setup": "Terug naar instellen",
+  "placeholder.play.heading": "Spelen",
+  "placeholder.setup.heading": "Stel je spel in",
+  "route.play.title": "Spelen · Schuifpuzzel",
+  "route.setup.title": "Schuifpuzzel",
   "tile.label": "Tegel {number}"
 }

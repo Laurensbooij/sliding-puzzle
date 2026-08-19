@@ -7,5 +7,11 @@
   "board.preview": "The solved picture",
   "board.restart": "Restart",
   "dialog.close": "Close",
+  "placeholder.link.play": "Start playing",
+  "placeholder.link.setup": "Back to setup",
+  "placeholder.play.heading": "Play",
+  "placeholder.setup.heading": "Set up your game",
+  "route.play.title": "Playing · Sliding Puzzle",
+  "route.setup.title": "Sliding Puzzle",
   "tile.label": "Tile {number}"
 }

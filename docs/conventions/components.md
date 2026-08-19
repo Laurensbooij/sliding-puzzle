@@ -5,7 +5,6 @@ paths:
   - 'src/features/**'
   - 'src/source-images/**'
   - 'src/app/**'
-  - 'src/App.tsx'
 ---
 
 # Component conventions

@@ -54,7 +54,7 @@ export default defineConfig({
 		coverage: {
 			provider: 'v8',
 			include: ['src/**'],
-			exclude: ['src/**/*.stories.tsx', 'src/main.tsx'],
+			exclude: ['src/**/*.stories.tsx', 'src/app/main.tsx'],
 		},
 	},
 })
