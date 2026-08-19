@@ -4,12 +4,12 @@ import { Modal } from '@components/Modal'
 import type { ModalProps } from '@components/Modal'
 import { cx } from '@css-utils'
 import { useTranslate } from '@i18n'
+import { globalMessages } from '@messages'
 import type { FC, ReactNode } from 'react'
 import { useId } from 'react'
 
 import styles from './Dialog.module.css'
 import { DIALOG_KINDS, DIALOG_KIND_GLYPHS, DIALOG_TESTIDS } from './constants'
-import { dialogMessages } from './translation-messages'
 
 /** Which of the designed cards this is: a celebration or a question. */
 export type DialogKind = (typeof DIALOG_KINDS)[number]
@@ -94,7 +94,7 @@ export const Dialog: FC<DialogProps> = ({
 				<div className={styles.dismiss}>
 					<IconButton
 						icon="x"
-						label={translate(dialogMessages.close)}
+						label={translate(globalMessages.close)}
 						variant="ghost"
 						size="sm"
 						onClick={onClose}

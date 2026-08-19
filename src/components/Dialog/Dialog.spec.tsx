@@ -1,4 +1,5 @@
 import { createTranslate } from '@i18n'
+import { globalMessages } from '@messages'
 import { renderWithProviders } from '@testing'
 import type { RenderWithProvidersOptions } from '@testing'
 import { screen } from '@testing-library/react'
@@ -11,7 +12,6 @@ import { Dialog } from './Dialog'
 import type { DialogKind, DialogProps } from './Dialog'
 import styles from './Dialog.module.css'
 import { DIALOG_KINDS, DIALOG_TESTIDS } from './constants'
-import { dialogMessages } from './translation-messages'
 
 const TITLE = 'Solved in 42 moves'
 const DESCRIPTION = 'A new best at 4×4.'
@@ -191,7 +191,7 @@ describe('Dialog', () => {
 	it('draws no close affordance by default, matching the designed set', () => {
 		renderComponent()
 
-		const close = screen.queryByRole('button', { name: translate(dialogMessages.close) })
+		const close = screen.queryByRole('button', { name: translate(globalMessages.close) })
 		expect(close).not.toBeInTheDocument()
 	})
 
@@ -200,7 +200,7 @@ describe('Dialog', () => {
 		const onClose = vi.fn()
 		renderComponent({ dismissible: true, onClose })
 
-		const close = screen.getByRole('button', { name: translate(dialogMessages.close) })
+		const close = screen.getByRole('button', { name: translate(globalMessages.close) })
 		await user.click(close)
 
 		expect(onClose).toHaveBeenCalledOnce()
@@ -210,7 +210,7 @@ describe('Dialog', () => {
 		const { translate: translateDutch } = createTranslate('nl')
 		renderComponent({ dismissible: true }, { locale: 'nl' })
 
-		const close = screen.getByRole('button', { name: translateDutch(dialogMessages.close) })
+		const close = screen.getByRole('button', { name: translateDutch(globalMessages.close) })
 		expect(close).toBeVisible()
 	})
 

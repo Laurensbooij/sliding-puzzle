@@ -1,0 +1,42 @@
+/* Figma `settings sheet`. A separate element from the `<dialog>` shell — with
+   `scrimClose` on, any box the dialog painted itself would dismiss on click.
+
+   480 is desktop's width; the cap takes it to mobile's 358 (390 viewport −
+   2 × 16 gutter). Same tree at both widths, so no breakpoint here. */
+.card {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-5);
+	box-sizing: border-box;
+	width: 30rem;
+	max-width: calc(100vw - var(--space-8));
+	border-radius: var(--radius-xl);
+	padding: var(--space-6);
+	background-color: var(--surface-card);
+	box-shadow: var(--shadow-4);
+}
+
+/* The ✕ sits in flow beside the heading, unlike `Dialog`'s absolute corner. */
+.head {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: var(--space-4);
+}
+
+/* `font` carries family/size/weight/leading; tracking has no shorthand slot. */
+.title {
+	margin: 0;
+	color: var(--text-strong);
+	font: var(--title);
+	letter-spacing: var(--tracking-tight);
+}
+
+/* `flex-start`, not stretch — a Switch is an inline label; stretching would
+   make the whole card width clickable. */
+.rows {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	gap: var(--space-5);
+}
