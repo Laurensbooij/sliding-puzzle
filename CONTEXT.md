@@ -63,3 +63,7 @@ _Avoid_: picture, artwork, sprite
 **Game**:
 A board together with its move count and status.
 _Avoid_: session, round, play
+
+**Record**:
+The fewest moves a player has solved a given board size in.
+_Avoid_: high score, best time

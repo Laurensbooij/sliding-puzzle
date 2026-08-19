@@ -63,6 +63,40 @@ The rule checks that the helper is declared at module top level, takes at least 
 parameter, and is the only caller of `renderWithProviders` — under any import alias.
 Whether its arguments are the _right_ ones stays a review judgement.
 
+## Hook specs
+
+A hook whose whole surface is its return value is rendered through
+**`renderHookWithProviders`** from `@testing`, not through a probe component built to
+display it. Same real providers, same real catalogues; pass the provider under test as
+`wrapper`:
+
+```tsx
+const renderRecords = (stored?: string) => {
+  if (stored !== undefined) localStorage.setItem(RECORDS_STORAGE_KEY, stored)
+  return renderHookWithProviders(useRecords, { wrapper: RecordsProvider })
+}
+```
+
+RTL's bare `renderHook` is a lint error in a spec, exactly as bare `render` is. Name the
+helper after what it renders (`renderRecords`, `renderSettings`) — the `renderComponent`
+rule above governs component specs and does not apply here. Not machine-checked.
+
+**A hook spec still runs in jsdom**, so it is a `.spec.tsx` file — which the PascalCase
+filename rule then applies to. That is why a hook's spec lives beside its _provider_
+(`RecordsProvider/RecordsProvider.spec.tsx`) rather than beside the kebab-case hook
+module.
+
+## Storage
+
+`localStorage` is shimmed in `vitest.setup.ts` and cleared after every test. Node 24
+ships its own inert `localStorage` global, and Vitest's jsdom environment skips window
+keys already on `globalThis`, so without the shim there is no storage at all.
+
+**Assert persistence isolation against raw stored strings**, via `seedStorage` and
+`readStorage` from `@testing`. A test that only re-reads its own module's value cannot
+fail when a write clobbers a neighbouring key; comparing a `readStorage` snapshot to
+what `seedStorage` returned can.
+
 ## Queries — accessible identity first (ADR-0005)
 
 - Query by **`getByRole` / `getByLabelText`** first. When `getByRole` fails, suspect
