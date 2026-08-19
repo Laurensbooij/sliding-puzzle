@@ -17,12 +17,9 @@ const DESCRIPTION_ID = 'modal-spec-description'
 const ACTION_LABEL = 'Abandon'
 const CONTENT_TESTID = 'modal-spec-content'
 
-/**
- * The shell as every case renders it: open, and carrying the heading and
- * supporting line a card would supply. Split out from the render helper because
- * the cases that watch the shell open and close have to hand the same element
- * back to `rerender`, and restating it there would let the two drift.
- */
+/** The shell as every case renders it: open, with a heading and supporting
+ * line a card would supply. Kept separate from the render helper so cases
+ * that `rerender` can reuse the same element. */
 const modalElement = ({
 	open = true,
 	labelledBy = TITLE_ID,
@@ -52,26 +49,11 @@ const renderComponent = (props: Partial<ModalProps> = {}): RenderResult =>
 	renderWithProviders(modalElement(props))
 
 /**
- * Accessibility criteria the platform answers rather than this component, and
- * the ones that need a browser, recorded rather than skipped
- * (docs/conventions/accessibility.md):
- *
- * - **Focus trap, inert background, focus restore** — native to `showModal()`
- *   (ADR-0011), and none of the three exist in jsdom: the shim in
- *   `vitest.setup.ts` restores open/closed state and Esc, nothing more. The
- *   storybook project runs in Chromium, so those stories are the standing check.
- * - **Focus indicator (SC 2.4.11)** — N/A *for the shell*, carried by its
- *   contents. The shell is a focus target but never a tab stop, so it takes no
- *   ring. Every control inside keeps its own, and the `FocusedContent` story is
- *   what shows those rings falling inside the shell rather than under its edge —
- *   the dialog UA sheet sets `overflow: auto`, which could have clipped them.
- * - **Announcements** — N/A: the shell holds no state of its own. Its arrival
- *   *is* the announcement, which the dialog role and the focus move below
- *   deliver; the card inside owns anything further.
- * - **Target size (SC 2.5.8)** — N/A: the shell renders no control at all, not
- *   even a close button. Whatever a card puts inside it carries this.
- * - **Contrast and reduced motion** — Chromium-only. jsdom computes neither, so
- *   the scrim and the token-level motion collapse are accepted through stories.
+ * Accessibility items answered elsewhere (docs/conventions/accessibility.md):
+ * focus trap, inert background and focus restore are native to `showModal()`
+ * and checked in the Chromium stories, not here. Focus indicator, target size
+ * and announcements are N/A for the shell — it renders no control and no
+ * state of its own. Contrast and reduced motion are Chromium-only checks.
  */
 describe('Modal', () => {
 	it('stays out of view and out of the accessibility tree until it is opened', () => {
@@ -97,10 +79,6 @@ describe('Modal', () => {
 		expect(modal).toHaveAccessibleDescription(DESCRIPTION)
 	})
 
-	// The shell draws no heading, so it has no name of its own to fall back on.
-	// A modal that reached the top layer unnamed would announce itself as a bare
-	// "dialog", so the way out of naming it is a type error rather than a prop
-	// a caller can forget.
 	it('cannot be rendered without an element to be named by', () => {
 		// @ts-expect-error labelledBy is required — omitting it must not compile.
 		const unnamed = <Modal open onClose={vi.fn()} />
@@ -108,8 +86,6 @@ describe('Modal', () => {
 		expect(unnamed).toBeTruthy()
 	})
 
-	// See the component docblock for why the shell takes focus rather than the
-	// first control inside it.
 	it('moves focus onto the shell itself when it opens', () => {
 		renderComponent()
 
@@ -137,10 +113,6 @@ describe('Modal', () => {
 		expect(action).toHaveFocus()
 	})
 
-	// Controlled all the way down: `open` is the only thing that closes the
-	// shell, so Escape is a request its owner grants by withdrawing the prop.
-	// Letting the browser close it instead would leave the DOM and the owner's
-	// state disagreeing for a render.
 	it('asks to be closed on Escape rather than closing itself', async () => {
 		const user = userEvent.setup()
 		const onClose = vi.fn()
@@ -171,8 +143,6 @@ describe('Modal', () => {
 		expect(controls[0]).toHaveAccessibleName(ACTION_LABEL)
 	})
 
-	// Scroll-lock is one of the two pieces `showModal()` does not supply. The
-	// page behind a modal scrolling under the pointer is the classic modal bug.
 	it('locks the page behind it from scrolling, and hands the scroll back', () => {
 		const { rerender } = renderComponent()
 
@@ -182,9 +152,7 @@ describe('Modal', () => {
 		expect(document.body).not.toHaveStyle({ overflow: 'hidden' })
 	})
 
-	// Unmounting while open is how a card that lives behind a route or a
-	// conditional goes away: `open` never turns false, so only the effect
-	// cleanup can hand the scroll back.
+	// Covers a card that unmounts without `open` ever turning false.
 	it('hands the scroll back when it is unmounted while still open', () => {
 		const { unmount } = renderComponent()
 
@@ -204,8 +172,6 @@ describe('Modal', () => {
 		document.body.style.overflow = ''
 	})
 
-	// `::backdrop` is a pseudo-element and takes no listener, so a scrim click
-	// arrives as a click whose target is the dialog element itself.
 	it('ignores a scrim click by default', async () => {
 		const user = userEvent.setup()
 		const onClose = vi.fn()
@@ -239,9 +205,8 @@ describe('Modal', () => {
 		expect(onClose).not.toHaveBeenCalled()
 	})
 
-	// A press that starts on the content and releases on the scrim — selecting
-	// a line of copy and overshooting — produces a click on the dialog element,
-	// exactly like a scrim click. Only where the press began tells them apart.
+	// A press that starts inside the content and ends on the scrim looks like a
+	// scrim click too; only the press origin tells them apart.
 	it('ignores a click that ends on the scrim but began inside the content', async () => {
 		const user = userEvent.setup()
 		const onClose = vi.fn()

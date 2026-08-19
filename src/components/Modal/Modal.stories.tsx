@@ -21,12 +21,8 @@ const PageBehind: FC = () => (
 	</div>
 )
 
-/**
- * A stand-in for a designed card. The shell paints nothing, so every story
- * needs something inside it to look at — and this is deliberately not `Dialog`:
- * these stories are about the shell, and what a card does with the space is the
- * card's business.
- */
+/** Stand-in for a designed card — deliberately not `Dialog`, since these
+ * stories are about the shell rather than any one card. */
 const DemoCard: FC<{ children?: ReactNode }> = ({ children }) => (
 	<div className={styles.card}>
 		<h2 id={TITLE_ID} className={styles.title}>
@@ -66,21 +62,11 @@ const meta = {
 export default meta
 type Story = StoryObj<typeof meta>
 
-/**
- * The shell doing its whole visible job: centring what it is given over the
- * blurred scrim, and adding nothing of its own. Every pixel here except the
- * scrim belongs to the card inside.
- */
+/** The shell centring its content over the blurred scrim, and nothing more. */
 export const Default: Story = {}
 
-/**
- * The rings the shell must not clip. The dialog UA sheet puts `overflow: auto`
- * on the element, the same clipping box that once ate Tooltip's hover bridge,
- * so "the indicator is not obscured" (SC 2.4.11) is a claim that needs looking
- * at rather than assuming.
- *
- * The shell itself takes no ring; see the component docblock.
- */
+/** Checks the shell's `overflow: auto` doesn't clip focus rings inside it
+ * (SC 2.4.11) — the same clipping box that once ate Tooltip's hover bridge. */
 export const FocusedContent: Story = {
 	parameters: { pseudo: { focusVisible: true } },
 }
@@ -88,12 +74,8 @@ export const FocusedContent: Story = {
 /** The shell's own props. The harness overrides `open` and `onClose` below. */
 type TriggeredModalProps = ModalProps
 
-/**
- * Opens and closes for real. Takes the story's args whole and overrides `open`,
- * `onClose` and the card — the point of this harness is that the shell's owner
- * drives all three, which is exactly what a static story cannot show: the card
- * asks, and the owner is what withdraws `open`.
- */
+/** Opens and closes for real — the shell's owner drives `open`, `onClose`
+ * and the card, which a static story can't show. */
 const TriggeredModal: FC<TriggeredModalProps> = (props) => {
 	const [open, setOpen] = useState(false)
 
@@ -114,15 +96,10 @@ const TriggeredModal: FC<TriggeredModalProps> = (props) => {
 }
 
 /**
- * The half jsdom cannot answer. Opening for real in Chromium is the standing
- * check on everything `showModal()` supplies and the shim in `vitest.setup.ts`
- * deliberately does not: the top layer, the inert page behind, and focus
- * restored to the trigger on the way out. The scroll lock and the initial focus
- * move are the two hand-added pieces riding along.
- *
- * It dismisses through a control inside the card rather than Escape. Escape is
- * the browser's close watcher, and a synthetic key event never reaches it — the
- * spec's Esc case runs against the shim, which models it explicitly.
+ * The standing check on what `showModal()` supplies and jsdom can't: the top
+ * layer, the inert page behind, and focus restored to the trigger. Dismisses
+ * through a control rather than Escape — a synthetic key event never reaches
+ * the browser's close watcher.
  */
 export const OpensFromATrigger: Story = {
 	render: (args) => <TriggeredModal {...args} />,
@@ -134,14 +111,10 @@ export const OpensFromATrigger: Story = {
 		const modal = await canvas.findByRole('dialog', { name: TITLE })
 		await waitFor(() => expect(modal).toBeVisible())
 
-		// Focus starts on the shell, so the name and description are read before
-		// any control.
 		await expect(modal).toHaveFocus()
 		await expect(document.body).toHaveStyle({ overflow: 'hidden' })
 
-		// In the top layer, with the page behind it inert. Asked for focus
-		// directly, the trigger refuses it and the shell keeps it — that is the
-		// browser's containment, not something this component polices.
+		// The trigger can't steal focus back — the browser's containment.
 		await expect(modal.matches(':modal')).toBe(true)
 		trigger.focus()
 		await expect(trigger).not.toHaveFocus()
@@ -157,15 +130,9 @@ export const OpensFromATrigger: Story = {
 }
 
 /**
- * The opt-in scrim close, and the premise it rests on: `::backdrop` is a
- * pseudo-element that takes no listener of its own, so a click on the scrim
- * reaches the `<dialog>` element itself. That attribution is a real-browser
- * fact, which is why this story checks it here rather than in the spec — the
- * shim in `vitest.setup.ts` has no backdrop and no hit testing at all.
- *
- * The drag half is the classic bug: a press that starts on the card and
- * releases outside it produces the very same click, and only where the press
- * began tells the two apart.
+ * The opt-in scrim close. Checked here rather than in the spec because the
+ * `target === dialog element` attribution needs a real `::backdrop` and real
+ * hit testing, which jsdom has neither of.
  */
 export const ScrimClose: Story = {
 	args: { scrimClose: true },
@@ -178,13 +145,11 @@ export const ScrimClose: Story = {
 		const modal = await canvas.findByRole('dialog', { name: TITLE })
 		const title = canvas.getByRole('heading', { name: TITLE })
 
-		// The top-left corner of the viewport is scrim in every story here: the
-		// card is centred and 400px wide. Hit testing hands the click to the
-		// dialog element, because that is what the backdrop belongs to.
+		// The top-left corner is scrim: the card is centred and 400px wide.
 		await expect(document.elementFromPoint(2, 2)).toBe(modal)
 
-		// Selecting a line of copy and overshooting the card. Same click target
-		// as the scrim, so only the press origin keeps the modal up.
+		// A press that starts on the card and releases outside it — same click
+		// target as the scrim, so only the press origin keeps the modal up.
 		await userEvent.pointer([
 			{ target: title, keys: '[MouseLeft>]' },
 			{ target: modal, keys: '[/MouseLeft]' },

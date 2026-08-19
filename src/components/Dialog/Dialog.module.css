@@ -1,15 +1,9 @@
-/* The designed box. The UA sheet's own — its fit-content sizing, its 2px
-   border, its 1em of padding — is undone by `Modal`, which owns the shell this
-   card sits in; everything below is Figma's.
+/* The designed box. `Modal` undoes the dialog UA sheet; everything here is
+   Figma's own. Its padding/background override the shell's reset on source
+   order, not specificity — keep the `Modal` import above this stylesheet.
 
-   The two declarations that re-state a shell reset — padding and background —
-   win on source order rather than specificity, both being one class deep on the
-   same element. Dialog.tsx imports `Modal` above its own stylesheet, so the
-   shell's rules are emitted first; keep that import order.
-
-   Top padding is --space-8 against --space-6 everywhere else: Figma draws the
-   badge sitting lower than the card's own inset, and the actions row closer to
-   the bottom edge than the title is to the top. */
+   Top padding is --space-8 against --space-6 elsewhere: Figma draws the badge
+   sitting lower than the card's own inset. */
 .dialog {
 	display: flex;
 	flex-direction: column;

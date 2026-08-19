@@ -1,11 +1,5 @@
 /* The shell: the UA sheet undone, the top-layer motion, and the scrim. It
-   paints nothing — every visible pixel of a modal belongs to the card composed
-   on top of this.
-
-   The dialog UA sheet sizes a modal to fit-content, then draws a 2px inset
-   border, 1em of padding and a Canvas background over it. All of it has to go
-   before a designed box can show through. Centring is the one thing put back:
-   the global reset's `* { margin: 0 }` outranks the UA's auto margins. */
+   paints nothing — every visible pixel belongs to the card composed on top. */
 .modal {
 	margin: auto;
 	border: none;
@@ -13,29 +7,18 @@
 	background: none;
 	color: inherit;
 
-	/* The shell is a focus target (focus lands here on open) but never a tab
-	   stop, so it takes no ring of its own — a ring around the whole modal on
-	   arrival would read as an error state. The controls inside carry theirs. */
+	/* A focus target, not a tab stop, so it takes no ring of its own. */
 	outline: none;
 
-	/* Enter and exit. display and overlay are discrete properties and only
-	   transition once told to allow that; without them the top layer would drop
-	   the modal before the exit ran, and there would be nothing to see.
-
-	   Figma authors no keyframes here, so the motion is the token scale's:
-	   --dur-medium collapses to 1ms under prefers-reduced-motion
-	   (motion-preferences.css), which lands the modal in place with no travel
-	   and no fade-in delay. That is the whole reduced-motion story — the
-	   transform below never needs a media query of its own. */
+	/* display/overlay need `allow-discrete` or the top layer drops the modal
+	   before the exit transition runs. --dur-medium collapses to 1ms under
+	   prefers-reduced-motion (motion-preferences.css). */
 	transition:
 		opacity var(--dur-medium) var(--ease-out-quint),
 		transform var(--dur-medium) var(--ease-out-quint),
 		display var(--dur-medium) allow-discrete,
 		overlay var(--dur-medium) allow-discrete;
 	opacity: 0;
-
-	/* Rises the last few pixels into place rather than growing from nothing:
-	   a scale on a 400px card makes its title jump a step in size. */
 	transform: translateY(var(--space-4));
 }
 
@@ -44,8 +27,7 @@
 	transform: none;
 }
 
-/* The open state's starting point. Without this the modal is already at its
-   [open] values on the first frame in the top layer and no enter runs. */
+/* The open state's starting point — without it there's no enter transition. */
 @starting-style {
 	.modal[open] {
 		opacity: 0;
@@ -53,10 +35,8 @@
 	}
 }
 
-/* The scrim: surface/scrim over a 3px blur, the third and lightest of the
-   product's three blurs. It fades on --dur-fast, which the reduced-motion
-   collapse deliberately leaves live — a sub-150ms fade with nothing moving in
-   it is not motion. */
+/* The scrim: surface/scrim over a 3px blur. --dur-fast stays live under
+   reduced motion — a sub-150ms fade with nothing moving isn't motion. */
 .modal::backdrop {
 	background-color: var(--surface-scrim);
 	backdrop-filter: blur(var(--material-scrim-blur));
