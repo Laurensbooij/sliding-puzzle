@@ -82,10 +82,4 @@ export const playMessages = defineMessages({
 		defaultMessage: 'Restart',
 		description: 'Destructive action of the restart confirmation. Deals a new game',
 	},
-	keepPlaying: {
-		id: 'play.keep-playing',
-		defaultMessage: 'Keep playing',
-		description:
-			'Action that backs out of either confirmation, leaving the game exactly as it was',
-	},
 })

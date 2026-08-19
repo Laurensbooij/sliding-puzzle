@@ -18,7 +18,9 @@ import { Game } from './components/Game'
  * Abandoning is the other end of the same fact: the screen confirms it and says
  * so, and this is the only place that knows an abandoned game means Setup. The
  * actor needs no teardown of its own — leaving unmounts the route, which stops
- * it.
+ * it. That is also why leaving by any other door is held and asked about first
+ * (`useLeaveGuard`, registered a component down beside the actor): every way
+ * out of this route destroys the game, so every one of them is confirmed.
  */
 export const PlayRoute: FC = () => {
 	const { rows, cols } = useGameConfig()

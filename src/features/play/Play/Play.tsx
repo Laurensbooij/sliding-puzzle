@@ -9,6 +9,7 @@ import type { Board as BoardModel, CellIndex } from '@engine'
 import { Message } from '@i18n'
 import type { gameMachine } from '@machines/game-machine'
 import { elapsedMs } from '@machines/game-machine'
+import { globalMessages } from '@messages'
 import { Board } from '@widgets/Board'
 import { useSelector } from '@xstate/react'
 import type { FC } from 'react'
@@ -221,7 +222,7 @@ export const Play: FC<PlayProps> = ({ game, onAbandon }) => {
 							onClick={keepPlaying}
 							dataTestId={`${PLAY_TESTIDS.BASE}${PLAY_TESTIDS.ABANDON_CANCEL_SUFFIX}`}
 						>
-							<Message message={playMessages.keepPlaying} />
+							<Message message={globalMessages.keepPlaying} />
 						</Button>
 						<Button
 							variant="danger"
@@ -247,7 +248,7 @@ export const Play: FC<PlayProps> = ({ game, onAbandon }) => {
 							onClick={keepPlaying}
 							dataTestId={`${PLAY_TESTIDS.BASE}${PLAY_TESTIDS.RESTART_CANCEL_SUFFIX}`}
 						>
-							<Message message={playMessages.keepPlaying} />
+							<Message message={globalMessages.keepPlaying} />
 						</Button>
 						<Button
 							variant="danger"

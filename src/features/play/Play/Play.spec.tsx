@@ -3,6 +3,7 @@ import type { BoardSize } from '@/lib/game-config'
 import { DEFAULT_SETTINGS, SETTINGS_STORAGE_KEY, SettingsProvider } from '@/lib/settings'
 import { createTranslate } from '@i18n'
 import { gameMachine } from '@machines/game-machine'
+import { globalMessages } from '@messages'
 import { renderWithProviders, seedStorage } from '@testing'
 import type { RenderResult } from '@testing-library/react'
 import { act, screen, within } from '@testing-library/react'
@@ -36,7 +37,7 @@ const BOARD_SIZE_LABEL = translate(playMessages.boardSizeLabel)
 
 const ABANDON_TITLE = translate(playMessages.abandonTitle)
 const RESTART_TITLE = translate(playMessages.restartTitle)
-const KEEP_PLAYING = translate(playMessages.keepPlaying)
+const KEEP_PLAYING = translate(globalMessages.keepPlaying)
 
 const SECOND_MS = 1000
 
