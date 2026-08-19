@@ -1,0 +1,43 @@
+/* Something for the scrim to blur — full-bleed, so the blur composites over
+   real content rather than Storybook's default blank canvas. */
+.page {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-4);
+	align-items: flex-start;
+	min-height: 100dvh;
+	padding: var(--space-8);
+	background-color: var(--surface-page);
+	color: var(--text-body);
+	font: var(--body);
+}
+
+/* Stand-in for a designed card — the shell paints nothing of its own. */
+.card {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-4);
+	width: 25rem;
+	max-width: calc(100vw - var(--space-8));
+	border-radius: var(--radius-xl);
+	padding: var(--space-6);
+	background-color: var(--surface-card);
+	box-shadow: var(--shadow-4);
+}
+
+.title {
+	color: var(--text-strong);
+	font: var(--title);
+	letter-spacing: var(--tracking-tight);
+}
+
+.description {
+	color: var(--text-muted);
+	font: var(--body);
+}
+
+.actions {
+	display: flex;
+	gap: var(--space-2);
+	justify-content: flex-end;
+}

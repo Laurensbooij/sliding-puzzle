@@ -1,87 +1,19 @@
-/* The dialog UA sheet sizes a modal to fit-content and centres it with auto
-   margins, then draws a 2px inset border and 1em of padding. All of it has to
-   go before the designed box shows through — the card states its own 400px,
-   its own padding and no border at all.
+/* The designed box. `Modal` undoes the dialog UA sheet; everything here is
+   Figma's own. Its padding/background override the shell's reset on source
+   order, not specificity — keep the `Modal` import above this stylesheet.
 
-   Top padding is --space-8 against --space-6 everywhere else: Figma draws the
-   badge sitting lower than the card's own inset, and the actions row closer to
-   the bottom edge than the title is to the top. */
+   Top padding is --space-8 against --space-6 elsewhere: Figma draws the badge
+   sitting lower than the card's own inset. */
 .dialog {
 	display: flex;
 	flex-direction: column;
 	gap: var(--space-5);
-	box-sizing: border-box;
 	width: 25rem;
 	max-width: calc(100vw - var(--space-8));
-	margin: auto;
-	border: none;
 	border-radius: var(--radius-xl);
 	padding: var(--space-8) var(--space-6) var(--space-6);
 	background-color: var(--surface-card);
 	box-shadow: var(--shadow-4);
-
-	/* The card is a focus target (focus lands here on open) but never a tab
-	   stop, so it takes no ring of its own — a ring around the whole card on
-	   arrival would read as an error state. The controls inside carry theirs. */
-	outline: none;
-
-	/* Enter and exit. display and overlay are discrete properties and only
-	   transition once told to allow that; without them the top layer would drop
-	   the card before the exit ran, and there would be nothing to see.
-
-	   Figma authors no keyframes for this card, so the motion is the token
-	   scale's: --dur-medium collapses to 1ms under prefers-reduced-motion
-	   (motion-preferences.css), which lands the card in place with no travel
-	   and no fade-in delay. That is the whole reduced-motion story — the
-	   transform below never needs a media query of its own. */
-	transition:
-		opacity var(--dur-medium) var(--ease-out-quint),
-		transform var(--dur-medium) var(--ease-out-quint),
-		display var(--dur-medium) allow-discrete,
-		overlay var(--dur-medium) allow-discrete;
-	opacity: 0;
-
-	/* Rises the last few pixels into place rather than growing from nothing:
-	   a scale on a 400px card makes the title jump a step in size. */
-	transform: translateY(var(--space-4));
-}
-
-.dialog[open] {
-	opacity: 1;
-	transform: none;
-}
-
-/* The open state's starting point. Without this the card is already at its
-   [open] values on the first frame in the top layer and no enter runs. */
-@starting-style {
-	.dialog[open] {
-		opacity: 0;
-		transform: translateY(var(--space-4));
-	}
-}
-
-/* The scrim: surface/scrim over a 3px blur, the third and lightest of the
-   product's three blurs. It fades on --dur-fast, which the reduced-motion
-   collapse deliberately leaves live — a sub-150ms fade with nothing moving in
-   it is not motion. */
-.dialog::backdrop {
-	background-color: var(--surface-scrim);
-	backdrop-filter: blur(var(--material-scrim-blur));
-	transition:
-		opacity var(--dur-fast) var(--ease-standard),
-		display var(--dur-fast) allow-discrete,
-		overlay var(--dur-fast) allow-discrete;
-	opacity: 0;
-}
-
-.dialog[open]::backdrop {
-	opacity: 1;
-}
-
-@starting-style {
-	.dialog[open]::backdrop {
-		opacity: 0;
-	}
 }
 
 /* The close control the design does not draw, for cards whose actions all

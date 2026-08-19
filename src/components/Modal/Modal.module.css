@@ -1,0 +1,63 @@
+/* The shell: the UA sheet undone, the top-layer motion, and the scrim. It
+   paints nothing — every visible pixel belongs to the card composed on top. */
+.modal {
+	margin: auto;
+	border: none;
+	padding: 0;
+	background: none;
+	color: inherit;
+
+	/* The UA sheet's `overflow: auto` clips anything a child paints past its
+	   own box — the card's shadow included, since the dialog's fit-content
+	   box matches the card exactly with no slack for it to bleed into. */
+	overflow: visible;
+
+	/* A focus target, not a tab stop, so it takes no ring of its own. */
+	outline: none;
+
+	/* display/overlay need `allow-discrete` or the top layer drops the modal
+	   before the exit transition runs. --dur-medium collapses to 1ms under
+	   prefers-reduced-motion (motion-preferences.css). */
+	transition:
+		opacity var(--dur-medium) var(--ease-out-quint),
+		transform var(--dur-medium) var(--ease-out-quint),
+		display var(--dur-medium) allow-discrete,
+		overlay var(--dur-medium) allow-discrete;
+	opacity: 0;
+	transform: translateY(var(--space-4));
+}
+
+.modal[open] {
+	opacity: 1;
+	transform: none;
+}
+
+/* The open state's starting point — without it there's no enter transition. */
+@starting-style {
+	.modal[open] {
+		opacity: 0;
+		transform: translateY(var(--space-4));
+	}
+}
+
+/* The scrim: surface/scrim over a 3px blur. --dur-fast stays live under
+   reduced motion — a sub-150ms fade with nothing moving isn't motion. */
+.modal::backdrop {
+	background-color: var(--surface-scrim);
+	backdrop-filter: blur(var(--material-scrim-blur));
+	transition:
+		opacity var(--dur-fast) var(--ease-standard),
+		display var(--dur-fast) allow-discrete,
+		overlay var(--dur-fast) allow-discrete;
+	opacity: 0;
+}
+
+.modal[open]::backdrop {
+	opacity: 1;
+}
+
+@starting-style {
+	.modal[open]::backdrop {
+		opacity: 0;
+	}
+}
