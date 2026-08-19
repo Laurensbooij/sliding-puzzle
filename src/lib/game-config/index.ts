@@ -4,7 +4,7 @@ export type {
 	GameConfigProviderProps,
 } from './GameConfigProvider/GameConfigProvider'
 export { useGameConfig } from './use-game-config'
-export { isGameConfig, isGridSize } from './guards'
+export { isGameConfig, isBoardSize } from './guards'
 export { DEFAULT_GAME_CONFIG, GAME_CONFIG_STORAGE_KEY } from './constants'
-export { GRID_SIZES } from './types'
-export type { GameConfig, GridSize } from './types'
+export { BOARD_SIZES } from './types'
+export type { GameConfig, BoardSize } from './types'

@@ -65,5 +65,5 @@ A board together with its move count and status.
 _Avoid_: session, round, play
 
 **Record**:
-The fewest moves a player has solved a given grid size in.
+The fewest moves a player has solved a given board size in.
 _Avoid_: high score, best time

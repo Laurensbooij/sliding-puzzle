@@ -1,4 +1,4 @@
-import { isGridSize } from '@/lib/game-config'
+import { isBoardSize } from '@/lib/game-config'
 import { isJsonObject } from '@/lib/storage'
 
 import type { Records } from './types'
@@ -10,8 +10,8 @@ import type { Records } from './types'
 const isBests = (value: unknown): value is Records['bests'] =>
 	isJsonObject(value) &&
 	Object.entries(value).every(
-		([gridSize, moveCount]) =>
-			isGridSize(Number(gridSize)) && typeof moveCount === 'number' && moveCount > 0,
+		([boardSize, moveCount]) =>
+			isBoardSize(Number(boardSize)) && typeof moveCount === 'number' && moveCount > 0,
 	)
 
 export const isRecords = (value: unknown): value is Records =>

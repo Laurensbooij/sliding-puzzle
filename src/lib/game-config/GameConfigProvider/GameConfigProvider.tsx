@@ -4,13 +4,13 @@ import { type FC, type ReactNode, createContext, useCallback, useMemo } from 're
 
 import { DEFAULT_GAME_CONFIG, GAME_CONFIG_STORAGE_KEY } from '../constants'
 import { isGameConfig } from '../guards'
-import type { GridSize } from '../types'
+import type { BoardSize } from '../types'
 
 export interface GameConfigContextValue {
-	rows: GridSize
-	cols: GridSize
+	rows: BoardSize
+	cols: BoardSize
 	sourceImage: SourceImageName
-	setGridSize: (gridSize: GridSize) => void
+	setBoardSize: (boardSize: BoardSize) => void
 	setSourceImage: (sourceImage: SourceImageName) => void
 }
 
@@ -33,8 +33,8 @@ export const GameConfigProvider: FC<GameConfigProviderProps> = ({ children }) =>
 		DEFAULT_GAME_CONFIG,
 	)
 
-	const setGridSize = useCallback(
-		(gridSize: GridSize) => setGameConfig((previous) => ({ ...previous, gridSize })),
+	const setBoardSize = useCallback(
+		(boardSize: BoardSize) => setGameConfig((previous) => ({ ...previous, boardSize })),
 		[setGameConfig],
 	)
 
@@ -46,13 +46,13 @@ export const GameConfigProvider: FC<GameConfigProviderProps> = ({ children }) =>
 
 	const contextValue = useMemo(
 		() => ({
-			rows: gameConfig.gridSize,
-			cols: gameConfig.gridSize,
+			rows: gameConfig.boardSize,
+			cols: gameConfig.boardSize,
 			sourceImage: gameConfig.sourceImage,
-			setGridSize,
+			setBoardSize,
 			setSourceImage,
 		}),
-		[gameConfig, setGridSize, setSourceImage],
+		[gameConfig, setBoardSize, setSourceImage],
 	)
 
 	return <GameConfigContext.Provider value={contextValue}>{children}</GameConfigContext.Provider>

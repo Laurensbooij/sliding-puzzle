@@ -35,7 +35,7 @@ engine is tested, with no React and no storage anywhere near it.
 - **Records is a provider, not a bare hook.** Three readers across features
   (the BEST card, the solved dialog, the Setup record line) must agree the
   instant a solve lands; independent hooks would each hold a copy and drift.
-- **`GridSize` narrows at the config edge only.** The engine keeps bare numbers —
+- **`BoardSize` narrows at the config edge only.** The engine keeps bare numbers —
   `createBoard(rows, cols)` is untouched — so the union constrains what Setup may
   offer without leaking a UI concern into the rules.
 - The storage helper was built because all three consumers exist now. It is the

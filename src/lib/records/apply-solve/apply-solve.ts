@@ -5,9 +5,9 @@ import type { Records, Solve } from '../types'
  * tie leaves the stored best — and the run that first reached it — untouched.
  * Pure: no React, no storage.
  */
-export const applySolve = (records: Records, { gridSize, moveCount }: Solve): Records => {
-	const currentBest = records.bests[gridSize]
+export const applySolve = (records: Records, { boardSize, moveCount }: Solve): Records => {
+	const currentBest = records.bests[boardSize]
 	if (currentBest !== undefined && currentBest <= moveCount) return records
 
-	return { ...records, bests: { ...records.bests, [gridSize]: moveCount } }
+	return { ...records, bests: { ...records.bests, [boardSize]: moveCount } }
 }

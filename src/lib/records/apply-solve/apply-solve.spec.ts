@@ -6,14 +6,14 @@ import { applySolve } from './apply-solve'
 const recordsOf = (bests: Records['bests'] = {}): Records => ({ bests })
 
 const solveOf = (overrides: Partial<Solve> = {}): Solve => ({
-	gridSize: 3,
+	boardSize: 3,
 	moveCount: 40,
 	...overrides,
 })
 
 describe('applySolve', () => {
 	it('sets a best on the first solve at a size', () => {
-		const records = applySolve(recordsOf(), solveOf({ gridSize: 4, moveCount: 120 }))
+		const records = applySolve(recordsOf(), solveOf({ boardSize: 4, moveCount: 120 }))
 
 		expect(records.bests[4]).toBe(120)
 	})

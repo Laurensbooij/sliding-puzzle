@@ -1,4 +1,4 @@
-import type { GridSize } from '@/lib/game-config'
+import type { BoardSize } from '@/lib/game-config'
 import { usePersistedState } from '@/lib/storage'
 import { type FC, type ReactNode, createContext, useCallback, useMemo } from 'react'
 
@@ -8,7 +8,7 @@ import { isRecords } from '../guards'
 import type { Solve } from '../types'
 
 export interface RecordsContextValue {
-	bestFor: (gridSize: GridSize) => number | undefined
+	bestFor: (boardSize: BoardSize) => number | undefined
 	recordSolve: (solve: Solve) => void
 }
 
@@ -30,7 +30,7 @@ export interface RecordsProviderProps {
 export const RecordsProvider: FC<RecordsProviderProps> = ({ children }) => {
 	const [records, setRecords] = usePersistedState(RECORDS_STORAGE_KEY, isRecords, EMPTY_RECORDS)
 
-	const bestFor = useCallback((gridSize: GridSize) => records.bests[gridSize], [records])
+	const bestFor = useCallback((boardSize: BoardSize) => records.bests[boardSize], [records])
 
 	const recordSolve = useCallback(
 		(solve: Solve) => setRecords((previous) => applySolve(previous, solve)),
