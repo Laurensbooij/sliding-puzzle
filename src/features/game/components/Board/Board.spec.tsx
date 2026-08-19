@@ -323,6 +323,47 @@ describe('Board', () => {
 			expect(restart).toBeInTheDocument()
 		})
 
+		it('shows the solved picture, named rather than hidden', () => {
+			renderComponent({ footer: true })
+			const preview = screen.getByRole('img', {
+				name: translate(boardMessages.preview),
+			})
+			expect(preview).toBeInTheDocument()
+		})
+
+		it('drops the preview when it is turned off', () => {
+			renderComponent({ footer: true, preview: false })
+			const preview = screen.queryByRole('img', {
+				name: translate(boardMessages.preview),
+			})
+			expect(preview).not.toBeInTheDocument()
+		})
+
+		it('keeps the preview out of the board entirely when there is no footer', () => {
+			renderComponent({ preview: true })
+			const preview = screen.queryByRole('img', {
+				name: translate(boardMessages.preview),
+			})
+			expect(preview).not.toBeInTheDocument()
+		})
+
+		it('leaves the preview out of the tab order', async () => {
+			const user = userEvent.setup()
+			renderComponent({ footer: true })
+
+			for (const tile of [1, 3, 4, 6]) {
+				await user.tab()
+				const reached = screen.getByRole('button', { name: tileName(tile) })
+				expect(reached).toHaveFocus()
+			}
+
+			await user.tab()
+			const restart = screen.getByRole('button', {
+				name: translate(boardMessages.restart),
+			})
+			expect(restart).toHaveFocus()
+		})
+
 		it('carries the standing hint as text', () => {
 			renderComponent({ footer: true })
 			const hint = screen.getByText(translate(boardMessages.hint))

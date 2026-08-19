@@ -110,6 +110,55 @@
 	gap: var(--space-3);
 }
 
+/* The hint and the preview travel together on the footer's leading side; the
+   restart control is pushed to the trailing side by the footer's own spacing. */
+.footerLeading {
+	display: flex;
+	align-items: center;
+	gap: var(--space-3);
+}
+
+/*
+ * The solved picture: the same glass the tiles are cut from, on radius/md so it
+ * reads as a chip rather than a tile that came loose. Its 3.75rem box is a Figma
+ * component-set value with no variable behind it — it belongs to the Board, not
+ * the token tiers, same as the Tile's layer opacities.
+ */
+.preview {
+	--preview-shadow: var(--shadow-tile), var(--glass-edge-light), var(--glass-inner);
+
+	position: relative;
+	flex-shrink: 0;
+	width: 3.75rem;
+	height: 3.75rem;
+	padding: var(--space-1);
+	overflow: hidden;
+	border: var(--material-glass-border);
+	border-radius: var(--radius-md);
+	background-image: var(--material-glass-fill);
+	backdrop-filter: blur(var(--material-glass-blur)) saturate(var(--material-glass-saturate));
+	box-shadow: var(--preview-shadow);
+}
+
+/* The whole artwork, never a fragment — this is what the board becomes. */
+.previewImage {
+	display: block;
+	width: 100%;
+	height: 100%;
+
+	/* Source images stroke in currentColor (ADR-0013); this is where the ink is set. */
+	color: var(--art-ink);
+	opacity: 0.9;
+}
+
+.previewSheen {
+	position: absolute;
+	inset: 0;
+	opacity: 0.55;
+	background-image: var(--material-glass-sheen);
+	pointer-events: none;
+}
+
 .hint {
 	font: var(--body-sm);
 	color: var(--text-on-wood);

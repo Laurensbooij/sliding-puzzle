@@ -56,13 +56,17 @@ export const movesForCell = (board: Board, cell: CellIndex): readonly Move[] => 
  * and what a move announcement is phrased with (ADR-0014).
  */
 export const directionOfMove = (board: Board, move: Move): Direction => {
+	// signed distance, in cells, between the tile's old and new index
 	const step = move.to - move.from
+	// step forward by a full row = moved down
 	if (step === board.cols) {
 		return 'down'
 	}
+	// step back by a full row = moved up
 	if (step === -board.cols) {
 		return 'up'
 	}
+	// anything else is same-row: sign of the index delta gives left/right
 	return step > 0 ? 'right' : 'left'
 }
 

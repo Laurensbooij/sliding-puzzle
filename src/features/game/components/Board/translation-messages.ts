@@ -11,6 +11,12 @@ export const boardMessages = defineMessages({
 		defaultMessage: 'Tap a tile beside the gap',
 		description: 'Standing hint under the board, telling a new player how to move a tile',
 	},
+	preview: {
+		id: 'board.preview',
+		defaultMessage: 'The solved picture',
+		description:
+			'Accessible name of the thumbnail in the footer showing the source image as it looks once solved',
+	},
 	restart: {
 		id: 'board.restart',
 		defaultMessage: 'Restart',

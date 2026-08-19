@@ -52,12 +52,21 @@ export const Solved: Story = {
 }
 
 /**
- * Figma `Footer=true`: the standing hint and the restart control, inside the
- * wood below the well. The restart is the shared IconButton on its `onWood`
- * variant — the only one the design allows on the frame.
+ * Figma `Footer=true, Preview=true`: the solved picture, the standing hint and
+ * the restart control, inside the wood below the well. The restart is the
+ * shared IconButton on its `onWood` variant — the only one the design allows on
+ * the frame.
  */
 export const WithFooter: Story = {
 	args: { footer: true },
+}
+
+/**
+ * Figma `Preview=false`. Both states are real: the preview is a player setting,
+ * and the footer collapses to a single control-height row without it.
+ */
+export const FooterWithoutPreview: Story = {
+	args: { footer: true, preview: false },
 }
 
 /** A different source image on the same arrangement. */

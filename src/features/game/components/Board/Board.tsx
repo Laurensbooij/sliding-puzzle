@@ -1,3 +1,4 @@
+import { SOURCE_IMAGES } from '@/source-images'
 import type { SourceImageName } from '@/source-images'
 import { IconButton } from '@components/IconButton'
 import type { Board as BoardModel, CellIndex } from '@engine'
@@ -35,6 +36,12 @@ export interface BoardProps {
 	 * restart control. Off by default — the board Figma draws by default has none.
 	 */
 	footer?: boolean
+	/**
+	 * Shows the solved picture as a glass chip beside the hint. Only rendered
+	 * inside the footer, and on by default there — the same default the Figma
+	 * component property carries.
+	 */
+	preview?: boolean
 	/**
 	 * Called when the restart control is pressed. Board does not deal the new
 	 * board; `game.restart` belongs to whoever composes it.
@@ -77,6 +84,7 @@ export const Board: FC<BoardProps> = ({
 	board,
 	sourceImage,
 	footer = false,
+	preview = true,
 	onCellPress,
 	onRestart,
 	dataTestId,
@@ -87,6 +95,7 @@ export const Board: FC<BoardProps> = ({
 	const base = dataTestId ?? BOARD_TESTIDS.BASE
 	const movable = movableTiles(board)
 	const placements = toPlacements(board)
+	const SourceImage = SOURCE_IMAGES[sourceImage]
 
 	// Announced from the board that arrived, not from the press that asked for
 	// it: a press this component sends outward may never come back as a move —
@@ -170,14 +179,32 @@ export const Board: FC<BoardProps> = ({
 			</div>
 			{footer && (
 				<div className={styles.footer}>
-					<p className={styles.hint}>
-						<Message message={boardMessages.hint} />
-					</p>
+					<div className={styles.footerLeading}>
+						{preview && (
+							// Named rather than hidden: it is the goal of the game, not
+							// decoration. The name sits on the chip and the artwork stays
+							// `aria-hidden`, so it is announced once. The design's tooltip
+							// is deliberately dropped — it hangs off hover on a
+							// non-focusable element, so a keyboard user could never reach it.
+							<span
+								className={styles.preview}
+								data-testid={`${base}${BOARD_TESTIDS.PREVIEW_SUFFIX}`}
+								role="img"
+								aria-label={translate(boardMessages.preview)}
+							>
+								<SourceImage className={styles.previewImage} aria-hidden />
+								<span className={styles.previewSheen} />
+							</span>
+						)}
+						<p className={styles.hint}>
+							<Message message={boardMessages.hint} />
+						</p>
+					</div>
 					<IconButton
 						icon="rotate-ccw"
 						label={translate(boardMessages.restart)}
 						variant="onWood"
-						size="sm"
+						size="md"
 						onClick={onRestart}
 						dataTestId={`${base}${BOARD_TESTIDS.RESTART_SUFFIX}`}
 					/>

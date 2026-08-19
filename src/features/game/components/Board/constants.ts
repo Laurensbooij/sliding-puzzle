@@ -3,6 +3,7 @@ import type { Direction } from '@engine'
 export const BOARD_TESTIDS = {
 	BASE: 'board',
 	GAP_SUFFIX: '-gap',
+	PREVIEW_SUFFIX: '-preview',
 	RESTART_SUFFIX: '-restart',
 	TILE_SUFFIX: '-tile',
 	ANNOUNCER_SUFFIX: '-announcer',
