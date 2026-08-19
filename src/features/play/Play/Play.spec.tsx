@@ -1,15 +1,23 @@
 import { DEFAULT_GAME_CONFIG, GAME_CONFIG_STORAGE_KEY, GameConfigProvider } from '@/lib/game-config'
 import type { BoardSize } from '@/lib/game-config'
-import { DEFAULT_SETTINGS, SETTINGS_STORAGE_KEY, SettingsProvider } from '@/lib/settings'
+import { RECORDS_STORAGE_KEY, RecordsProvider } from '@/lib/records'
+import type { Records } from '@/lib/records'
+import {
+	DEFAULT_SETTINGS,
+	SETTINGS_STORAGE_KEY,
+	SettingsProvider,
+	useSettings,
+} from '@/lib/settings'
 import { createTranslate } from '@i18n'
 import { gameMachine } from '@machines/game-machine'
 import { globalMessages } from '@messages'
-import { renderWithProviders, seedStorage } from '@testing'
+import { readStorage, renderWithProviders, seedStorage } from '@testing'
 import type { RenderResult } from '@testing-library/react'
 import { act, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import type { UserEvent } from '@testing-library/user-event'
 import { BOARD_TESTIDS } from '@widgets/Board'
+import type { FC } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { ActorRefFrom } from 'xstate'
 import { createActor } from 'xstate'
@@ -26,6 +34,12 @@ type GameActor = ActorRefFrom<typeof gameMachine>
 interface PlayCase {
 	boardSize?: BoardSize
 	showTimer?: boolean
+	referenceImage?: boolean
+	numberedTiles?: boolean
+	/** Mounts the two switches beside the screen, for the cases that flip one mid-game. */
+	withSettingsSwitches?: boolean
+	/** The records the player arrives with, as their browser would hold them. */
+	bests?: Records['bests']
 	game?: GameActor
 	onAbandon?: () => void
 }
@@ -63,6 +77,29 @@ const clockStoppingAt = (elapsed: number): (() => number) => {
 	return () => readings.shift() ?? elapsed
 }
 
+const NUMBERED_SWITCH = 'Numbered tiles'
+const REFERENCE_IMAGE_SWITCH = 'Reference image'
+
+/**
+ * The Settings dialog's two presentational switches, reduced to what a case
+ * needs: something outside Play that writes the provider it reads. The real
+ * dialog lives in the shell, so a case cannot reach one from here.
+ */
+const SettingsSwitches: FC = () => {
+	const { referenceImage, numberedTiles, setReferenceImage, setNumberedTiles } = useSettings()
+
+	return (
+		<>
+			<button type="button" onClick={() => setNumberedTiles(!numberedTiles)}>
+				{NUMBERED_SWITCH}
+			</button>
+			<button type="button" onClick={() => setReferenceImage(!referenceImage)}>
+				{REFERENCE_IMAGE_SWITCH}
+			</button>
+		</>
+	)
+}
+
 /**
  * A game one move from being solved: a 1×2 board can only be shuffled by
  * sliding its single tile aside, so pressing that tile finishes the game. Every
@@ -84,23 +121,43 @@ const startNearlySolvedGame = (now: () => number = () => 0): GameActor => {
 const renderComponent = ({
 	boardSize = 3,
 	showTimer = true,
+	referenceImage = DEFAULT_SETTINGS.referenceImage,
+	numberedTiles = DEFAULT_SETTINGS.numberedTiles,
+	withSettingsSwitches = false,
+	bests = {},
 	game = startGame(boardSize),
 	onAbandon = vi.fn(),
 }: PlayCase = {}): RenderResult => {
-	// Both providers hydrate from storage on mount, so a case states its config
-	// and settings the way a returning player's browser would.
+	// Every provider hydrates from storage on mount, so a case states its config,
+	// settings and records the way a returning player's browser would.
 	seedStorage({
 		[GAME_CONFIG_STORAGE_KEY]: JSON.stringify({ ...DEFAULT_GAME_CONFIG, boardSize }),
-		[SETTINGS_STORAGE_KEY]: JSON.stringify({ ...DEFAULT_SETTINGS, showTimer }),
+		[SETTINGS_STORAGE_KEY]: JSON.stringify({
+			...DEFAULT_SETTINGS,
+			showTimer,
+			referenceImage,
+			numberedTiles,
+		}),
+		[RECORDS_STORAGE_KEY]: JSON.stringify({ bests } satisfies Records),
 	})
 
 	return renderWithProviders(
 		<GameConfigProvider>
 			<SettingsProvider>
-				<Play game={game} onAbandon={onAbandon} />
+				<RecordsProvider>
+					<Play game={game} onAbandon={onAbandon} />
+					{withSettingsSwitches && <SettingsSwitches />}
+				</RecordsProvider>
 			</SettingsProvider>
 		</GameConfigProvider>,
 	)
+}
+
+/** The records as they stand in storage — what a reload would read back. */
+const storedBests = (): Records['bests'] => {
+	const stored = readStorage([RECORDS_STORAGE_KEY])[RECORDS_STORAGE_KEY]
+	if (!stored) throw new Error('The records key holds nothing')
+	return (JSON.parse(stored) as Records).bests
 }
 
 /**
@@ -120,6 +177,36 @@ const firstMovableTile = (): HTMLElement => {
 	if (!tile) throw new Error('The board rendered no movable tile')
 	return tile
 }
+
+/**
+ * Plays the one press between a nearly-solved board and a solved one, which is
+ * how every case that needs a win gets one.
+ */
+const win = async (user: UserEvent): Promise<void> => {
+	await user.click(firstMovableTile())
+}
+
+/**
+ * Every tile, movable or not — the only buttons on the screen that carry a
+ * movability state. The footer's controls and the switches carry none.
+ */
+const tileButtons = (): HTMLElement[] =>
+	screen.getAllByRole('button').filter((button) => button.hasAttribute('aria-disabled'))
+
+/**
+ * The numbers painted on the board, ascending. A painted number is text with no
+ * accessible identity of its own — which is the point of the setting — so it is
+ * read off the tile rather than queried for.
+ */
+const paintedTileNumbers = (): number[] =>
+	tileButtons()
+		.map((tile) => Number(tile.textContent?.trim()))
+		.filter(Boolean)
+		.sort((first, second) => first - second)
+
+/** The reference-image chip inside the footer, if it is showing. */
+const previewChip = (): HTMLElement | null =>
+	screen.queryByTestId(`${BOARD_TESTIDS.BASE}${BOARD_TESTIDS.PREVIEW_SUFFIX}`)
 
 /**
  * A footer control, by testid: its name is the Board's own message, which the
@@ -152,7 +239,10 @@ const readOutTestIds = [
  * - Announcements — **N/A for the Time card, deliberately**, and asserted
  *   below. A value that changes once a second makes a live region unusable
  *   noise; it stays in the accessibility tree and reads as "Time, 01:18" on
- *   demand. Moves are already spoken by the Board's live region, as the tile
+ *   demand. **N/A for the Best card too**, on the same reasoning and also
+ *   asserted below: a record is spoken once, through the win card's
+ *   description, and the number behind it reads as "Best, 42" on demand.
+ *   Moves are already spoken by the Board's live region, as the tile
  *   movement that produced them. **N/A for the two confirmations** as well:
  *   a card's arrival is announced by its role, name and description, which the
  *   cases below assert, and neither holds a value that changes while it is
@@ -206,8 +296,8 @@ describe('Play', () => {
 			)
 		})
 
-		// Records exist, but nothing writes one yet — so the card stands empty
-		// rather than inventing a number to fill itself with.
+		// A player with nothing solved at this size: the card stands empty rather
+		// than inventing a number to fill itself with.
 		it('leaves the best empty until there is a record to show', () => {
 			renderComponent()
 
@@ -220,6 +310,73 @@ describe('Play', () => {
 
 			const found = readOutTestIds.map((testId) => screen.queryByTestId(testId))
 			expect(found.every(Boolean)).toBe(true)
+		})
+	})
+
+	describe('presentational settings', () => {
+		it('paints no tile numbers while Numbered tiles is off', () => {
+			renderComponent({ numberedTiles: false })
+
+			expect(paintedTileNumbers()).toHaveLength(0)
+		})
+
+		it('paints every tile its number while Numbered tiles is on', () => {
+			renderComponent({ numberedTiles: true })
+
+			// Eight tiles at 3x3, numbered as the solved picture reads.
+			expect(paintedTileNumbers()).toEqual([1, 2, 3, 4, 5, 6, 7, 8])
+		})
+
+		it('shows the reference image while it is on', () => {
+			renderComponent({ referenceImage: true })
+
+			expect(previewChip()).toBeVisible()
+		})
+
+		it('drops the reference image while it is off', () => {
+			renderComponent({ referenceImage: false })
+
+			expect(previewChip()).not.toBeInTheDocument()
+		})
+
+		// Both switches are paint. The game underneath them is the actor's, and
+		// flipping one mid-play must not cost the player a move or a second.
+		it('numbers the board mid-game without disturbing the game', async () => {
+			const user = userEvent.setup()
+			const game = startGame()
+			renderComponent({ game, numberedTiles: false, withSettingsSwitches: true })
+			await user.click(firstMovableTile())
+			const played = game.getSnapshot()
+
+			const numberedSwitch = screen.getByRole('button', { name: NUMBERED_SWITCH })
+			await user.click(numberedSwitch)
+
+			expect(paintedTileNumbers()).toHaveLength(tileButtons().length)
+			const after = game.getSnapshot()
+			expect(after.context.board).toBe(played.context.board)
+			expect(after.context.moveCount).toBe(played.context.moveCount)
+			expect(after.context.startedAt).toBe(played.context.startedAt)
+			expect(after.value).toBe(played.value)
+		})
+
+		it('drops the reference image mid-game without disturbing the game', async () => {
+			const user = userEvent.setup()
+			const game = startGame()
+			renderComponent({ game, referenceImage: true, withSettingsSwitches: true })
+			await user.click(firstMovableTile())
+			const played = game.getSnapshot()
+
+			const referenceImageSwitch = screen.getByRole('button', {
+				name: REFERENCE_IMAGE_SWITCH,
+			})
+			await user.click(referenceImageSwitch)
+
+			expect(previewChip()).not.toBeInTheDocument()
+			const after = game.getSnapshot()
+			expect(after.context.board).toBe(played.context.board)
+			expect(after.context.moveCount).toBe(played.context.moveCount)
+			expect(after.context.startedAt).toBe(played.context.startedAt)
+			expect(after.value).toBe(played.value)
 		})
 	})
 
@@ -522,6 +679,182 @@ describe('Play', () => {
 	})
 
 	/**
+	 * The records, from the screen that writes them. The game is dealt one press
+	 * from solved and that press is played, so every case here records a real
+	 * one-move solve — at the size the config holds, which is what a record
+	 * belongs to.
+	 */
+	describe('the record', () => {
+		const bestCard = (): HTMLElement =>
+			screen.getByTestId(`${PLAY_TESTIDS.BASE}${PLAY_TESTIDS.BEST_SUFFIX}`)
+
+		/**
+		 * The card's treatment as the DOM can state it: CSS-module class names
+		 * are hashed, so a tone is read as what this card carries that a plain
+		 * read-out — the Moves card, neutral by definition — does not.
+		 */
+		const toneClasses = (): string[] => {
+			const plain = [
+				...screen.getByTestId(`${PLAY_TESTIDS.BASE}${PLAY_TESTIDS.MOVES_SUFFIX}`).classList,
+			]
+			return [...bestCard().classList].filter((name) => !plain.includes(name))
+		}
+
+		it('fills the best card the moment the solve is recorded', async () => {
+			const user = userEvent.setup()
+			renderComponent({ game: startNearlySolvedGame() })
+
+			await win(user)
+
+			const best = statValue(BEST_LABEL)
+			expect(best).toHaveTextContent('01')
+		})
+
+		// The accent-tinted treatment the Solved frame draws, which only a card
+		// holding a record wears.
+		it('tints the best card once it holds a record', async () => {
+			const user = userEvent.setup()
+			renderComponent({ game: startNearlySolvedGame() })
+			expect(toneClasses()).toEqual([])
+
+			await win(user)
+
+			expect(toneClasses()).toEqual([expect.stringContaining('accent')])
+		})
+
+		it('shows the record a returning player already holds, tinted', () => {
+			renderComponent({ bests: { 3: 42 } })
+
+			const best = statValue(BEST_LABEL)
+			// Name and value together are what a screen reader reads off the
+			// card: "Best, 42", the label carried by StatCard's aria-labelledby.
+			expect(best).toHaveAccessibleName(BEST_LABEL)
+			expect(best).toHaveTextContent('42')
+			expect(toneClasses()).toEqual([expect.stringContaining('accent')])
+		})
+
+		it('writes the solve to storage, so a reload still shows it', async () => {
+			const user = userEvent.setup()
+			renderComponent({ game: startNearlySolvedGame() })
+
+			await win(user)
+
+			expect(storedBests()).toEqual({ 3: 1 })
+		})
+
+		it('replaces a record the game beat', async () => {
+			const user = userEvent.setup()
+			renderComponent({ bests: { 3: 5 }, game: startNearlySolvedGame() })
+
+			await win(user)
+
+			const best = statValue(BEST_LABEL)
+			expect(best).toHaveTextContent('01')
+			expect(storedBests()).toEqual({ 3: 1 })
+		})
+
+		// A tie is not a best: the run that first got there keeps it.
+		it('leaves a record the game only matched', async () => {
+			const user = userEvent.setup()
+			renderComponent({ bests: { 3: 1 }, game: startNearlySolvedGame() })
+
+			await win(user)
+
+			expect(storedBests()).toEqual({ 3: 1 })
+		})
+
+		it('records nothing while the game is still being played', async () => {
+			const user = userEvent.setup()
+			renderComponent()
+
+			await user.click(firstMovableTile())
+
+			expect(storedBests()).toEqual({})
+		})
+
+		// A refresh is an unmount with the game unfinished: whatever was played
+		// goes with it, and the records key is never touched.
+		it('records nothing when a game in progress is left', async () => {
+			const user = userEvent.setup()
+			const { unmount } = renderComponent()
+			await user.click(firstMovableTile())
+
+			unmount()
+
+			expect(storedBests()).toEqual({})
+		})
+
+		it('records nothing when the game is abandoned', async () => {
+			const user = userEvent.setup()
+			renderComponent()
+			await user.click(boardControl(BOARD_TESTIDS.ABANDON_SUFFIX))
+			const confirmation = screen.getByRole('dialog', { name: ABANDON_TITLE })
+			const confirm = within(confirmation).getByRole('button', {
+				name: translate(playMessages.abandonConfirm),
+			})
+
+			await user.click(confirm)
+
+			expect(storedBests()).toEqual({})
+		})
+
+		it('records one solve once, however long the solved board stays on screen', async () => {
+			const user = userEvent.setup()
+			renderComponent({ bests: { 3: 5 }, game: startNearlySolvedGame() })
+			await win(user)
+
+			// Escape closes the win card to the solved board, which re-renders the
+			// screen without ending the game — the cheapest second look at a solve
+			// already recorded.
+			await user.keyboard('{Escape}')
+
+			expect(storedBests()).toEqual({ 3: 1 })
+		})
+
+		it('celebrates a record in the win card, alongside the time', async () => {
+			const user = userEvent.setup()
+			renderComponent({ game: startNearlySolvedGame(clockStoppingAt(78 * SECOND_MS)) })
+
+			await win(user)
+
+			const card = screen.getByRole('dialog', {
+				name: translate(solvedMessages.title, { count: 1 }),
+			})
+			const recordLine = translate(solvedMessages.newBest, { size: 3 })
+			const timeLine = translate(solvedMessages.description, { time: '01:18' })
+			expect(card).toHaveAccessibleDescription(`${recordLine} ${timeLine}`)
+		})
+
+		it('claims no record for a game that only matched one', async () => {
+			const user = userEvent.setup()
+			renderComponent({ bests: { 3: 1 }, game: startNearlySolvedGame() })
+
+			await win(user)
+
+			const newBestLine = screen.queryByText(translate(solvedMessages.newBest, { size: 3 }))
+			expect(newBestLine).not.toBeInTheDocument()
+		})
+
+		/**
+		 * The second deliberate N/A on this screen, for the same reason as the
+		 * Time card: the value stays readable on demand rather than interrupting.
+		 * The record is spoken once, through the win card's description, which the
+		 * case above asserts.
+		 */
+		it('never announces the record it just wrote', async () => {
+			const user = userEvent.setup()
+			renderComponent({ game: startNearlySolvedGame() })
+			const announcer = screen.getByRole('status')
+
+			await win(user)
+
+			const card = bestCard()
+			expect(card).not.toHaveAttribute('aria-live')
+			expect(announcer).not.toHaveTextContent('01')
+		})
+	})
+
+	/**
 	 * The win: the card the solved board raises, and the two footer controls
 	 * behind it. Every case is dealt a game one press from solved and plays that
 	 * press, so the card counts a real game and the board's live region has
@@ -533,11 +866,6 @@ describe('Play', () => {
 
 		const winCard = (): HTMLElement => screen.getByRole('dialog', { name: WON_IN_ONE_MOVE })
 
-		/** Plays the one press between the dealt board and a solved one. */
-		const win = async (user: UserEvent): Promise<void> => {
-			await user.click(firstMovableTile())
-		}
-
 		it('raises the win card, named by the moves the game took', async () => {
 			const user = userEvent.setup()
 			renderComponent({ game: startNearlySolvedGame() })
@@ -548,9 +876,14 @@ describe('Play', () => {
 			expect(card).toBeVisible()
 		})
 
+		// Dealt a player who already holds this one-move best, so the win ties
+		// rather than beats it and the description is the time line alone.
 		it('describes the win with the elapsed time, frozen where the clock stopped', async () => {
 			const user = userEvent.setup()
-			renderComponent({ game: startNearlySolvedGame(clockStoppingAt(78 * SECOND_MS)) })
+			renderComponent({
+				bests: { 3: 1 },
+				game: startNearlySolvedGame(clockStoppingAt(78 * SECOND_MS)),
+			})
 
 			await win(user)
 

@@ -1,4 +1,5 @@
 import { useGameConfig } from '@/lib/game-config'
+import { useRecords } from '@/lib/records'
 import { useSettings } from '@/lib/settings'
 import { Button } from '@components/Button'
 import { Dialog } from '@components/Dialog'
@@ -20,6 +21,7 @@ import styles from './Play.module.css'
 import { Solved } from './components/Solved'
 import { PLAY_TESTIDS } from './constants'
 import { useElapsedTick } from './hooks/use-elapsed-tick/use-elapsed-tick'
+import { useRecordedSolve } from './hooks/use-recorded-solve/use-recorded-solve'
 import { playMessages } from './translation-messages'
 import { formatElapsedTime, formatMoveCount } from './utils/format-stats/format-stats'
 
@@ -72,7 +74,9 @@ export interface PlayProps {
  * The Time card deliberately never announces. It changes once a second, and a
  * live region on that beat is unusable noise; the value stays in the
  * accessibility tree, where StatCard's `aria-labelledby` reads it as "Time,
- * 01:18" whenever it is asked for.
+ * 01:18" whenever it is asked for. The Best card is silent for the same reason
+ * and by the same choice: a new record is spoken once, through the win card's
+ * description, and the number behind it stays readable on demand.
  *
  * Solving the board raises the win card over it and changes the footer line to
  * "Solved". Escape closes the card to that board — a destination the mobile
@@ -88,7 +92,8 @@ export interface PlayProps {
  */
 export const Play: FC<PlayProps> = ({ game, onAbandon }) => {
 	const { rows, cols, sourceImage, setBoardSize } = useGameConfig()
-	const { showTimer } = useSettings()
+	const { referenceImage, numberedTiles, showTimer } = useSettings()
+	const { bestFor } = useRecords()
 	const context = useSelector(game, selectContext)
 	const isPlaying = useSelector(game, selectIsPlaying)
 	const isSolved = useSelector(game, selectIsSolved)
@@ -99,6 +104,17 @@ export const Play: FC<PlayProps> = ({ game, onAbandon }) => {
 	// new board, and no state between two of them is guaranteed to be rendered —
 	// a restart that deals a solved board never leaves `solved` at all.
 	const [dismissedBoard, setDismissedBoard] = useState<BoardModel | null>(null)
+
+	// Solving writes the best, which is what fills the card below on the same
+	// render the win card arrives on — the two are one moment, as the Solved
+	// frame draws it.
+	const isNewBest = useRecordedSolve({
+		solved: isSolved,
+		board: context.board,
+		boardSize: rows,
+		moveCount: context.moveCount,
+	})
+	const best = bestFor(rows)
 
 	// The only reason a clock exists at all — which is why it stops the moment
 	// the card it feeds is hidden, or the game stops running.
@@ -159,12 +175,18 @@ export const Play: FC<PlayProps> = ({ game, onAbandon }) => {
 				)}
 				<StatCard
 					label={<Message message={playMessages.bestLabel} />}
-					// An em dash at the plain tone, not a record: nothing writes one
-					// yet. The accent-tinted card the Solved frame draws arrives with
-					// the records that would fill it.
-					value={<Message message={playMessages.bestUnset} />}
+					// An em dash at the plain tone until this size has been solved
+					// once; the record itself gets the accent-tinted card the Solved
+					// frame draws. Padded like the move count beside it — it is one.
+					value={
+						best === undefined ? (
+							<Message message={playMessages.bestUnset} />
+						) : (
+							formatMoveCount(best)
+						)
+					}
 					icon={<Icon name="trophy" size="xs" />}
-					tone="neutral"
+					tone={best === undefined ? 'neutral' : 'accent'}
 					dataTestId={`${PLAY_TESTIDS.BASE}${PLAY_TESTIDS.BEST_SUFFIX}`}
 				/>
 				<StatCard
@@ -187,9 +209,9 @@ export const Play: FC<PlayProps> = ({ game, onAbandon }) => {
 					// The Board cannot work this out itself — an unshuffled board is
 					// solved too — so the screen owning the lifecycle says it.
 					hint={isSolved ? <Message message={playMessages.solvedHint} /> : undefined}
-					// Hard on until the Reference image setting reaches the Board,
-					// which arrives with the numbered-tiles half of the same job.
-					preview
+					// Both are paint the player chose, read straight off the provider.
+					preview={referenceImage}
+					numbered={numberedTiles}
 				/>
 			</div>
 			<Solved
@@ -197,6 +219,7 @@ export const Play: FC<PlayProps> = ({ game, onAbandon }) => {
 				moveCount={context.moveCount}
 				elapsed={elapsedMs(context)}
 				boardSize={rows}
+				isNewBest={isNewBest}
 				onPlayAgain={restart}
 				// The size goes to the config provider, which is what deals the new
 				// game: the actor is keyed on it a tier up (ADR-0017). The player

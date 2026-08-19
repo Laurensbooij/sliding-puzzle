@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import type { Records, Solve } from '../types'
-import { applySolve } from './apply-solve'
+import { applySolve, isNewBest } from './apply-solve'
 
 const recordsOf = (bests: Records['bests'] = {}): Records => ({ bests })
 
@@ -52,5 +52,37 @@ describe('applySolve', () => {
 		applySolve(before, solveOf({ moveCount: 10 }))
 
 		expect(before.bests).toEqual({ 3: 40 })
+	})
+})
+
+/**
+ * The same rule the fold above is built on, read on its own by whoever has to
+ * answer the question before the write lands.
+ */
+interface BestCase {
+	solve: string
+	moveCount: number
+	currentBest: number | undefined
+	expected: boolean
+}
+
+describe('isNewBest', () => {
+	it.each<BestCase>([
+		{
+			solve: 'the first solve at a size',
+			moveCount: 40,
+			currentBest: undefined,
+			expected: true,
+		},
+		{
+			solve: 'a solve in strictly fewer moves',
+			moveCount: 39,
+			currentBest: 40,
+			expected: true,
+		},
+		{ solve: 'a tie', moveCount: 40, currentBest: 40, expected: false },
+		{ solve: 'a longer solve', moveCount: 41, currentBest: 40, expected: false },
+	])('answers $expected for $solve', ({ moveCount, currentBest, expected }) => {
+		expect(isNewBest(moveCount, currentBest)).toBe(expected)
 	})
 })

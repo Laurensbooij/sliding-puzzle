@@ -32,6 +32,15 @@
 	transform: none;
 }
 
+/* The UA sheet closes a dialog with `display: none`, but the card class composed
+   onto this same element carries a `display` of its own and outranks it — and a
+   closed card left in layout is a transparent box that still takes every click
+   over whatever it covers. Held open by the discrete `display` transition above
+   until the exit finishes. */
+.modal:not([open]) {
+	display: none;
+}
+
 /* The open state's starting point — without it there's no enter transition. */
 @starting-style {
 	.modal[open] {

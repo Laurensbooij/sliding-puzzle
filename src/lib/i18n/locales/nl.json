@@ -21,6 +21,7 @@
   "play.restart.description": "Je krijgt een nieuwe schudbeurt op hetzelfde formaat. Je zetten en tijd tot nu toe gaan verloren.",
   "play.restart.title": "Dit spel opnieuw beginnen?",
   "play.solved.description": "Voltooid in {time}.",
+  "play.solved.new-best": "Een nieuw record op {size}×{size}.",
   "play.solved.play-again": "Opnieuw spelen",
   "play.solved.title": "Opgelost in {count, plural, one {# zet} other {# zetten}}",
   "play.solved.try-next-size": "Probeer {size} × {size}",

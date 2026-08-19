@@ -13,6 +13,12 @@ export const solvedMessages = defineMessages({
 		description:
 			'Supporting line under the title; {time} is the elapsed time as mm:ss, e.g. 01:18',
 	},
+	newBest: {
+		id: 'play.solved.new-best',
+		defaultMessage: 'A new best at {size}×{size}.',
+		description:
+			'Line added above the time on the win card when the game just played beat every earlier one at that board size; {size} is the board dimension, e.g. 3 for a 3×3 board',
+	},
 	playAgain: {
 		id: 'play.solved.play-again',
 		defaultMessage: 'Play again',
