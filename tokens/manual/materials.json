@@ -66,6 +66,9 @@
     "glass-bubble-size": {
       "$value": "38%"
     },
+    "scrim-blur": {
+      "$value": "3px"
+    },
     "$description": "References inside these CSS strings are literal var() rather than DTCG {aliases}: Style Dictionary flattens mid-string aliases to static values at build time, and var() keeps them live in the cascade."
   },
   "art": {

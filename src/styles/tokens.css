@@ -30,6 +30,7 @@
   --material-glass-bubble-border: 1px solid rgba(255, 255, 255, 0.95);
   --material-glass-bubble-blur: blur(var(--material-glass-blur-heavy)) saturate(1.4);
   --material-glass-bubble-size: 38%;
+  --material-scrim-blur: 3px;
   --text-on-wood: #fdf3e6;
   --text-on-wood-muted: rgba(253, 243, 230, 0.66);
   --surface-scrim: rgba(11, 13, 16, 0.52);

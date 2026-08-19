@@ -1,0 +1,37 @@
+/* Something for the scrim to blur. A modal over a blank canvas proves nothing
+   about a 3px backdrop-filter, and the blur is the one part of the design that
+   only exists in front of content.
+
+   Full-bleed on purpose: Storybook's body carries no background of its own, so
+   a page layer that only covers its own content leaves the scrim compositing
+   over nothing for the rest of the viewport — which reads far darker than
+   surface/scrim over the real app, and would bake that into the snapshot. */
+.page {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-4);
+	align-items: flex-start;
+	min-height: 100dvh;
+	padding: var(--space-8);
+	background-color: var(--surface-page);
+	color: var(--text-body);
+	font: var(--body);
+}
+
+.grid {
+	display: grid;
+	grid-template-columns: repeat(4, 4rem);
+	gap: var(--space-2);
+	width: 100%;
+}
+
+.cell {
+	display: grid;
+	place-items: center;
+	height: 4rem;
+	border-radius: var(--radius-md);
+	background-color: var(--surface-card);
+	box-shadow: var(--shadow-1);
+	color: var(--text-strong);
+	font: var(--heading);
+}
