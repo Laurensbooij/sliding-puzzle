@@ -5,6 +5,13 @@ on:
     branches: [main]
   pull_request:
 
+# A superseded push has nothing left to prove, so drop it rather than let it run
+# the branch out. Never on main: those builds are what seed Chromatic's accepted
+# baselines, and cancelling one leaves a gap every later PR diffs against.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
 jobs:
   checks:
     runs-on: ubuntu-latest
@@ -16,8 +23,25 @@ jobs:
           node-version-file: .nvmrc
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+
       # The storybook Vitest project scans stories in real Chromium (a11y gate).
-      - run: pnpm exec playwright install chromium --with-deps
+      #
+      # Keyed on Playwright's own version rather than the lockfile hash: the
+      # browser build only moves when Playwright does, so any other dependency
+      # bump would throw away a good cache for nothing.
+      - id: playwright-version
+        run: echo "version=$(pnpm exec playwright --version | awk '{print $2}')" >> "$GITHUB_OUTPUT"
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ steps.playwright-version.outputs.version }}
+      # No `--with-deps`. ubuntu-24.04 already carries every library Chromium
+      # links against — the flag installed nine packages and all nine were
+      # fonts, 21 MB fetched at 50 kB/s from the Ubuntu mirror, seven minutes
+      # every run. Nothing renders from a system font here: the UI is English
+      # and Dutch, self-hosting its faces via @fontsource. A story that ever
+      # needs CJK should add that one package, not the whole bundle back.
+      - run: pnpm exec playwright install chromium
       - run: pnpm format:check
       - run: pnpm lint
       - run: pnpm typecheck
