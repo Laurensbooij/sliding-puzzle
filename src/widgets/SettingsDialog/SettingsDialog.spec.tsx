@@ -22,6 +22,13 @@ const REFERENCE_IMAGE_LABEL = translate(settingsDialogMessages.referenceImageLab
 const NUMBERED_TILES_LABEL = translate(settingsDialogMessages.numberedTilesLabel)
 const SHOW_TIMER_LABEL = translate(settingsDialogMessages.showTimerLabel)
 
+const TESTID_SUFFIXES = [
+	SETTINGS_DIALOG_TESTIDS.CLOSE_SUFFIX,
+	SETTINGS_DIALOG_TESTIDS.REFERENCE_IMAGE_SUFFIX,
+	SETTINGS_DIALOG_TESTIDS.NUMBERED_TILES_SUFFIX,
+	SETTINGS_DIALOG_TESTIDS.SHOW_TIMER_SUFFIX,
+]
+
 const ALL_OFF: Settings = { referenceImage: false, numberedTiles: false, showTimer: false }
 const ALL_ON: Settings = { referenceImage: true, numberedTiles: true, showTimer: true }
 
@@ -106,11 +113,22 @@ describe('SettingsDialog', () => {
 		renderComponent()
 
 		const switches = screen.getAllByRole('switch')
-		expect(switches.map((control) => control.getAttribute('data-testid'))).toEqual([
-			`${SETTINGS_DIALOG_TESTIDS.BASE}${SETTINGS_DIALOG_TESTIDS.REFERENCE_IMAGE_SUFFIX}`,
-			`${SETTINGS_DIALOG_TESTIDS.BASE}${SETTINGS_DIALOG_TESTIDS.NUMBERED_TILES_SUFFIX}`,
-			`${SETTINGS_DIALOG_TESTIDS.BASE}${SETTINGS_DIALOG_TESTIDS.SHOW_TIMER_SUFFIX}`,
+		expect(switches).toEqual([
+			screen.getByRole('switch', { name: REFERENCE_IMAGE_LABEL }),
+			screen.getByRole('switch', { name: NUMBERED_TILES_LABEL }),
+			screen.getByRole('switch', { name: SHOW_TIMER_LABEL }),
 		])
+	})
+
+	// The four controls an end-to-end test would aim at, each reachable by testid.
+	it('tags every control it draws', () => {
+		renderComponent()
+
+		const tagged = TESTID_SUFFIXES.map((suffix) =>
+			screen.getByTestId(`${SETTINGS_DIALOG_TESTIDS.BASE}${suffix}`),
+		)
+
+		expect(tagged).toHaveLength(TESTID_SUFFIXES.length)
 	})
 
 	it('opens on the defaults a first-time player has', () => {
@@ -231,13 +249,10 @@ describe('SettingsDialog', () => {
 		const user = userEvent.setup()
 		const onClose = vi.fn()
 		renderComponent({ onClose })
-		const close = screen.getByTestId(
-			`${SETTINGS_DIALOG_TESTIDS.BASE}${SETTINGS_DIALOG_TESTIDS.CLOSE_SUFFIX}`,
-		)
+		const close = screen.getByRole('button', { name: CLOSE_LABEL })
 
 		await user.click(close)
 
-		expect(close).toHaveAccessibleName(CLOSE_LABEL)
 		expect(onClose).toHaveBeenCalledOnce()
 	})
 
@@ -262,6 +277,22 @@ describe('SettingsDialog', () => {
 		await user.click(card)
 
 		expect(onClose).toHaveBeenCalledOnce()
+	})
+
+	// The dialog element paints nothing, so the padding and the row gaps belong to
+	// the card inside it. Were they the shell's own, `Modal` would read a click on
+	// them as a scrim click and dismiss the card the player just aimed at.
+	it('ignores a click on the card’s own padding', async () => {
+		const user = userEvent.setup()
+		const onClose = vi.fn()
+		renderComponent({ onClose })
+		const card = screen.getByTestId(
+			`${SETTINGS_DIALOG_TESTIDS.BASE}${SETTINGS_DIALOG_TESTIDS.CARD_SUFFIX}`,
+		)
+
+		await user.click(card)
+
+		expect(onClose).not.toHaveBeenCalled()
 	})
 
 	it('ignores a drag that starts on a switch and is released on the scrim', async () => {

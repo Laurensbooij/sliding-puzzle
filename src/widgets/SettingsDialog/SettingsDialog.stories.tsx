@@ -8,7 +8,6 @@ import { useState } from 'react'
 import { expect, fn, userEvent, waitFor, within } from 'storybook/test'
 
 import { SettingsDialog } from './SettingsDialog'
-import type { SettingsDialogProps } from './SettingsDialog'
 import styles from './SettingsDialog.stories.module.css'
 import { SETTINGS_DIALOG_TESTIDS } from './constants'
 import { settingsDialogMessages } from './translation-messages'
@@ -17,6 +16,9 @@ const { translate } = createTranslate()
 
 const TITLE = translate(settingsDialogMessages.title)
 const CLOSE_LABEL = translate(globalMessages.close)
+const REFERENCE_IMAGE_LABEL = translate(settingsDialogMessages.referenceImageLabel)
+const NUMBERED_TILES_LABEL = translate(settingsDialogMessages.numberedTilesLabel)
+const SHOW_TIMER_LABEL = translate(settingsDialogMessages.showTimerLabel)
 const GEAR_LABEL = 'Settings'
 
 const REFERENCE_IMAGE_TESTID = `${SETTINGS_DIALOG_TESTIDS.BASE}${SETTINGS_DIALOG_TESTIDS.REFERENCE_IMAGE_SUFFIX}`
@@ -74,6 +76,22 @@ export default meta
 type Story = StoryObj<typeof meta>
 
 /**
+ * The one combination there is to cover: no switch state changes the layout, so
+ * the defaults are both the designed frame and the only pairing that shows an on
+ * and an off track side by side.
+ */
+const assertDefaults: NonNullable<Story['play']> = async ({ canvasElement }) => {
+	const canvas = within(canvasElement)
+	const referenceImage = canvas.getByRole('switch', { name: REFERENCE_IMAGE_LABEL })
+	const numberedTiles = canvas.getByRole('switch', { name: NUMBERED_TILES_LABEL })
+	const showTimer = canvas.getByRole('switch', { name: SHOW_TIMER_LABEL })
+
+	await expect(referenceImage).toBeChecked()
+	await expect(numberedTiles).not.toBeChecked()
+	await expect(showTimer).toBeChecked()
+}
+
+/**
  * Figma `5 · Settings` at 1000: the card at its full 480 width, centred over the
  * blurred screen. Three rows, the middle one off — Figma draws no other
  * combination, and none of them changes the layout.
@@ -83,6 +101,7 @@ type Story = StoryObj<typeof meta>
  */
 export const Desktop: Story = {
 	globals: { viewport: { value: 'desktop' } },
+	play: assertDefaults,
 }
 
 /**
@@ -91,6 +110,7 @@ export const Desktop: Story = {
  */
 export const Mobile: Story = {
 	globals: { viewport: { value: 'mobile' } },
+	play: assertDefaults,
 }
 
 /**
@@ -127,15 +147,12 @@ export const SwitchFocused: Story = {
 	},
 }
 
-/** The card's own props. The harness overrides `open` and `onClose` below. */
-type TriggeredSettingsProps = SettingsDialogProps
-
 /**
  * The gear and the card, wired the way `AppShell` wires them: one `useState`,
  * the opener passed to the header, the card rendered beside the screen. A plain
  * `IconButton` stands in for `AppHeader` — a widget may not import another one.
  */
-const TriggeredSettings: FC<TriggeredSettingsProps> = (props) => {
+const TriggeredSettings: FC = () => {
 	const [open, setOpen] = useState(false)
 
 	return (
@@ -147,7 +164,7 @@ const TriggeredSettings: FC<TriggeredSettingsProps> = (props) => {
 				tooltipPlacement="bottom"
 				onClick={() => setOpen(true)}
 			/>
-			<SettingsDialog {...props} open={open} onClose={() => setOpen(false)} />
+			<SettingsDialog open={open} onClose={() => setOpen(false)} />
 		</>
 	)
 }
@@ -167,7 +184,7 @@ const TriggeredSettings: FC<TriggeredSettingsProps> = (props) => {
 export const OpensFromTheGear: Story = {
 	args: { open: false },
 	globals: { viewport: { value: 'desktop' } },
-	render: (args) => <TriggeredSettings {...args} />,
+	render: () => <TriggeredSettings />,
 	play: async ({ canvasElement }) => {
 		const canvas = within(canvasElement)
 		const gear = canvas.getByRole('button', { name: GEAR_LABEL })

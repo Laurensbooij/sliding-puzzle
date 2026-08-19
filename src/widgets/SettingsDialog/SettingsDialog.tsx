@@ -26,6 +26,12 @@ export interface SettingsDialogProps {
  * three. What it does draw is a ✕ beside the heading rather than in the corner,
  * which is the other half of why this card is its own.
  *
+ * The card is an element inside the shell rather than the shell wearing the
+ * card's styles, which is what `Dialog` does. With `scrimClose` on that
+ * difference matters: `Modal` reads a scrim click as one targeting the dialog
+ * element, so any padding the dialog painted itself would dismiss the card when
+ * clicked.
+ *
  * Every switch writes straight through to `useSettings()`, which persists. There
  * is no draft and no confirm step: all three are presentational, so a change
  * mid-game changes how the game looks and nothing about the game.
@@ -63,54 +69,52 @@ export const SettingsDialog: FC<SettingsDialogProps> = ({ open, onClose }) => {
 	const titleId = `settings-dialog-title-${generatedId}`
 
 	return (
-		<Modal
-			open={open}
-			onClose={onClose}
-			labelledBy={titleId}
-			scrimClose
-			className={styles.settingsDialog}
-			dataTestId={base}
-		>
-			<div className={styles.head}>
-				<h2 id={titleId} className={styles.title}>
-					<Message message={settingsDialogMessages.title} />
-				</h2>
-				{/* In flow beside the heading, not absolutely positioned the way
-				    `Dialog`'s corner ✕ is — the design puts it on the head row. */}
-				<IconButton
-					icon="x"
-					label={translate(globalMessages.close)}
-					variant="ghost"
-					onClick={onClose}
-					dataTestId={`${base}${SETTINGS_DIALOG_TESTIDS.CLOSE_SUFFIX}`}
-				/>
-			</div>
-			<div className={styles.rows}>
-				<Switch
-					label={<Message message={settingsDialogMessages.referenceImageLabel} />}
-					description={
-						<Message message={settingsDialogMessages.referenceImageDescription} />
-					}
-					checked={referenceImage}
-					onChange={(event) => setReferenceImage(event.target.checked)}
-					dataTestId={`${base}${SETTINGS_DIALOG_TESTIDS.REFERENCE_IMAGE_SUFFIX}`}
-				/>
-				<Switch
-					label={<Message message={settingsDialogMessages.numberedTilesLabel} />}
-					description={
-						<Message message={settingsDialogMessages.numberedTilesDescription} />
-					}
-					checked={numberedTiles}
-					onChange={(event) => setNumberedTiles(event.target.checked)}
-					dataTestId={`${base}${SETTINGS_DIALOG_TESTIDS.NUMBERED_TILES_SUFFIX}`}
-				/>
-				{/* No description: the design gives this row the label alone. */}
-				<Switch
-					label={<Message message={settingsDialogMessages.showTimerLabel} />}
-					checked={showTimer}
-					onChange={(event) => setShowTimer(event.target.checked)}
-					dataTestId={`${base}${SETTINGS_DIALOG_TESTIDS.SHOW_TIMER_SUFFIX}`}
-				/>
+		<Modal open={open} onClose={onClose} labelledBy={titleId} scrimClose dataTestId={base}>
+			<div
+				className={styles.card}
+				data-testid={`${base}${SETTINGS_DIALOG_TESTIDS.CARD_SUFFIX}`}
+			>
+				<div className={styles.head}>
+					<h2 id={titleId} className={styles.title}>
+						<Message message={settingsDialogMessages.title} />
+					</h2>
+					{/* In flow beside the heading, not absolutely positioned the way
+					    `Dialog`'s corner ✕ is — the design puts it on the head row. */}
+					<IconButton
+						icon="x"
+						label={translate(globalMessages.close)}
+						variant="ghost"
+						onClick={onClose}
+						dataTestId={`${base}${SETTINGS_DIALOG_TESTIDS.CLOSE_SUFFIX}`}
+					/>
+				</div>
+				<div className={styles.rows}>
+					<Switch
+						label={<Message message={settingsDialogMessages.referenceImageLabel} />}
+						description={
+							<Message message={settingsDialogMessages.referenceImageDescription} />
+						}
+						checked={referenceImage}
+						onChange={(event) => setReferenceImage(event.target.checked)}
+						dataTestId={`${base}${SETTINGS_DIALOG_TESTIDS.REFERENCE_IMAGE_SUFFIX}`}
+					/>
+					<Switch
+						label={<Message message={settingsDialogMessages.numberedTilesLabel} />}
+						description={
+							<Message message={settingsDialogMessages.numberedTilesDescription} />
+						}
+						checked={numberedTiles}
+						onChange={(event) => setNumberedTiles(event.target.checked)}
+						dataTestId={`${base}${SETTINGS_DIALOG_TESTIDS.NUMBERED_TILES_SUFFIX}`}
+					/>
+					{/* No description: the design gives this row the label alone. */}
+					<Switch
+						label={<Message message={settingsDialogMessages.showTimerLabel} />}
+						checked={showTimer}
+						onChange={(event) => setShowTimer(event.target.checked)}
+						dataTestId={`${base}${SETTINGS_DIALOG_TESTIDS.SHOW_TIMER_SUFFIX}`}
+					/>
+				</div>
 			</div>
 		</Modal>
 	)

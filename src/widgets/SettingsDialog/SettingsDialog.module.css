@@ -1,14 +1,20 @@
-/* Figma `settings sheet`. `Modal` undoes the dialog UA sheet; everything here is
-   the design's own. Its padding/background override the shell's reset on source
-   order, not specificity — keep the `Modal` import above this stylesheet.
+/* Figma `settings sheet`. `Modal` undoes the dialog UA sheet and stays a bare
+   shell; every visible pixel is this card's.
+
+   The card is an element inside the `<dialog>` rather than the dialog itself,
+   and that is load-bearing with `scrimClose` on: `Modal` reads a scrim click as
+   one whose target is the dialog element, so any box the dialog paints itself —
+   24px of padding, 20px of row gap — would be card surface that dismisses when
+   clicked. An inner card leaves the dialog no pixels of its own to mistake.
 
    One width for both designed frames: 480 is what desktop draws, and the cap
    takes it down to the 358 mobile draws inside a 390 viewport (390 − 2 × 16).
    Nothing about the tree changes across the breakpoint, so nothing branches. */
-.settingsDialog {
+.card {
 	display: flex;
 	flex-direction: column;
 	gap: var(--space-5);
+	box-sizing: border-box;
 	width: 30rem;
 	max-width: calc(100vw - var(--space-8));
 	border-radius: var(--radius-xl);
