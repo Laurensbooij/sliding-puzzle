@@ -18,7 +18,7 @@ const boardOf = (
 const midGame = boardOf(BOARD_ROWS, BOARD_COLS, [0, 4, 1, 3, 6, 2, 5, 7, GAP])
 
 const meta = {
-	title: 'Game/Board',
+	title: 'Widgets/Board',
 	component: Board,
 	args: {
 		board: midGame,

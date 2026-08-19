@@ -11,9 +11,9 @@ import type { FC } from 'react'
 import { useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 
-import { tileMessages } from '../Tile/translation-messages'
 import { Board } from './Board'
 import type { BoardProps } from './Board'
+import { tileMessages } from './Tile/translation-messages'
 import { BOARD_TESTIDS } from './constants'
 import { boardMessages } from './translation-messages'
 
