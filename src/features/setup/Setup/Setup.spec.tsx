@@ -9,11 +9,11 @@ import { userEvent } from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 
 import { Setup } from './Setup'
-import { ARTWORK_CHOICE_TESTIDS } from './components/ArtworkChoice'
+import { SOURCE_IMAGE_CHOICE_TESTIDS } from './components/SourceImageChoice'
 import {
-	artworkChoiceMessages,
-	artworkNameMessages,
-} from './components/ArtworkChoice/translation-messages'
+	sourceImageChoiceMessages,
+	sourceImageNameMessages,
+} from './components/SourceImageChoice/translation-messages'
 import { SETUP_TESTIDS } from './constants'
 import { setupMessages } from './translation-messages'
 
@@ -52,7 +52,7 @@ const renderComponent = ({ config, bests }: SetupCase = {}) => {
 const boardSizeGroup = () =>
 	screen.getByRole('group', { name: translate(setupMessages.boardSizeLabel) })
 
-const artworkGroup = () => screen.getByTestId(ARTWORK_CHOICE_TESTIDS.BASE)
+const sourceImageGroup = () => screen.getByTestId(SOURCE_IMAGE_CHOICE_TESTIDS.BASE)
 
 const sizeOption = (size: BoardSize) => translate(setupMessages.boardSizeOption, { size })
 
@@ -82,13 +82,13 @@ describe('Setup', () => {
 		renderComponent()
 
 		const sizes = boardSizeGroup()
-		const artworks = screen.getByRole('group', {
-			name: translate(artworkChoiceMessages.legend),
+		const sourceImages = screen.getByRole('group', {
+			name: translate(sourceImageChoiceMessages.legend),
 		})
 		const start = screen.getByRole('button', { name: translate(setupMessages.start) })
 
 		expect(sizes).toBeVisible()
-		expect(artworks).toBeVisible()
+		expect(sourceImages).toBeVisible()
 		expect(start).toBeVisible()
 	})
 
@@ -105,9 +105,9 @@ describe('Setup', () => {
 	it('offers every artwork by what it draws, checking the chosen one', () => {
 		renderComponent({ config: { sourceImage: 'bike' } })
 
-		const swatches = within(artworkGroup()).getAllByRole('radio')
-		const chosen = within(artworkGroup()).getByRole('radio', {
-			name: translate(artworkNameMessages.bike),
+		const swatches = within(sourceImageGroup()).getAllByRole('radio')
+		const chosen = within(sourceImageGroup()).getByRole('radio', {
+			name: translate(sourceImageNameMessages.bike),
 		})
 
 		expect(swatches).toHaveLength(6)
@@ -131,13 +131,13 @@ describe('Setup', () => {
 		const user = userEvent.setup()
 		renderComponent()
 
-		const rocket = within(artworkGroup()).getByRole('radio', {
-			name: translate(artworkNameMessages.rocket),
+		const rocket = within(sourceImageGroup()).getByRole('radio', {
+			name: translate(sourceImageNameMessages.rocket),
 		})
 		await user.click(rocket)
 
-		const chosen = within(artworkGroup()).getByRole('radio', {
-			name: translate(artworkNameMessages.rocket),
+		const chosen = within(sourceImageGroup()).getByRole('radio', {
+			name: translate(sourceImageNameMessages.rocket),
 		})
 		const stored = readStorage([GAME_CONFIG_STORAGE_KEY])
 		// The chosen artwork reaches the board through the config the board reads,
@@ -153,8 +153,8 @@ describe('Setup', () => {
 
 		const sixBySix = within(boardSizeGroup()).getByRole('radio', { name: sizeOption(6) })
 		await user.click(sixBySix)
-		const cat = within(artworkGroup()).getByRole('radio', {
-			name: translate(artworkNameMessages.cat),
+		const cat = within(sourceImageGroup()).getByRole('radio', {
+			name: translate(sourceImageNameMessages.cat),
 		})
 		await user.click(cat)
 
@@ -173,11 +173,11 @@ describe('Setup', () => {
 		renderComponent({ config: { boardSize: 5, sourceImage: 'flower' } })
 
 		const size = within(boardSizeGroup()).getByRole('radio', { name: sizeOption(5) })
-		const artwork = within(artworkGroup()).getByRole('radio', {
-			name: translate(artworkNameMessages.flower),
+		const chosenImage = within(sourceImageGroup()).getByRole('radio', {
+			name: translate(sourceImageNameMessages.flower),
 		})
 		expect(size).toBeChecked()
-		expect(artwork).toBeChecked()
+		expect(chosenImage).toBeChecked()
 	})
 
 	it('leaves neighbouring storage keys alone when a choice is written', async () => {
@@ -251,8 +251,8 @@ describe('Setup', () => {
 		renderComponent()
 
 		const chosenSize = within(boardSizeGroup()).getByRole('radio', { name: sizeOption(3) })
-		const chosenArtwork = within(artworkGroup()).getByRole('radio', {
-			name: translate(artworkNameMessages.sailboat),
+		const chosenSourceImage = within(sourceImageGroup()).getByRole('radio', {
+			name: translate(sourceImageNameMessages.sailboat),
 		})
 		const start = screen.getByRole('button', { name: translate(setupMessages.start) })
 		const previewTiles = within(
@@ -263,7 +263,7 @@ describe('Setup', () => {
 		expect(chosenSize).toHaveFocus()
 
 		await user.tab()
-		expect(chosenArtwork).toHaveFocus()
+		expect(chosenSourceImage).toHaveFocus()
 
 		await user.tab()
 		expect(start).toHaveFocus()
@@ -299,8 +299,8 @@ describe('Setup', () => {
 		await user.tab()
 		await user.keyboard(key)
 
-		const moved = within(artworkGroup()).getByRole('radio', {
-			name: translate(artworkNameMessages[expected]),
+		const moved = within(sourceImageGroup()).getByRole('radio', {
+			name: translate(sourceImageNameMessages[expected]),
 		})
 		expect(moved).toBeChecked()
 	})
@@ -312,11 +312,11 @@ describe('Setup', () => {
 		const fourByFour = within(boardSizeGroup()).getByRole('radio', { name: sizeOption(4) })
 		await user.click(fourByFour)
 
-		const artworkStillChosen = within(artworkGroup()).getByRole('radio', {
-			name: translate(artworkNameMessages.sailboat),
+		const sourceImageStillChosen = within(sourceImageGroup()).getByRole('radio', {
+			name: translate(sourceImageNameMessages.sailboat),
 		})
 		const checkedEverywhere = screen.getAllByRole('radio', { checked: true })
-		expect(artworkStillChosen).toBeChecked()
+		expect(sourceImageStillChosen).toBeChecked()
 		expect(checkedEverywhere).toHaveLength(2)
 	})
 
@@ -344,7 +344,7 @@ describe('Setup', () => {
 		const record = screen.getByTestId(`${SETUP_TESTIDS.BASE}${SETUP_TESTIDS.RECORD_SUFFIX}`)
 		const start = screen.getByTestId(`${SETUP_TESTIDS.BASE}${SETUP_TESTIDS.START_SUFFIX}`)
 		const swatch = screen.getByTestId(
-			`${ARTWORK_CHOICE_TESTIDS.BASE}${ARTWORK_CHOICE_TESTIDS.SWATCH_SUFFIX}-cat`,
+			`${SOURCE_IMAGE_CHOICE_TESTIDS.BASE}${SOURCE_IMAGE_CHOICE_TESTIDS.SWATCH_SUFFIX}-cat`,
 		)
 
 		expect(screenRoot).toBeVisible()

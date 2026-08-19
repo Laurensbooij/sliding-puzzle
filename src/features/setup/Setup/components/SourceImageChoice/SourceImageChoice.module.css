@@ -78,7 +78,7 @@
  * Source images stroke in currentColor (ADR-0013), so this is where the ink is
  * set. The unchosen five stay faint; choosing one is what brings it forward.
  */
-.artwork {
+.sourceImage {
 	position: relative;
 	width: 2.375rem;
 	height: 2.375rem;
@@ -88,7 +88,7 @@
 	pointer-events: none;
 }
 
-.input:checked ~ .artwork {
+.input:checked ~ .sourceImage {
 	opacity: 0.95;
 }
 

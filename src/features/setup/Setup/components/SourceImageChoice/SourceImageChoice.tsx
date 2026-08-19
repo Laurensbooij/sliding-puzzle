@@ -4,11 +4,11 @@ import { Message } from '@i18n'
 import type { FC } from 'react'
 import { useId } from 'react'
 
-import styles from './ArtworkChoice.module.css'
-import { ARTWORK_CHOICE_TESTIDS } from './constants'
-import { artworkChoiceMessages, artworkNameMessages } from './translation-messages'
+import styles from './SourceImageChoice.module.css'
+import { SOURCE_IMAGE_CHOICE_TESTIDS } from './constants'
+import { sourceImageChoiceMessages, sourceImageNameMessages } from './translation-messages'
 
-export interface ArtworkChoiceProps {
+export interface SourceImageChoiceProps {
 	/** The source image currently painted on the board. */
 	value: SourceImageName
 	/** Called with the newly chosen artwork. */
@@ -32,20 +32,20 @@ export interface ArtworkChoiceProps {
  * bicycle has no accessible name of its own, and the player picks by what they
  * see rather than by which file it came from.
  */
-export const ArtworkChoice: FC<ArtworkChoiceProps> = ({ value, onChange, dataTestId }) => {
+export const SourceImageChoice: FC<SourceImageChoiceProps> = ({ value, onChange, dataTestId }) => {
 	// Radios group by `name`; a generated one keeps this group and the board-size
 	// control from stealing each other's selection.
 	const name = useId()
-	const base = dataTestId ?? ARTWORK_CHOICE_TESTIDS.BASE
+	const base = dataTestId ?? SOURCE_IMAGE_CHOICE_TESTIDS.BASE
 
 	return (
 		<fieldset className={styles.group} data-testid={base}>
 			<legend className={styles.legend}>
-				<Message message={artworkChoiceMessages.legend} />
+				<Message message={sourceImageChoiceMessages.legend} />
 			</legend>
 			<div className={styles.swatches}>
 				{SOURCE_IMAGE_NAMES.map((sourceImage) => {
-					const Artwork = SOURCE_IMAGES[sourceImage]
+					const SourceImage = SOURCE_IMAGES[sourceImage]
 
 					return (
 						<label className={styles.swatch} key={sourceImage}>
@@ -56,11 +56,11 @@ export const ArtworkChoice: FC<ArtworkChoiceProps> = ({ value, onChange, dataTes
 								value={sourceImage}
 								checked={sourceImage === value}
 								onChange={() => onChange(sourceImage)}
-								data-testid={`${base}${ARTWORK_CHOICE_TESTIDS.SWATCH_SUFFIX}-${sourceImage}`}
+								data-testid={`${base}${SOURCE_IMAGE_CHOICE_TESTIDS.SWATCH_SUFFIX}-${sourceImage}`}
 							/>
-							<Artwork className={styles.artwork} aria-hidden />
+							<SourceImage className={styles.sourceImage} aria-hidden />
 							<span className={styles.name}>
-								<Message message={artworkNameMessages[sourceImage]} />
+								<Message message={sourceImageNameMessages[sourceImage]} />
 							</span>
 						</label>
 					)

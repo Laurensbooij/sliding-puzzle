@@ -11,7 +11,7 @@ import type { FC } from 'react'
 import { useMemo } from 'react'
 
 import styles from './Setup.module.css'
-import { ArtworkChoice } from './components/ArtworkChoice'
+import { SourceImageChoice } from './components/SourceImageChoice'
 import { SETUP_TESTIDS } from './constants'
 import { setupMessages } from './translation-messages'
 
@@ -91,7 +91,7 @@ export const Setup: FC<SetupProps> = ({ onStart }) => {
 					dataTestId={`${SETUP_TESTIDS.BASE}${SETUP_TESTIDS.BOARD_SIZE_SUFFIX}`}
 				/>
 
-				<ArtworkChoice value={sourceImage} onChange={setSourceImage} />
+				<SourceImageChoice value={sourceImage} onChange={setSourceImage} />
 
 				<div className={styles.cta}>
 					<Button

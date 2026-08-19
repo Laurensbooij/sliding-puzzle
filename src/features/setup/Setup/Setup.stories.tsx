@@ -7,7 +7,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite'
 import { fn } from 'storybook/test'
 
 import { Setup } from './Setup'
-import { ARTWORK_CHOICE_TESTIDS } from './components/ArtworkChoice'
+import { SOURCE_IMAGE_CHOICE_TESTIDS } from './components/SourceImageChoice'
 
 /** The two frames Figma draws Setup at, so a story can be read against one. */
 const VIEWPORTS = {
@@ -136,11 +136,11 @@ export const RecordAtAnotherSize: Story = {
 }
 
 /** The affordance on an unchosen swatch — the chosen one is designed not to react. */
-export const ArtworkHovered: Story = {
+export const SourceImageHovered: Story = {
 	parameters: {
 		pseudo: {
 			hover: [
-				`[data-testid="${ARTWORK_CHOICE_TESTIDS.BASE}${ARTWORK_CHOICE_TESTIDS.SWATCH_SUFFIX}-rocket"]`,
+				`[data-testid="${SOURCE_IMAGE_CHOICE_TESTIDS.BASE}${SOURCE_IMAGE_CHOICE_TESTIDS.SWATCH_SUFFIX}-rocket"]`,
 			],
 		},
 	},
@@ -148,11 +148,11 @@ export const ArtworkHovered: Story = {
 
 /** Focus rings sit outside their control at a positive offset, so nothing clips
  * them (SC 2.4.11). */
-export const ArtworkFocused: Story = {
+export const SourceImageFocused: Story = {
 	parameters: {
 		pseudo: {
 			focusVisible: [
-				`[data-testid="${ARTWORK_CHOICE_TESTIDS.BASE}${ARTWORK_CHOICE_TESTIDS.SWATCH_SUFFIX}-sailboat"]`,
+				`[data-testid="${SOURCE_IMAGE_CHOICE_TESTIDS.BASE}${SOURCE_IMAGE_CHOICE_TESTIDS.SWATCH_SUFFIX}-sailboat"]`,
 			],
 		},
 	},
