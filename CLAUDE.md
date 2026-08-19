@@ -29,16 +29,19 @@ Most conventions are lint-enforced (including the custom
   anything it needs is an argument. Components stay presentational; lifecycle lives in
   the game machine.
 - **Colocate by default; promote on the 2nd consumer**: component-local →
-  `src/features/<feature>/` → `src/components/`. Never create a shared bucket
-  pre-emptively. Exceptions: components defined in the Figma design system are
-  born shared in `src/components/` (ADR-0009); state machines are born shared in
+  `src/features/<feature>/` → `src/widgets/` → `src/components/`. Never create a
+  shared bucket pre-emptively. The two shared tiers split on one question: could
+  this component render unchanged in a different product? Yes → `src/components/`;
+  no → `src/widgets/` (ADR-0009). Exceptions: components defined in the Figma
+  design system are born shared (ADR-0009); state machines are born shared in
   `src/machines/<name>/` (ADR-0012). Source images are likewise born shared in
   `src/source-images/`, imported only via its typed registry.
 - **Imports flow one way** (ADR-0007): `engine → lib → {machines | components} →
-features → app`. Features never import each other; machines and components never
-  import each other. Aliased modules are reached only by their alias — `@engine`,
-  `@i18n`, `@messages`, `@testing`, `@css-utils`, `@components/<Name>`,
-  `@machines/<name>` —
+widgets → features → app`. Features never import each other, and neither do
+  widgets; machines and components never import each other. A widget never imports
+  `@machines/*` — it may hold local UI state, never an actor. Aliased modules are
+  reached only by their alias — `@engine`, `@i18n`, `@messages`, `@testing`,
+  `@css-utils`, `@components/<Name>`, `@machines/<name>`, `@widgets/<Name>` —
   never the long `@/...` form.
 - **Never import `react-intl`** (ADR-0008): all localization goes through the
   `@i18n` facade. Messages live in `translation-messages.ts` beside their

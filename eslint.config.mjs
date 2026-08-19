@@ -14,13 +14,18 @@ import tseslint from 'typescript-eslint'
 import slidingPuzzle from './tools/eslint-plugin-sliding-puzzle/index.mjs'
 
 const FEATURES_DIR = './src/features'
+const WIDGETS_DIR = './src/widgets'
 
-/** Feature folder names, read from disk so a new feature needs no config edit. */
-const featureNames = existsSync(FEATURES_DIR)
-	? readdirSync(FEATURES_DIR, { withFileTypes: true })
-			.filter((entry) => entry.isDirectory())
-			.map((entry) => entry.name)
-	: []
+/** Directory names, read from disk so a new feature or widget needs no config edit. */
+const directoryNames = (dir) =>
+	existsSync(dir)
+		? readdirSync(dir, { withFileTypes: true })
+				.filter((entry) => entry.isDirectory())
+				.map((entry) => entry.name)
+		: []
+
+const featureNames = directoryNames(FEATURES_DIR)
+const widgetNames = directoryNames(WIDGETS_DIR)
 
 // One module, one specifier: an aliased target may not also be reached through
 // the long `@/...` form, or the boundary rules below have two spellings to
@@ -43,6 +48,18 @@ const aliasSpellingPatterns = [
 	{
 		group: ['@/components', '@/components/*'],
 		message: 'Import shared components as `@components/<Name>`.',
+	},
+	{
+		group: ['@/widgets', '@/widgets/*'],
+		message: 'Import widgets as `@widgets/<Name>`.',
+	},
+	// A widget's barrel is its whole public API. Its nested sub-components sit
+	// beside it rather than under a `components/` segment, so without this the
+	// deep path is just as importable as the barrel.
+	{
+		group: ['@widgets/*/*', '@widgets/*/**'],
+		message:
+			'Reach a widget through its barrel — `@widgets/<Name>`. What sits inside it is private.',
 	},
 	{
 		group: ['@/source-images/vectors/*', '**/source-images/vectors/*'],
@@ -158,8 +175,9 @@ export default tseslint.config(
 		},
 	},
 	{
-		// Unidirectional flow: engine -> lib -> features -> app, and features
-		// never reach sideways into one another. See ADR-0007.
+		// Unidirectional flow: engine -> lib -> {machines | components} ->
+		// widgets -> features -> app, and neither features nor widgets reach
+		// sideways into one another. See ADR-0007.
 		files: ['src/**/*.{ts,tsx}'],
 		plugins: { 'import-x': importX },
 		// Without a TypeScript resolver the rule cannot turn an extensionless or
@@ -190,9 +208,24 @@ export default tseslint.config(
 						{ target: './src/machines', from: './src/components' },
 						{ target: './src/machines', from: './src/features' },
 						{ target: './src/components', from: './src/machines' },
+						// Widgets sit between components and features: they may not
+						// reach forward, and nothing below them may reach back in.
+						{ target: WIDGETS_DIR, from: './src/features' },
+						{ target: WIDGETS_DIR, from: './src/machines' },
+						{ target: './src/engine', from: WIDGETS_DIR },
+						{ target: './src/lib', from: WIDGETS_DIR },
+						{ target: './src/components', from: WIDGETS_DIR },
+						// A widget owns presentation, never an actor (ADR-0012).
+						{ target: './src/machines', from: WIDGETS_DIR },
 						...featureNames.map((name) => ({
 							target: `${FEATURES_DIR}/${name}`,
 							from: FEATURES_DIR,
+							except: [`./${name}`],
+						})),
+						// Widgets never import each other, same rule as features.
+						...widgetNames.map((name) => ({
+							target: `${WIDGETS_DIR}/${name}`,
+							from: WIDGETS_DIR,
 							except: [`./${name}`],
 						})),
 					],

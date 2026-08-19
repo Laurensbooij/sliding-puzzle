@@ -14,7 +14,8 @@
       "@i18n": ["./src/lib/i18n"],
       "@machines/*": ["./src/machines/*"],
       "@messages": ["./src/lib/i18n/translation-messages"],
-      "@testing": ["./src/testing"]
+      "@testing": ["./src/testing"],
+      "@widgets/*": ["./src/widgets/*"]
     }
   }
 }
