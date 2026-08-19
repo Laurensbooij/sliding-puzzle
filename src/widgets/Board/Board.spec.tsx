@@ -40,6 +40,11 @@ const gapTopLeft = boardOf(3, 3, [GAP, 0, 1, 2, 3, 4, 5, 6, 7])
 // 2x4, gap at the start of the top row: pressing cell 3 slides a run of three.
 const gapWideBoard = boardOf(2, 4, [GAP, 0, 1, 2, 3, 4, 5, 6])
 
+// `gapCentre` after two presses in different directions — tile 3 down, then
+// tile 5 left. No single press reaches it, so it stands in for every board that
+// was replaced rather than played: a deal, a restart, a change of size.
+const replacedBoard = boardOf(3, 3, [0, 1, GAP, 3, 4, 2, 5, 6, 7])
+
 /** The accessible name Tile renders for a tile id — 1-based, as the user hears it. */
 const tileName = (tile: TileId): string => translate(tileMessages.label, { number: tile + 1 })
 
@@ -291,6 +296,15 @@ describe('Board', () => {
 			expect(secondNode).not.toBe(firstNode)
 		})
 
+		it('says nothing when the board was replaced rather than played', () => {
+			const { rerender } = renderComponent()
+
+			rerender(<Board board={replacedBoard} sourceImage="sailboat" />)
+
+			const announcer = screen.getByRole('status')
+			expect(announcer).toHaveTextContent('')
+		})
+
 		it('stays silent when the press is never applied to a board', async () => {
 			const user = userEvent.setup()
 			renderComponent()
@@ -391,6 +405,15 @@ describe('Board', () => {
 			renderComponent({ footer: true })
 			const hint = screen.getByText(translate(boardMessages.hint))
 			expect(hint).toBeInTheDocument()
+		})
+
+		it('shows a caller-supplied line in place of the standing hint', () => {
+			renderComponent({ footer: true, hint: 'Solved' })
+			const suppliedHint = screen.getByText('Solved')
+			const standingHint = screen.queryByText(translate(boardMessages.hint))
+
+			expect(suppliedHint).toBeInTheDocument()
+			expect(standingHint).not.toBeInTheDocument()
 		})
 
 		it('reports a restart without dealing the board itself', async () => {
