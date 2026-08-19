@@ -7,7 +7,7 @@ const BOARD_COLS = 3
 const BOARD_ROWS = 3
 
 const meta = {
-	title: 'Components/Tile',
+	title: 'Widgets/Board/Tile',
 	component: Tile,
 	args: {
 		tile: 0,

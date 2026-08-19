@@ -218,8 +218,8 @@ ruleTester.run('stories-file-required', storiesFileRequired, {
 		},
 		// Outside the shared tier the rule does not apply.
 		{
-			code: 'export const Tile = () => null',
-			filename: '/repo/src/features/game/components/Tile/Tile.tsx',
+			code: 'export const Solved = () => null',
+			filename: '/repo/src/features/play/components/Solved/Solved.tsx',
 		},
 		// Stories and spec files themselves are exempt.
 		{
@@ -270,7 +270,7 @@ ruleTester.run('spec-in-module-folder', specInModuleFolder, {
 	valid: [
 		{ code: 'export {}', filename: '/src/engine/board/board.spec.ts' },
 		{ code: 'export {}', filename: '/src/machines/game-machine/game-machine.spec.ts' },
-		{ code: 'export {}', filename: '/src/features/game/components/Tile/Tile.spec.tsx' },
+		{ code: 'export {}', filename: '/src/features/play/components/Solved/Solved.spec.tsx' },
 		// Not a spec — the rule has no opinion on where plain modules sit.
 		{ code: 'export {}', filename: '/src/engine/types.ts' },
 	],
