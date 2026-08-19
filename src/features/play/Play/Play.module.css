@@ -50,9 +50,14 @@
 		gap: var(--space-5);
 	}
 
-	/* Figma draws the row 560 wide and centred above a narrower board. */
+	/*
+	 * Figma draws the row 560 wide and centred above a narrower board — the
+	 * same 560 that `--board-max` carries. Tied to the token rather than
+	 * restating its number: the row is as wide as a board is ever allowed to
+	 * get, and if that ceiling moves the row should move with it.
+	 */
 	.stats {
-		width: min(100%, 35rem);
+		width: min(100%, var(--board-max));
 		grid-template-columns: repeat(4, minmax(0, 1fr));
 	}
 

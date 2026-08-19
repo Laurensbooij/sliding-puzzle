@@ -1,12 +1,15 @@
 import { Play } from '@/features/play'
+import type { BoardSize } from '@/lib/game-config'
 import { gameMachine } from '@machines/game-machine'
 import { useActorRef } from '@xstate/react'
 import type { FC } from 'react'
 import { useEffect } from 'react'
 
 export interface GameProps {
-	rows: number
-	cols: number
+	// The machine keeps bare numbers; this seam is above the config, where the
+	// union still narrows a dimension to one Setup actually offers.
+	rows: BoardSize
+	cols: BoardSize
 }
 
 /**
