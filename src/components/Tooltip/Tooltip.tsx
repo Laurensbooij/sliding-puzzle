@@ -110,20 +110,24 @@ export const Tooltip: FC<TooltipProps> = ({
 	const describedBy =
 		isOpen && describes ? [ownDescribedBy, tooltipId].filter(Boolean).join(' ') : ownDescribedBy
 
+	const handlePointerLeave = () => {
+		setIsHovered(false)
+		if (!isFocused) setIsDismissed(false)
+	}
+
+	const handleBlur = () => {
+		setIsFocused(false)
+		if (!isHovered) setIsDismissed(false)
+	}
+
 	return (
 		<span
 			className={styles.anchor}
 			style={{ '--tooltip-anchor': anchorName } as CSSProperties}
 			onPointerEnter={() => setIsHovered(true)}
-			onPointerLeave={() => {
-				setIsHovered(false)
-				if (!isFocused) setIsDismissed(false)
-			}}
+			onPointerLeave={handlePointerLeave}
 			onFocus={() => setIsFocused(true)}
-			onBlur={() => {
-				setIsFocused(false)
-				if (!isHovered) setIsDismissed(false)
-			}}
+			onBlur={handleBlur}
 		>
 			{/* The native title is dropped, not forwarded: leaving it would give the
 			    browser a second, unstyled bubble alongside this one. */}

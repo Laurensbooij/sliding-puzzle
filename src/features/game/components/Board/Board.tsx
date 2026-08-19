@@ -1,0 +1,232 @@
+import { SOURCE_IMAGES } from '@/source-images'
+import type { SourceImageName } from '@/source-images'
+import { IconButton } from '@components/IconButton'
+import type { Board as BoardModel, CellIndex } from '@engine'
+import {
+	cellForDirection,
+	directionOfMove,
+	gapCell,
+	movableTiles,
+	movesBetween,
+	movesForCell,
+	toPlacements,
+} from '@engine'
+import { Message, useTranslate } from '@i18n'
+import type { FC, KeyboardEvent } from 'react'
+import { useRef, useState } from 'react'
+
+import { Tile } from '../Tile'
+import styles from './Board.module.css'
+import { BOARD_TESTIDS, DIRECTION_BY_KEY } from './constants'
+import { boardMessages } from './translation-messages'
+import type { Announcement, CellStyle, WellStyle } from './types'
+
+export interface BoardProps {
+	/** The arrangement to render. Board reads it; the game machine owns it. */
+	board: BoardModel
+	/** The artwork every tile carries one fragment of. */
+	sourceImage: SourceImageName
+	/**
+	 * Called with the pressed cell — never with a move. Which tiles that press
+	 * relocates is the engine's business, and the machine's to apply.
+	 */
+	onCellPress?: (cell: CellIndex) => void
+	/**
+	 * Shows the designed footer inside the wood: the standing hint and the
+	 * restart control. Off by default — the board Figma draws by default has none.
+	 */
+	footer?: boolean
+	/**
+	 * Shows the solved picture as a glass chip beside the hint. Only rendered
+	 * inside the footer, and on by default there — the same default the Figma
+	 * component property carries.
+	 */
+	preview?: boolean
+	/**
+	 * Called when the restart control is pressed. Board does not deal the new
+	 * board; `game.restart` belongs to whoever composes it.
+	 */
+	onRestart?: () => void
+	/** Overrides the BASE testid. */
+	dataTestId?: string
+}
+
+const NO_ANNOUNCEMENT: Announcement = { text: '', move: 0 }
+
+/**
+ * The board and its frame: a wooden surround, a sunken well, and one glass Tile
+ * per occupied cell. Presentational — it sends a pressed cell outward and reads
+ * everything else off the board it is given.
+ *
+ * Keyboard operation map, asserted in full in the spec:
+ *
+ * - **Tab** — moves through the movable tiles only. Every tile sharing the
+ *   gap's row or column is a tab stop, which is how a multi-cell run is played
+ *   without a modifier chord: tab to the far tile and press it.
+ * - **Space / Enter** — presses the focused tile (the Tile's own behaviour).
+ * - **Arrows** — press the tile that would travel that way into the gap
+ *   (ADR-0014), from anywhere inside the board. An accelerator for the single
+ *   adjacent move; runs go through Tab.
+ *
+ * Arrows are handled here rather than on a Tile because the tile they name is
+ * fixed by the gap, not by whatever currently holds focus. Nothing outside the
+ * board is affected: the listener sits on the container, so the keys are live
+ * only while focus is inside it.
+ *
+ * Tiles render in tile order rather than cell order, so a move animates the same
+ * element from its old cell to its new one instead of remounting it elsewhere.
+ *
+ * With `footer`, the restart control becomes the last tab stop after the movable
+ * tiles. Arrows stay board-wide there: they name a tile by the gap, not by what
+ * holds focus, and a button has no native arrow behaviour to displace.
+ */
+export const Board: FC<BoardProps> = ({
+	board,
+	sourceImage,
+	footer = false,
+	preview = true,
+	onCellPress,
+	onRestart,
+	dataTestId,
+}) => {
+	const [announcement, setAnnouncement] = useState(NO_ANNOUNCEMENT)
+	const announcedBoard = useRef(board)
+	const { translate } = useTranslate()
+	const base = dataTestId ?? BOARD_TESTIDS.BASE
+	const movable = movableTiles(board)
+	const placements = toPlacements(board)
+	const SourceImage = SOURCE_IMAGES[sourceImage]
+
+	// Announced from the board that arrived, not from the press that asked for
+	// it: a press this component sends outward may never come back as a move —
+	// the machine ignores one outside `playing` — and a live region that reports
+	// intent rather than fact lies to the only people relying on it.
+	if (announcedBoard.current !== board) {
+		const [first, ...rest] = movesBetween(announcedBoard.current, board)
+		announcedBoard.current = board
+		if (first) {
+			const text = translate(boardMessages.moveAnnouncement, {
+				// Every move in a run shares a direction, so the first speaks for all.
+				count: rest.length + 1,
+				direction: directionOfMove(board, first),
+			})
+			setAnnouncement((previous) => ({ text, move: previous.move + 1 }))
+		}
+	}
+
+	const wellStyle: WellStyle = {
+		'--board-rows': board.rows,
+		'--board-cols': board.cols,
+	}
+
+	const cellStyle = (cell: CellIndex): CellStyle => ({
+		'--cell-row': Math.floor(cell / board.cols),
+		'--cell-col': cell % board.cols,
+	})
+
+	const pressCell = (cell: CellIndex) => {
+		if (movesForCell(board, cell).length > 0) onCellPress?.(cell)
+	}
+
+	const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+		const direction = DIRECTION_BY_KEY[event.key]
+		if (!direction) return
+
+		// Claimed whether or not a tile answers, so a blocked direction never
+		// falls through to scrolling the page instead.
+		event.preventDefault()
+		const cell = cellForDirection(board, direction)
+		if (cell !== null) pressCell(cell)
+	}
+
+	return (
+		// The handler serves the tiles that bubble into it, not this element:
+		// every key it acts on arrives from a focused <button>, and the board
+		// itself is neither focusable nor a tab stop. Nothing is faked
+		// interactive, which is what the rule guards against.
+		// eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions -- key delegation from focusable descendants
+		<div
+			className={styles.board}
+			data-testid={base}
+			role="group"
+			aria-label={translate(boardMessages.label, { rows: board.rows, cols: board.cols })}
+			onKeyDown={handleKeyDown}
+		>
+			<span className={styles.bevel} />
+			<div className={styles.well} style={wellStyle}>
+				<div className={styles.cells}>
+					{placements.map(({ tile, cell }) => (
+						<div key={tile} className={styles.cell} style={cellStyle(cell)}>
+							<Tile
+								tile={tile}
+								sourceImage={sourceImage}
+								rows={board.rows}
+								cols={board.cols}
+								movable={movable.includes(tile)}
+								// The board Figma draws carries no numbers; a tile's
+								// accessible name is its `aria-label` either way.
+								showLabel={false}
+								onPress={() => pressCell(cell)}
+								dataTestId={`${base}${BOARD_TESTIDS.TILE_SUFFIX}-${tile}`}
+							/>
+						</div>
+					))}
+					<div
+						className={styles.gap}
+						data-testid={`${base}${BOARD_TESTIDS.GAP_SUFFIX}`}
+						style={cellStyle(gapCell(board))}
+						aria-hidden
+					/>
+				</div>
+			</div>
+			{footer && (
+				<div className={styles.footer}>
+					<div className={styles.footerLeading}>
+						{preview && (
+							// Named rather than hidden: it is the goal of the game, not
+							// decoration. The name sits on the chip and the artwork stays
+							// `aria-hidden`, so it is announced once. The design's tooltip
+							// is deliberately dropped — it hangs off hover on a
+							// non-focusable element, so a keyboard user could never reach it.
+							<span
+								className={styles.preview}
+								data-testid={`${base}${BOARD_TESTIDS.PREVIEW_SUFFIX}`}
+								role="img"
+								aria-label={translate(boardMessages.preview)}
+							>
+								<SourceImage className={styles.previewImage} aria-hidden />
+								<span className={styles.previewSheen} />
+							</span>
+						)}
+						<p className={styles.hint}>
+							<Message message={boardMessages.hint} />
+						</p>
+					</div>
+					<IconButton
+						icon="rotate-ccw"
+						label={translate(boardMessages.restart)}
+						variant="onWood"
+						size="md"
+						onClick={onRestart}
+						dataTestId={`${base}${BOARD_TESTIDS.RESTART_SUFFIX}`}
+					/>
+				</div>
+			)}
+			{/* `role="status"` already implies polite and atomic; both are spelled
+			    out because older screen readers honour the attributes and not the
+			    role, and the role is what gives tests an accessible query. */}
+			<div className={styles.announcer} role="status" aria-live="polite" aria-atomic="true">
+				{/* Keyed by move count, not by text. Two identical moves in a row
+				    produce the same sentence, and rewriting a live region with the
+				    string already in it mutates no DOM, so nothing is announced.
+				    Replacing the child node makes every move a fresh utterance. */}
+				<span
+					key={announcement.move}
+					data-testid={`${base}${BOARD_TESTIDS.ANNOUNCER_SUFFIX}`}
+				>
+					{announcement.text}
+				</span>
+			</div>
+		</div>
+	)
+}

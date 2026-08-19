@@ -6,6 +6,9 @@
     "tile": {
       "$value": "left var(--dur-slide) var(--ease-slide), top var(--dur-slide) var(--ease-slide), box-shadow var(--dur-fast) var(--ease-standard), transform var(--dur-fast) var(--ease-standard)"
     },
+    "cell-slide": {
+      "$value": "transform var(--dur-slide) var(--ease-slide)"
+    },
     "tile-shuffle": {
       "$value": "left var(--dur-shuffle) var(--ease-shuffle), top var(--dur-shuffle) var(--ease-shuffle)"
     }

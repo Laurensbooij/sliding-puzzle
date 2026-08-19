@@ -32,15 +32,12 @@ const meta = {
 	render: ({ onChange, ...args }) => {
 		const [, updateArgs] = useArgs<SegmentedControlProps>()
 
-		return (
-			<SegmentedControl
-				{...args}
-				onChange={(next) => {
-					updateArgs({ value: next })
-					onChange(next)
-				}}
-			/>
-		)
+		const handleChange = (next: string) => {
+			updateArgs({ value: next })
+			onChange(next)
+		}
+
+		return <SegmentedControl {...args} onChange={handleChange} />
 	},
 } satisfies Meta<typeof SegmentedControl>
 

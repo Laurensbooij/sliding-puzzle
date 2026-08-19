@@ -33,6 +33,12 @@ The relocation of one tile into the gap. A single click may produce several move
 run of tiles shares a row or column with the gap.
 _Avoid_: slide, shift
 
+**Direction**:
+Where a tile travels on a move: up, down, left or right. Always the tile's
+direction, never the gap's — an arrow key names the tile that travels that way, and
+the gap moves the opposite way (ADR-0014).
+_Avoid_: heading, orientation, arrow
+
 **Shuffle**:
 Generating a starting board. Not every arrangement of tiles is reachable by legal moves,
 so a shuffle must produce a solvable board.
