@@ -12,46 +12,35 @@ import { SETTINGS_DIALOG_TESTIDS } from './constants'
 import { settingsDialogMessages } from './translation-messages'
 
 export interface SettingsDialogProps {
-	/** Whether the dialog is showing. It never opens or closes on its own. */
+	/** Whether the dialog is showing. */
 	open: boolean
-	/** Asked to close: Escape, the ✕, and a click on the scrim. */
+	/** Asked to close: Escape, the ✕, or a scrim click. */
 	onClose: () => void
 }
 
 /**
  * The player's three display preferences, over a blurred scrim.
  *
- * A `Modal` card rather than a `Dialog` one: the design draws no tone badge, no
- * supporting line under the title and no action row, and `Dialog` requires all
- * three. What it does draw is a ✕ beside the heading rather than in the corner,
- * which is the other half of why this card is its own.
+ * `Modal`, not `Dialog` — the design has no badge, no description and no
+ * action row, all three of which `Dialog` requires.
  *
- * The card is an element inside the shell rather than the shell wearing the
- * card's styles, which is what `Dialog` does. With `scrimClose` on that
- * difference matters: `Modal` reads a scrim click as one targeting the dialog
- * element, so any padding the dialog painted itself would dismiss the card when
- * clicked.
+ * The card is a child of the shell, not the shell's own styling: with
+ * `scrimClose` on, `Modal` treats any click landing on the dialog element
+ * itself as a scrim click, so the card's padding needs its own box to absorb
+ * clicks without dismissing.
  *
- * Every switch writes straight through to `useSettings()`, which persists. There
- * is no draft and no confirm step: all three are presentational, so a change
- * mid-game changes how the game looks and nothing about the game.
+ * Switches write straight through to `useSettings()` — no draft, no confirm.
+ * The scrim closes too, against `Dialog`'s default: dismissing Settings loses
+ * nothing.
  *
- * The scrim closes it, against `Modal`'s default and against `Dialog`. Dismissing
- * Settings loses nothing, while dismissing a confirmation decides something.
+ * Figma's keyboard-hint row is deliberately not built (ADR-0014's arrow-key
+ * accelerator loses its only UI mention; `Icon`'s `keyboard` glyph loses its
+ * last consumer — both accepted).
  *
- * Figma draws a fourth row under the switches — a keyboard glyph and "Arrow keys
- * pick the tile next to the gap." It is deliberately not built. Two consequences
- * worth having written down: ADR-0014's arrow-key accelerator now has no UI
- * mention at all, which is accepted because Tab to a movable tile then Space is
- * the discoverable path and a line inside a dialog most players never open was
- * never real discoverability; and `Icon`'s `keyboard` glyph has no consumer left.
+ * Same composition at every width — CSS-only, no runtime branch (ADR-0016).
  *
- * One composition at every width — same head, same three switches, same order.
- * Only the card's own width moves, which is CSS, so no runtime branch (ADR-0016).
- *
- * Nothing here announces. The dialog announces itself by taking focus, and each
- * switch announces its own flip through `aria-checked` on the focused control
- * (see `Switch`). A live region for either would double-speak.
+ * No live region: focus landing announces the dialog, `aria-checked`
+ * announces each switch.
  */
 export const SettingsDialog: FC<SettingsDialogProps> = ({ open, onClose }) => {
 	const generatedId = useId()
@@ -78,8 +67,7 @@ export const SettingsDialog: FC<SettingsDialogProps> = ({ open, onClose }) => {
 					<h2 id={titleId} className={styles.title}>
 						<Message message={settingsDialogMessages.title} />
 					</h2>
-					{/* In flow beside the heading, not absolutely positioned the way
-					    `Dialog`'s corner ✕ is — the design puts it on the head row. */}
+					{/* In flow beside the heading, unlike `Dialog`'s absolute corner ✕. */}
 					<IconButton
 						icon="x"
 						label={translate(globalMessages.close)}

@@ -1,15 +1,8 @@
-/* Figma `settings sheet`. `Modal` undoes the dialog UA sheet and stays a bare
-   shell; every visible pixel is this card's.
+/* Figma `settings sheet`. A separate element from the `<dialog>` shell — with
+   `scrimClose` on, any box the dialog painted itself would dismiss on click.
 
-   The card is an element inside the `<dialog>` rather than the dialog itself,
-   and that is load-bearing with `scrimClose` on: `Modal` reads a scrim click as
-   one whose target is the dialog element, so any box the dialog paints itself —
-   24px of padding, 20px of row gap — would be card surface that dismisses when
-   clicked. An inner card leaves the dialog no pixels of its own to mistake.
-
-   One width for both designed frames: 480 is what desktop draws, and the cap
-   takes it down to the 358 mobile draws inside a 390 viewport (390 − 2 × 16).
-   Nothing about the tree changes across the breakpoint, so nothing branches. */
+   480 is desktop's width; the cap takes it to mobile's 358 (390 viewport −
+   2 × 16 gutter). Same tree at both widths, so no breakpoint here. */
 .card {
 	display: flex;
 	flex-direction: column;
@@ -23,9 +16,7 @@
 	box-shadow: var(--shadow-4);
 }
 
-/* The ✕ sits on the heading's row, in flow — `Dialog`'s corner variant is out
-   of flow because it must not shift a centred head, and this head is not
-   centred. The gap only bites once a translated heading grows into the button. */
+/* The ✕ sits in flow beside the heading, unlike `Dialog`'s absolute corner. */
 .head {
 	display: flex;
 	align-items: center;
@@ -33,8 +24,7 @@
 	gap: var(--space-4);
 }
 
-/* The font shorthand carries family, size, weight and leading; tracking is the
-   one part of the Figma text style it has no slot for. */
+/* `font` carries family/size/weight/leading; tracking has no shorthand slot. */
 .title {
 	margin: 0;
 	color: var(--text-strong);
@@ -42,9 +32,8 @@
 	letter-spacing: var(--tracking-tight);
 }
 
-/* `flex-start` rather than the default stretch: a Switch is an inline-flex label
-   and stretching it would make the whole card width clickable, well past the row
-   the design draws. */
+/* `flex-start`, not stretch — a Switch is an inline label; stretching would
+   make the whole card width clickable. */
 .rows {
 	display: flex;
 	flex-direction: column;

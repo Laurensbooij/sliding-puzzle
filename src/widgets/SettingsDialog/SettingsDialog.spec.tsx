@@ -35,15 +35,12 @@ const ALL_ON: Settings = { referenceImage: true, numberedTiles: true, showTimer:
 interface SettingsDialogCase {
 	open?: boolean
 	onClose?: () => void
-	/** What the player's browser already holds. Left alone when a case omits it. */
+	/** What the player's browser already holds; left alone if omitted. */
 	stored?: Settings
 }
 
-/**
- * Kept separate from the render helper so a case can re-render or re-mount the
- * same tree — reopening the card and reloading the page are two things this
- * spec has to tell apart.
- */
+/** Separate from the render helper so a case can re-render or re-mount the same
+ * tree — reopening vs. reloading are two things this spec tells apart. */
 const settingsDialogElement = ({
 	open = true,
 	onClose = vi.fn(),
@@ -53,12 +50,8 @@ const settingsDialogElement = ({
 	</SettingsProvider>
 )
 
-/**
- * The provider hydrates from storage on mount, so a case states the player's
- * stored preferences the way their browser would rather than clicking its way
- * to them. Seeding only when a case asks keeps the remount cases honest: after
- * a write, what is in storage is the whole point.
- */
+/** Seeds storage only when a case asks — remount cases need storage to hold
+ * exactly what was written, not a stale default. */
 const renderComponent = (
 	{ stored, ...props }: SettingsDialogCase = {},
 	options?: RenderWithProvidersOptions,
@@ -71,21 +64,18 @@ const renderComponent = (
 /**
  * WCAG 2.2 AA determinations, per docs/conventions/accessibility.md.
  *
- * - Accessible name — the card is named by its "Settings" heading through
- *   `Modal`'s `labelledBy`, asserted below. It takes no description: the design
- *   draws no supporting line, and each switch describes itself.
- * - Keyboard — Escape asks to close (asserted here against the `showModal`
- *   shim), and every control is a native button or checkbox, so Tab and Space
- *   are the browser's own. The focus trap and focus restored to the gear belong
- *   to `showModal()` and are checked in Chromium, in the stories beside this.
- * - Focus (SC 2.4.11) — every ring belongs to `IconButton` or `Switch`. The card
- *   overlays nothing and clips nothing, which the focus stories are the check on.
- * - Announcements — N/A twice over. The card announces itself by taking focus,
- *   and each switch announces its own flip through `aria-checked` on the focused
- *   control. Asserted below as the absence of a live region.
- * - Target size (SC 2.5.8) — the ✕ is a 40px `IconButton`, and a switch's target
- *   is its 44×26 track plus the label beside it; both clear 24px.
- * - Contrast and reduced motion — Chromium-only checks, carried by the stories.
+ * - Accessible name — named by the "Settings" heading via `Modal`'s
+ *   `labelledBy`. No description: each switch describes itself.
+ * - Keyboard — Escape closes (asserted against the `showModal` shim); every
+ *   control is a native button/checkbox. Trap and focus restore are
+ *   `showModal()`'s own, checked in the Chromium stories.
+ * - Focus (SC 2.4.11) — rings belong to `IconButton`/`Switch`; checked in the
+ *   focus stories.
+ * - Announcements — N/A twice: focus landing announces the dialog,
+ *   `aria-checked` announces each switch. Asserted as no live region below.
+ * - Target size (SC 2.5.8) — ✕ is 40px; a switch's target is its 44×26 track
+ *   plus label. Both clear 24px.
+ * - Contrast and reduced motion — Chromium-only, carried by the stories.
  */
 describe('SettingsDialog', () => {
 	it('stays out of the accessibility tree until it is opened', () => {
@@ -120,7 +110,7 @@ describe('SettingsDialog', () => {
 		])
 	})
 
-	// The four controls an end-to-end test would aim at, each reachable by testid.
+	// The four controls an e2e test would aim at.
 	it('tags every control it draws', () => {
 		renderComponent()
 
@@ -230,8 +220,8 @@ describe('SettingsDialog', () => {
 		expect(reopened).toBeChecked()
 	})
 
-	// A remount is what a page reload looks like from here, and it is the only
-	// way to see the write actually reach storage rather than React state.
+	// A remount is what a page reload looks like — proves the write reached
+	// storage, not just React state.
 	it('reopens on a change made before the page was reloaded', async () => {
 		const user = userEvent.setup()
 		const { unmount } = renderComponent()
@@ -266,8 +256,7 @@ describe('SettingsDialog', () => {
 		expect(onClose).toHaveBeenCalledOnce()
 	})
 
-	// Against `Modal`'s default and against `Dialog`: dismissing Settings loses
-	// nothing, while dismissing a confirmation decides something.
+	// Against `Dialog`'s default: dismissing Settings loses nothing.
 	it('asks to be closed on a scrim click', async () => {
 		const user = userEvent.setup()
 		const onClose = vi.fn()
@@ -279,9 +268,8 @@ describe('SettingsDialog', () => {
 		expect(onClose).toHaveBeenCalledOnce()
 	})
 
-	// The dialog element paints nothing, so the padding and the row gaps belong to
-	// the card inside it. Were they the shell's own, `Modal` would read a click on
-	// them as a scrim click and dismiss the card the player just aimed at.
+	// The dialog element paints nothing; its own box would otherwise read as a
+	// scrim click and dismiss the card the player just aimed at.
 	it('ignores a click on the card’s own padding', async () => {
 		const user = userEvent.setup()
 		const onClose = vi.fn()
@@ -318,8 +306,7 @@ describe('SettingsDialog', () => {
 		expect(controls[0]).toHaveAccessibleName(CLOSE_LABEL)
 	})
 
-	// Each switch announces its own flip through `aria-checked` on the focused
-	// control; a live region saying the same thing would double-speak.
+	// `aria-checked` on the focused control announces the flip already.
 	it('adds no live region of its own', async () => {
 		const user = userEvent.setup()
 		renderComponent()

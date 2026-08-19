@@ -23,17 +23,13 @@ const GEAR_LABEL = 'Settings'
 
 const REFERENCE_IMAGE_TESTID = `${SETTINGS_DIALOG_TESTIDS.BASE}${SETTINGS_DIALOG_TESTIDS.REFERENCE_IMAGE_SUFFIX}`
 
-/**
- * The two frames Figma draws, by width. The card is one composition at both —
- * same head, same three rows, same order — so the only thing a viewport changes
- * is where its 480px width gets capped (ADR-0016).
- */
+/** The two frames Figma draws, by width — same composition at both (ADR-0016). */
 const VIEWPORTS = {
 	mobile: { name: 'Mobile (Figma 390)', styles: { width: '390px', height: '844px' } },
 	desktop: { name: 'Desktop (Figma 1000)', styles: { width: '1000px', height: '680px' } },
 }
 
-/** The screen the card covers — the only way to see the scrim's 3px blur work. */
+/** The screen behind the card, so the scrim's blur has something to show. */
 const PageBehind: FC = () => (
 	<div className={styles.page}>
 		<h1 className={styles.heading}>Eight tiles, one gap.</h1>
@@ -41,11 +37,7 @@ const PageBehind: FC = () => (
 	</div>
 )
 
-/**
- * The provider the card writes through. Keyed per story so each one re-hydrates
- * from the seeded storage rather than inheriting the flips of the story before
- * it — the whole point of this provider is that it persists.
- */
+/** Keyed per story so each re-hydrates from seeded storage, not the last story's flips. */
 const withSettings: Decorator = (Story, context) => (
 	<>
 		<PageBehind />
@@ -63,9 +55,8 @@ const meta = {
 		layout: 'fullscreen',
 		viewport: { options: VIEWPORTS },
 	},
-	// Every story opens on the defaults a first-time player has: reference image
-	// on, numbers off, timer on — which is also the only combination that shows
-	// both switch states at once.
+	// Every story opens on the defaults — also the only combination showing
+	// both an on and an off switch.
 	beforeEach: () => {
 		localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(DEFAULT_SETTINGS))
 	},
@@ -75,11 +66,7 @@ const meta = {
 export default meta
 type Story = StoryObj<typeof meta>
 
-/**
- * The one combination there is to cover: no switch state changes the layout, so
- * the defaults are both the designed frame and the only pairing that shows an on
- * and an off track side by side.
- */
+/** No switch state changes the layout, so the defaults are the only case to cover. */
 const assertDefaults: NonNullable<Story['play']> = async ({ canvasElement }) => {
 	const canvas = within(canvasElement)
 	const referenceImage = canvas.getByRole('switch', { name: REFERENCE_IMAGE_LABEL })
@@ -91,34 +78,19 @@ const assertDefaults: NonNullable<Story['play']> = async ({ canvasElement }) => 
 	await expect(showTimer).toBeChecked()
 }
 
-/**
- * Figma `5 · Settings` at 1000: the card at its full 480 width, centred over the
- * blurred screen. Three rows, the middle one off — Figma draws no other
- * combination, and none of them changes the layout.
- *
- * The hint row Figma draws under the switches is deliberately absent; see the
- * component docblock for what that costs and why it is accepted.
- */
+/** Figma `5 · Settings` at 1000. Hint row dropped — see the component docblock. */
 export const Desktop: Story = {
 	globals: { viewport: { value: 'desktop' } },
 	play: assertDefaults,
 }
 
-/**
- * Figma `5 · Settings — mobile` at 390: the same card, capped to the viewport
- * less its 16px gutters. Nothing about the tree moves across the breakpoint.
- */
+/** Figma `5 · Settings — mobile` at 390, capped to the viewport's 16px gutters. */
 export const Mobile: Story = {
 	globals: { viewport: { value: 'mobile' } },
 	play: assertDefaults,
 }
 
-/**
- * The ✕'s ring, reached by a real Tab so `:focus-visible` actually matches. It
- * is the card's first stop, and the check that a ring on the head row clears the
- * card's own edge (SC 2.4.11) — the dialog UA sheet puts `overflow: auto` on the
- * element, which `Modal` has to undo for exactly this reason.
- */
+/** The ✕'s ring, reached by a real Tab — checks it clears the card's own edge (SC 2.4.11). */
 export const CloseFocused: Story = {
 	globals: { viewport: { value: 'desktop' } },
 	play: async ({ canvasElement }) => {
@@ -130,11 +102,7 @@ export const CloseFocused: Story = {
 	},
 }
 
-/**
- * The second stop: the first switch. Its ring sits on a page-coloured spacer,
- * which is why it is worth seeing over the card surface rather than the page
- * the `Switch` stories use.
- */
+/** The second stop: the first switch, whose ring sits on a page-coloured spacer. */
 export const SwitchFocused: Story = {
 	globals: { viewport: { value: 'desktop' } },
 	play: async ({ canvasElement }) => {
@@ -147,11 +115,8 @@ export const SwitchFocused: Story = {
 	},
 }
 
-/**
- * The gear and the card, wired the way `AppShell` wires them: one `useState`,
- * the opener passed to the header, the card rendered beside the screen. A plain
- * `IconButton` stands in for `AppHeader` — a widget may not import another one.
- */
+/** Wired like `AppShell`. A plain `IconButton` stands in for `AppHeader` — a
+ * widget may not import another one. */
 const TriggeredSettings: FC = () => {
 	const [open, setOpen] = useState(false)
 
@@ -170,16 +135,12 @@ const TriggeredSettings: FC = () => {
 }
 
 /**
- * The half jsdom cannot answer. Opening for real in Chromium is the standing
- * check on everything `showModal()` supplies and the shim in `vitest.setup.ts`
- * deliberately does not: the top layer, the inert page behind it, and focus
- * restored to the gear on the way out.
+ * What jsdom can't answer: the top layer, inert background, and focus
+ * restored to the gear — real `showModal()` behaviour.
  *
- * It flips a switch while open, so the write-through is seen against a real
- * `aria-checked`. It dismisses through the ✕ rather than Escape or the scrim:
- * Escape is the browser's own close watcher and a synthetic key never reaches
- * it, and `::backdrop` is not an element `userEvent` can aim at. Both are
- * covered in the spec against the shim, and by the manual pass.
+ * Dismisses through the ✕, not Escape or the scrim: Escape needs the
+ * browser's own close watcher, and `::backdrop` has no element to target.
+ * Both are covered in the jsdom spec's shim, and by the manual pass.
  */
 export const OpensFromTheGear: Story = {
 	args: { open: false },
