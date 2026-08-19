@@ -1,3 +1,4 @@
+import { playMessages } from '@/features/play/Play/translation-messages'
 import { setupMessages } from '@/features/setup/Setup/translation-messages'
 import { GameConfigProvider } from '@/lib/game-config'
 import { RecordsProvider } from '@/lib/records'
@@ -5,8 +6,9 @@ import { ROUTES } from '@/lib/routes'
 import { SettingsProvider } from '@/lib/settings'
 import { createTranslate } from '@i18n'
 import { type RenderWithProvidersOptions, renderWithProviders } from '@testing'
-import { type RenderResult, screen } from '@testing-library/react'
+import { type RenderResult, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { BOARD_TESTIDS } from '@widgets/Board'
 import { RouterProvider, createMemoryRouter } from 'react-router'
 import { describe, expect, it } from 'vitest'
 
@@ -127,5 +129,32 @@ describe('routes', () => {
 		})
 
 		expect(heading).toHaveFocus()
+	})
+
+	/**
+	 * The one navigation the Play screen asks for: it confirms the abandonment
+	 * itself and reports it, and the table is what knows that a game given up on
+	 * puts the player back on Setup.
+	 */
+	it('returns to Setup when a game is abandoned', async () => {
+		const user = userEvent.setup()
+		renderComponent(ROUTES.play)
+		const abandon = screen.getByTestId(`${BOARD_TESTIDS.BASE}${BOARD_TESTIDS.ABANDON_SUFFIX}`)
+
+		await user.click(abandon)
+		const confirmation = screen.getByRole('dialog', {
+			name: translate(playMessages.abandonTitle),
+		})
+		const confirm = within(confirmation).getByRole('button', {
+			name: translate(playMessages.abandonConfirm),
+		})
+		await user.click(confirm)
+
+		const heading = screen.getByRole('heading', {
+			level: 1,
+			name: translate(setupMessages.heading),
+		})
+		expect(heading).toBeInTheDocument()
+		expect(document.title).toBe(translate(routeMessages.setupTitle))
 	})
 })

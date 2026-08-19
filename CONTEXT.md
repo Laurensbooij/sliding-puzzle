@@ -64,6 +64,10 @@ _Avoid_: picture, artwork, sprite
 A board together with its move count and status.
 _Avoid_: session, round, play
 
+**Abandon**:
+Ending a game before it is solved. Always confirmed, because it destroys progress.
+_Avoid_: quit, exit, forfeit
+
 **Record**:
 The fewest moves a player has solved a given board size in.
 _Avoid_: high score, best time
