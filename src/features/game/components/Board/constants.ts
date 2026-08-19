@@ -5,6 +5,7 @@ export const BOARD_TESTIDS = {
 	GAP_SUFFIX: '-gap',
 	PREVIEW_SUFFIX: '-preview',
 	RESTART_SUFFIX: '-restart',
+	ABANDON_SUFFIX: '-abandon',
 	TILE_SUFFIX: '-tile',
 	ANNOUNCER_SUFFIX: '-announcer',
 } as const

@@ -7,6 +7,17 @@
  */
 
 .board {
+	/*
+	 * The frame is proportional to the board, not to a fixed grid: Figma binds
+	 * the padding to frame/padding on desktop screens and frame/padding-compact
+	 * on phones, and the tile gap scales with the well. Two steps in the design
+	 * become one interpolation here — the vmin terms are the same ones the
+	 * prototype uses, and they track the board because the board is itself
+	 * viewport-sized (see the width below).
+	 */
+	--board-frame-padding: clamp(var(--frame-padding-compact), 2.2vmin, var(--frame-padding));
+	--board-tile-gap: clamp(var(--space-1), 1vmin, var(--tile-gap));
+
 	position: relative;
 	display: flex;
 	flex-direction: column;
@@ -14,13 +25,20 @@
 	/* The well and the footer sit one frame-padding apart, which is what makes
 	   the wood below the well read the same width as the wood beside it.
 	   Absolutely positioned children — bevel, announcer — stay out of this. */
-	gap: var(--frame-padding);
+	gap: var(--board-frame-padding);
 
 	/* Contains the bevel's soft-light blend, which would otherwise reach for
 	   whatever the board is composited over. */
 	isolation: isolate;
-	width: min(100%, var(--board-max));
-	padding: var(--frame-padding);
+
+	/*
+	 * `--board-max` caps a wide screen; the vmin term caps a short one, where a
+	 * 35rem square plus its footer runs off the bottom and the player has to
+	 * scroll to see the board they are playing. A screen that wants a different
+	 * cap sets `--board-viewport-cap` on any ancestor.
+	 */
+	width: min(100%, var(--board-max), var(--board-viewport-cap, 78vmin));
+	padding: var(--board-frame-padding);
 	border: var(--material-frame-edge);
 	border-radius: var(--radius-frame);
 	background-image: var(--material-wood);
@@ -60,7 +78,7 @@
  */
 .cells {
 	position: absolute;
-	inset: var(--tile-gap);
+	inset: var(--board-tile-gap);
 }
 
 /*
@@ -80,11 +98,11 @@
 	position: absolute;
 	top: 0;
 	left: 0;
-	width: calc((100% - (var(--board-cols) - 1) * var(--tile-gap)) / var(--board-cols));
-	height: calc((100% - (var(--board-rows) - 1) * var(--tile-gap)) / var(--board-rows));
+	width: calc((100% - (var(--board-cols) - 1) * var(--board-tile-gap)) / var(--board-cols));
+	height: calc((100% - (var(--board-rows) - 1) * var(--board-tile-gap)) / var(--board-rows));
 	transform: translate(
-		calc(var(--cell-col) * (100% + var(--tile-gap))),
-		calc(var(--cell-row) * (100% + var(--tile-gap)))
+		calc(var(--cell-col) * (100% + var(--board-tile-gap))),
+		calc(var(--cell-row) * (100% + var(--board-tile-gap)))
 	);
 }
 
@@ -101,8 +119,8 @@
 /* The gap paints nothing — it is the well showing through. It exists so the
    empty cell has a stable target, and is hidden from assistive tech. */
 
-/* Inside the wood, below the well: the standing hint on the left, the restart
-   control on the right. Its height is the control's — nothing states 32 twice. */
+/* Inside the wood, below the well: the standing hint on the left, both game
+   controls on the right. Its height is the controls' — nothing states 32 twice. */
 .footer {
 	display: flex;
 	align-items: center;
@@ -111,11 +129,24 @@
 }
 
 /* The hint and the preview travel together on the footer's leading side; the
-   restart control is pushed to the trailing side by the footer's own spacing. */
+   controls are pushed to the trailing side by the footer's own spacing.
+   `min-width: 0` overrides the flex default of `auto`, which would let a long
+   translated hint push the controls off the wood instead of wrapping. */
 .footerLeading {
 	display: flex;
+	min-width: 0;
 	align-items: center;
 	gap: var(--space-3);
+}
+
+/* Abandon then restart, in the corner the design puts them. They never give up
+   room to the hint: a control the player cannot hit is worse than a second line
+   of text. */
+.actions {
+	display: flex;
+	flex-shrink: 0;
+	align-items: center;
+	gap: var(--space-2);
 }
 
 /*

@@ -95,7 +95,7 @@ describe('Board', () => {
 			}
 		})
 
-		it('puts the restart control after the tiles, as the last tab stop', async () => {
+		it('puts both game controls after the tiles, abandon then restart', async () => {
 			const user = userEvent.setup()
 			renderComponent({ footer: true })
 
@@ -104,6 +104,12 @@ describe('Board', () => {
 				const reached = screen.getByRole('button', { name: tileName(tile) })
 				expect(reached).toHaveFocus()
 			}
+
+			await user.tab()
+			const abandon = screen.getByRole('button', {
+				name: translate(boardMessages.abandon),
+			})
+			expect(abandon).toHaveFocus()
 
 			await user.tab()
 			const restart = screen.getByRole('button', {
@@ -307,20 +313,20 @@ describe('Board', () => {
 	})
 
 	describe('footer', () => {
-		it('shows neither the hint nor the restart control by default', () => {
+		it('shows neither the hint nor the game controls by default', () => {
 			renderComponent()
-			const restart = screen.queryByRole('button', {
-				name: translate(boardMessages.restart),
-			})
-			expect(restart).not.toBeInTheDocument()
+			for (const message of [boardMessages.restart, boardMessages.abandon]) {
+				const control = screen.queryByRole('button', { name: translate(message) })
+				expect(control).not.toBeInTheDocument()
+			}
 		})
 
-		it('names the restart control for assistive technology', () => {
+		it('names both game controls for assistive technology', () => {
 			renderComponent({ footer: true })
-			const restart = screen.getByRole('button', {
-				name: translate(boardMessages.restart),
-			})
-			expect(restart).toBeInTheDocument()
+			for (const message of [boardMessages.abandon, boardMessages.restart]) {
+				const control = screen.getByRole('button', { name: translate(message) })
+				expect(control).toBeInTheDocument()
+			}
 		})
 
 		it('shows the solved picture, named rather than hidden', () => {
@@ -357,11 +363,13 @@ describe('Board', () => {
 				expect(reached).toHaveFocus()
 			}
 
+			// The preview sits before both controls in the DOM, so the tab that
+			// follows the tiles would land on it if it were focusable.
 			await user.tab()
-			const restart = screen.getByRole('button', {
-				name: translate(boardMessages.restart),
+			const abandon = screen.getByRole('button', {
+				name: translate(boardMessages.abandon),
 			})
-			expect(restart).toHaveFocus()
+			expect(abandon).toHaveFocus()
 		})
 
 		it('carries the standing hint as text', () => {
@@ -383,6 +391,19 @@ describe('Board', () => {
 			expect(onRestart).toHaveBeenCalledOnce()
 		})
 
+		it('reports an abandon without leaving or confirming anything itself', async () => {
+			const user = userEvent.setup()
+			const onAbandon = vi.fn()
+			renderComponent({ footer: true, onAbandon })
+
+			const abandon = screen.getByRole('button', {
+				name: translate(boardMessages.abandon),
+			})
+			await user.click(abandon)
+
+			expect(onAbandon).toHaveBeenCalledOnce()
+		})
+
 		it('says nothing in the live region when the board is restarted', async () => {
 			const user = userEvent.setup()
 			renderComponent({ footer: true, onRestart: vi.fn() })
@@ -400,10 +421,10 @@ describe('Board', () => {
 			renderComponent({ footer: true }, { locale: 'nl' })
 
 			const { translate: translateDutch } = createTranslate('nl')
-			const restart = screen.getByRole('button', {
-				name: translateDutch(boardMessages.restart),
-			})
-			expect(restart).toBeInTheDocument()
+			for (const message of [boardMessages.abandon, boardMessages.restart]) {
+				const control = screen.getByRole('button', { name: translateDutch(message) })
+				expect(control).toBeInTheDocument()
+			}
 		})
 	})
 

@@ -53,9 +53,9 @@ export const Solved: Story = {
 
 /**
  * Figma `Footer=true, Preview=true`: the solved picture, the standing hint and
- * the restart control, inside the wood below the well. The restart is the
- * shared IconButton on its `onWood` variant — the only one the design allows on
- * the frame.
+ * both game controls — abandon, then restart — inside the wood below the well.
+ * They are the shared IconButton on its `onWood` variant, the only one the
+ * design allows on the frame.
  */
 export const WithFooter: Story = {
 	args: { footer: true },
@@ -115,6 +115,9 @@ export const Playable: Story = {
 					onRestart={() =>
 						setBoard(shuffle(createBoard(BOARD_ROWS, BOARD_COLS), Math.random))
 					}
+					// Abandoning is the composer's job — leaving the game is a screen
+					// concern, so the story just resets to the arrangement Figma draws.
+					onAbandon={() => setBoard(midGame)}
 				/>
 			)
 		}

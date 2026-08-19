@@ -150,6 +150,7 @@
   --board-max: 35rem;
   --tile-gap: 0.625rem;
   --frame-padding: 1.25rem;
+  --frame-padding-compact: 0.625rem; /** Phone end of the fluid frame padding. The board frame interpolates between this and frame/padding as the board width grows. */
   --border-width-strong: 2px;
   --family-display: Outfit;
   --family-ui: Public Sans;
