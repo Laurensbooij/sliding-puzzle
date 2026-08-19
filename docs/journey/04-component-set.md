@@ -23,9 +23,7 @@ UI library, how to verify WCAG AA, how the game feature would adopt the design a
    hand-rolling everything) and Figma variable export tooling (landed on TokensBrücke).
 2. **Five grilling tickets turned research into decisions**: component inventory and
    organization, token architecture and export workflow, external library stance,
-   WCAG AA assurance strategy, and the game feature's adoption path. One question was
-   deliberately left open rather than guessed — which way an arrow key points relative
-   to the gap — flagged for the ticket that would actually need it.
+   WCAG AA assurance strategy, and the game feature's adoption path.
 3. **The map closed by cutting an 18-ticket backlog**, ordered with Linear's native
    blocking relations so the frontier was always exactly the unblocked set, each ticket
    carrying the WCAG acceptance checklist the strategy ticket had defined.
@@ -38,9 +36,6 @@ UI library, how to verify WCAG AA, how the game feature would adopt the design a
    pass afterward rather than mid-build. A second wave built Select, Button and
    IconButton together; a third built Dialog and Board with Frame once their blockers
    cleared.
-5. **Board's ticket resolved the one decision the map left open.** Arrow keys name the
-   tile that travels, not the gap — recorded as an ADR once settled, not left as an
-   implicit choice buried in a keydown handler.
 
 ## Decisions
 
