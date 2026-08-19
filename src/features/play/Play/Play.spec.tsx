@@ -188,6 +188,7 @@ describe('Play', () => {
 
 		afterEach(() => {
 			vi.useRealTimers()
+			vi.restoreAllMocks()
 		})
 
 		it('starts at zero', () => {
@@ -231,10 +232,17 @@ describe('Play', () => {
 			expect(announcer.textContent).toBe('')
 		})
 
-		it('schedules nothing at all while the timer is hidden', () => {
+		/**
+		 * Spying on the scheduler rather than counting pending timers: fake
+		 * timers capture React's own scheduling too, so a count is a fact about
+		 * the whole render rather than about the clock.
+		 */
+		it('schedules no clock at all while the timer is hidden', () => {
+			const scheduleInterval = vi.spyOn(window, 'setInterval')
+
 			renderRunningGame(false)
 
-			expect(vi.getTimerCount()).toBe(0)
+			expect(scheduleInterval).not.toHaveBeenCalled()
 		})
 	})
 

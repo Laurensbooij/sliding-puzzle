@@ -40,6 +40,7 @@ beforeEach(() => {
 
 afterEach(() => {
 	vi.useRealTimers()
+	vi.restoreAllMocks()
 })
 
 describe('useElapsedTick', () => {
@@ -64,10 +65,17 @@ describe('useElapsedTick', () => {
 		expect(committedRenders).toBe(RENDERS_ON_MOUNT)
 	})
 
+	/**
+	 * Spying on the scheduler rather than counting pending timers: fake timers
+	 * capture React's own scheduling too, so a count is a fact about the whole
+	 * render, not about this hook.
+	 */
 	it('schedules nothing at all while it is inactive', () => {
+		const scheduleInterval = vi.spyOn(window, 'setInterval')
+
 		renderElapsedTick(false)
 
-		expect(vi.getTimerCount()).toBe(0)
+		expect(scheduleInterval).not.toHaveBeenCalled()
 	})
 
 	it('stops ticking the moment it goes inactive', () => {
@@ -82,14 +90,17 @@ describe('useElapsedTick', () => {
 		advance(5 * SECOND_MS)
 
 		expect(committedRenders).toBe(RENDERS_ON_MOUNT + 2)
-		expect(vi.getTimerCount()).toBe(0)
 	})
 
 	it('drops its interval on unmount', () => {
 		const view = renderElapsedTick(true)
+		// One tick lands while it is still mounted, so the count below is a
+		// number the interval reached rather than one it never got started on.
+		advance(SECOND_MS)
 
 		view.unmount()
+		advance(5 * SECOND_MS)
 
-		expect(vi.getTimerCount()).toBe(0)
+		expect(committedRenders).toBe(RENDERS_ON_MOUNT + 1)
 	})
 })
