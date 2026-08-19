@@ -5,23 +5,30 @@ import type { Records } from '@/lib/records'
 import { DEFAULT_SETTINGS, SETTINGS_STORAGE_KEY, SettingsProvider } from '@/lib/settings'
 import type { Settings } from '@/lib/settings'
 import { createTranslate } from '@i18n'
-import { readStorage, renderWithProviders, seedStorage } from '@testing'
-import { screen, within } from '@testing-library/react'
+import { globalMessages } from '@messages'
+import { renderWithProviders, seedStorage, setDesktopViewport } from '@testing'
+import { act, screen, within } from '@testing-library/react'
 import { userEvent } from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 
 import { Setup } from './Setup'
-import { SOURCE_IMAGE_CHOICE_TESTIDS } from './components/SourceImageChoice'
-import {
-	sourceImageChoiceMessages,
-	sourceImageNameMessages,
-} from './components/SourceImageChoice/translation-messages'
+import { SETUP_CONTROLS_TESTIDS } from './components/SetupControls'
+import { setupControlsMessages } from './components/SetupControls/translation-messages'
+import { SETUP_DIALOG_TESTIDS } from './components/SetupDialog'
+import { setupDialogMessages } from './components/SetupDialog/translation-messages'
+import { setupPreviewMessages } from './components/SetupPreview/translation-messages'
 import { SETUP_TESTIDS } from './constants'
 import { setupMessages } from './translation-messages'
 
 const { translate } = createTranslate()
 
+const START_LABEL = translate(setupMessages.start)
+const DIALOG_TITLE = translate(setupDialogMessages.title)
+const CLOSE_LABEL = translate(globalMessages.close)
+
 interface SetupCase {
+	/** Which side of `--breakpoint-desktop` the render happens on. */
+	desktop?: boolean
 	/** Seeded into the config key before the providers read it. */
 	config?: Partial<GameConfig>
 	/** Seeded into the records key before the providers read it. */
@@ -35,11 +42,11 @@ interface SetupCase {
 }
 
 /**
- * Renders Setup under the two providers it reads through, seeding storage first
- * so the providers start on the state the case is about — which is the same
- * route a returning player takes.
+ * Renders Setup under the two providers it reads through, on the viewport the
+ * case is about. Storage is seeded first so the providers start on the state
+ * the case is about — which is the same route a returning player takes.
  */
-const renderComponent = ({ config, bests, settings }: SetupCase = {}) => {
+const renderComponent = ({ desktop = false, config, bests, settings }: SetupCase = {}) => {
 	seedStorage({
 		[GAME_CONFIG_STORAGE_KEY]: JSON.stringify({ ...DEFAULT_GAME_CONFIG, ...config }),
 		[RECORDS_STORAGE_KEY]: JSON.stringify({ bests: bests ?? {} } satisfies Records),
@@ -49,6 +56,7 @@ const renderComponent = ({ config, bests, settings }: SetupCase = {}) => {
 			[SETTINGS_STORAGE_KEY]: JSON.stringify({ ...DEFAULT_SETTINGS, ...settings }),
 		})
 	}
+	setDesktopViewport(desktop)
 	const onStart = vi.fn()
 
 	// The settings provider stands above every route in the app, so it stands
@@ -68,12 +76,29 @@ const renderComponent = ({ config, bests, settings }: SetupCase = {}) => {
 }
 
 const boardSizeGroup = () =>
-	screen.getByRole('group', { name: translate(setupMessages.boardSizeLabel) })
+	screen.getByRole('group', { name: translate(setupControlsMessages.boardSizeLabel) })
 
-const sourceImageGroup = () => screen.getByTestId(SOURCE_IMAGE_CHOICE_TESTIDS.BASE)
+const sizeOption = (size: BoardSize) => translate(setupControlsMessages.boardSizeOption, { size })
 
-const sizeOption = (size: BoardSize) => translate(setupMessages.boardSizeOption, { size })
+/** The one control the mobile page draws, and the one the dialog opens with. */
+const startButton = () => screen.getByRole('button', { name: START_LABEL })
 
+/**
+ * WCAG 2.2 AA determinations, per docs/conventions/accessibility.md.
+ *
+ * - Accessible name — the screen is titled by its `<h1>`; the trigger keeps the
+ *   call to action's own label and says `aria-haspopup="dialog"`, which is what
+ *   closes the gap between what it is called and what it does.
+ * - Keyboard — the trigger is a native button; the dialog's trap, Escape and
+ *   focus restoration are `showModal()`'s, covered in `SetupDialog`.
+ * - Focus (SC 2.4.3) — crossing to desktop with the dialog up would drop focus
+ *   on `<body>`; it moves to the now-inline GRID SIZE control instead, asserted
+ *   below.
+ * - Announcements — N/A: focus landing on the card announces the dialog, and
+ *   every choice is made through a radio the platform announces.
+ * - Target size (SC 2.5.8) — the trigger is a 48px `lg` button.
+ * - Contrast and reduced motion — Chromium-only, carried by the stories.
+ */
 describe('Setup', () => {
 	it('is titled by the fixed tagline, whatever board size is chosen', () => {
 		renderComponent({ config: { boardSize: 6 } })
@@ -86,182 +111,31 @@ describe('Setup', () => {
 		expect(heading).toBeVisible()
 	})
 
-	it('names the preview board after the picture and the chosen size', () => {
-		renderComponent({ config: { boardSize: 4 } })
+	it.each([
+		['mobile', false],
+		['desktop', true],
+	])('names the preview board after the picture and the chosen size on %s', (_, desktop) => {
+		renderComponent({ desktop, config: { boardSize: 4 } })
 
 		const preview = screen.getByRole('group', {
-			name: translate(setupMessages.previewLabel, { size: 4 }),
+			name: translate(setupPreviewMessages.label, { size: 4 }),
 		})
 
 		expect(preview).toBeVisible()
 	})
 
-	it('names both choice groups and the call to action', () => {
-		renderComponent()
-
-		const sizes = boardSizeGroup()
-		const sourceImages = screen.getByRole('group', {
-			name: translate(sourceImageChoiceMessages.legend),
-		})
-		const start = screen.getByRole('button', { name: translate(setupMessages.start) })
-
-		expect(sizes).toBeVisible()
-		expect(sourceImages).toBeVisible()
-		expect(start).toBeVisible()
-	})
-
-	it('offers every board size, checking the chosen one', () => {
-		renderComponent({ config: { boardSize: 5 } })
-
-		const options = within(boardSizeGroup()).getAllByRole('radio')
-		const chosen = within(boardSizeGroup()).getByRole('radio', { name: sizeOption(5) })
-
-		expect(options).toHaveLength(4)
-		expect(chosen).toBeChecked()
-	})
-
-	it('offers every artwork by what it draws, checking the chosen one', () => {
-		renderComponent({ config: { sourceImage: 'bike' } })
-
-		const swatches = within(sourceImageGroup()).getAllByRole('radio')
-		const chosen = within(sourceImageGroup()).getByRole('radio', {
-			name: translate(sourceImageNameMessages.bike),
-		})
-
-		expect(swatches).toHaveLength(6)
-		expect(chosen).toBeChecked()
-	})
-
-	it('repaints the preview board when another board size is chosen', async () => {
+	it('gives the preview board no tab stop of its own — it is decoration here', async () => {
 		const user = userEvent.setup()
 		renderComponent()
+		const previewTiles = within(
+			screen.getByTestId(`${SETUP_TESTIDS.BASE}${SETUP_TESTIDS.PREVIEW_SUFFIX}`),
+		).getAllByRole('button')
 
-		const fourByFour = within(boardSizeGroup()).getByRole('radio', { name: sizeOption(4) })
-		await user.click(fourByFour)
+		await user.tab()
 
-		const preview = screen.getByRole('group', {
-			name: translate(setupMessages.previewLabel, { size: 4 }),
-		})
-		expect(preview).toBeVisible()
-	})
-
-	it('repaints the preview board when another artwork is chosen', async () => {
-		const user = userEvent.setup()
-		renderComponent()
-
-		const rocket = within(sourceImageGroup()).getByRole('radio', {
-			name: translate(sourceImageNameMessages.rocket),
-		})
-		await user.click(rocket)
-
-		const chosen = within(sourceImageGroup()).getByRole('radio', {
-			name: translate(sourceImageNameMessages.rocket),
-		})
-		const stored = readStorage([GAME_CONFIG_STORAGE_KEY])
-		// The chosen artwork reaches the board through the config the board reads,
-		// so asserting the write is asserting the repaint — which drawing lands on
-		// the tiles is a Chromatic question, not a jsdom one.
-		expect(chosen).toBeChecked()
-		expect(stored[GAME_CONFIG_STORAGE_KEY]).toContain('rocket')
-	})
-
-	it('writes both choices straight through to the persisted config', async () => {
-		const user = userEvent.setup()
-		renderComponent()
-
-		const sixBySix = within(boardSizeGroup()).getByRole('radio', { name: sizeOption(6) })
-		await user.click(sixBySix)
-		const cat = within(sourceImageGroup()).getByRole('radio', {
-			name: translate(sourceImageNameMessages.cat),
-		})
-		await user.click(cat)
-
-		const stored = readStorage([GAME_CONFIG_STORAGE_KEY])
-		expect(stored[GAME_CONFIG_STORAGE_KEY]).toBe(
-			JSON.stringify({ boardSize: 6, sourceImage: 'cat' } satisfies GameConfig),
-		)
-	})
-
-	it('reopens on the stored choices after a reload', () => {
-		const { unmount } = renderComponent({ config: { boardSize: 5, sourceImage: 'flower' } })
-		unmount()
-
-		// A second mount over the same storage is what a reload amounts to: the
-		// providers re-read the key and Setup reads back from them.
-		renderComponent({ config: { boardSize: 5, sourceImage: 'flower' } })
-
-		const size = within(boardSizeGroup()).getByRole('radio', { name: sizeOption(5) })
-		const chosenImage = within(sourceImageGroup()).getByRole('radio', {
-			name: translate(sourceImageNameMessages.flower),
-		})
-		expect(size).toBeChecked()
-		expect(chosenImage).toBeChecked()
-	})
-
-	it('leaves neighbouring storage keys alone when a choice is written', async () => {
-		const user = userEvent.setup()
-		const seeded = seedStorage({ 'sliding-puzzle.settings.v1': '{"sound":true}' })
-		renderComponent()
-
-		const fiveByFive = within(boardSizeGroup()).getByRole('radio', { name: sizeOption(5) })
-		await user.click(fiveByFive)
-
-		const stored = readStorage(Object.keys(seeded))
-		expect(stored).toStrictEqual(seeded)
-	})
-
-	it('draws the designed empty state when no record exists for the chosen size', () => {
-		renderComponent({ config: { boardSize: 3 } })
-
-		const record = screen.getByText(translate(setupMessages.recordEmpty, { size: 3 }))
-
-		expect(record).toBeVisible()
-	})
-
-	it('draws the record when one exists for the chosen size', () => {
-		renderComponent({ config: { boardSize: 3 }, bests: { 3: 42 } })
-
-		const record = screen.getByText(translate(setupMessages.recordBest, { size: 3, moves: 42 }))
-
-		expect(record).toBeVisible()
-	})
-
-	it('follows the chosen board size from a record to an empty one', async () => {
-		const user = userEvent.setup()
-		renderComponent({ config: { boardSize: 3 }, bests: { 3: 42 } })
-
-		const fourByFour = within(boardSizeGroup()).getByRole('radio', { name: sizeOption(4) })
-		await user.click(fourByFour)
-
-		const record = screen.getByText(translate(setupMessages.recordEmpty, { size: 4 }))
-		const previous = screen.queryByText(
-			translate(setupMessages.recordBest, { size: 3, moves: 42 }),
-		)
-		expect(record).toBeVisible()
-		expect(previous).not.toBeInTheDocument()
-	})
-
-	it('follows the chosen board size from an empty line to a record', async () => {
-		const user = userEvent.setup()
-		renderComponent({ config: { boardSize: 3 }, bests: { 5: 128 } })
-
-		const fiveByFive = within(boardSizeGroup()).getByRole('radio', { name: sizeOption(5) })
-		await user.click(fiveByFive)
-
-		const record = screen.getByText(
-			translate(setupMessages.recordBest, { size: 5, moves: 128 }),
-		)
-		expect(record).toBeVisible()
-	})
-
-	it('reports the start of a game without deciding where that leads', async () => {
-		const user = userEvent.setup()
-		const { onStart } = renderComponent()
-
-		const start = screen.getByRole('button', { name: translate(setupMessages.start) })
-		await user.click(start)
-
-		expect(onStart).toHaveBeenCalledOnce()
+		const start = startButton()
+		expect(start).toHaveFocus()
+		for (const tile of previewTiles) expect(tile).not.toHaveFocus()
 	})
 
 	// Numbered tiles is a Play setting. A solved preview numbered 1-8 in order
@@ -278,111 +152,192 @@ describe('Setup', () => {
 		expect(painted).toHaveLength(0)
 	})
 
-	it('gives each choice group one tab stop and the preview board none', async () => {
-		const user = userEvent.setup()
-		renderComponent()
+	describe('on desktop', () => {
+		it('puts the choices on the page, with no dialog anywhere', () => {
+			renderComponent({ desktop: true })
 
-		const chosenSize = within(boardSizeGroup()).getByRole('radio', { name: sizeOption(3) })
-		const chosenSourceImage = within(sourceImageGroup()).getByRole('radio', {
-			name: translate(sourceImageNameMessages.sailboat),
+			const controls = screen.getByTestId(SETUP_CONTROLS_TESTIDS.BASE)
+			const dialog = screen.queryByRole('dialog')
+
+			expect(controls).toBeVisible()
+			expect(dialog).not.toBeInTheDocument()
 		})
-		const start = screen.getByRole('button', { name: translate(setupMessages.start) })
-		const previewTiles = within(
-			screen.getByTestId(`${SETUP_TESTIDS.BASE}${SETUP_TESTIDS.PREVIEW_SUFFIX}`),
-		).getAllByRole('button')
 
-		await user.tab()
-		expect(chosenSize).toHaveFocus()
+		it('starts the game straight from the page', async () => {
+			const user = userEvent.setup()
+			const { onStart } = renderComponent({ desktop: true })
+			const start = startButton()
 
-		await user.tab()
-		expect(chosenSourceImage).toHaveFocus()
+			await user.click(start)
 
-		await user.tab()
-		expect(start).toHaveFocus()
-
-		// The board is decoration here, so nothing in it was ever reached.
-		for (const tile of previewTiles) expect(tile).not.toHaveFocus()
-	})
-
-	it.each<[string, BoardSize, BoardSize]>([
-		['{ArrowRight}', 3, 4],
-		['{ArrowLeft}', 4, 3],
-		['{ArrowLeft}', 3, 6],
-		['{ArrowRight}', 6, 3],
-	])('moves the board size with %s from %s to %s', async (key, from, to) => {
-		const user = userEvent.setup()
-		renderComponent({ config: { boardSize: from } })
-
-		await user.tab()
-		await user.keyboard(key)
-
-		const moved = within(boardSizeGroup()).getByRole('radio', { name: sizeOption(to) })
-		expect(moved).toBeChecked()
-	})
-
-	it.each<[string, 'sailboat' | 'flower' | 'rocket']>([
-		['{ArrowRight}', 'rocket'],
-		['{ArrowLeft}', 'flower'],
-	])('moves the artwork with %s to %s, wrapping at the ends', async (key, expected) => {
-		const user = userEvent.setup()
-		renderComponent({ config: { sourceImage: 'sailboat' } })
-
-		await user.tab()
-		await user.tab()
-		await user.keyboard(key)
-
-		const moved = within(sourceImageGroup()).getByRole('radio', {
-			name: translate(sourceImageNameMessages[expected]),
+			expect(onStart).toHaveBeenCalledOnce()
 		})
-		expect(moved).toBeChecked()
-	})
 
-	it('keeps the two groups independent, so one choice never moves the other', async () => {
-		const user = userEvent.setup()
-		renderComponent()
+		it('repaints the preview board when another board size is chosen', async () => {
+			const user = userEvent.setup()
+			renderComponent({ desktop: true })
 
-		const fourByFour = within(boardSizeGroup()).getByRole('radio', { name: sizeOption(4) })
-		await user.click(fourByFour)
+			const fourByFour = within(boardSizeGroup()).getByRole('radio', { name: sizeOption(4) })
+			await user.click(fourByFour)
 
-		const sourceImageStillChosen = within(sourceImageGroup()).getByRole('radio', {
-			name: translate(sourceImageNameMessages.sailboat),
+			const preview = screen.getByRole('group', {
+				name: translate(setupPreviewMessages.label, { size: 4 }),
+			})
+			expect(preview).toBeVisible()
 		})
-		const checkedEverywhere = screen.getAllByRole('radio', { checked: true })
-		expect(sourceImageStillChosen).toBeChecked()
-		expect(checkedEverywhere).toHaveLength(2)
 	})
 
-	it('announces every change through the native radios, with no live region', async () => {
+	describe('on mobile', () => {
+		// The closed dialog keeps its controls mounted — `Modal` renders its
+		// children either way — but a closed `<dialog>` is hidden, so they are out
+		// of the accessibility tree and out of the tab order until it opens.
+		it('keeps the choices out of reach until they are asked for', () => {
+			renderComponent()
+
+			const sizes = screen.queryByRole('group', {
+				name: translate(setupControlsMessages.boardSizeLabel),
+			})
+			const dialog = screen.queryByRole('dialog')
+
+			expect(sizes).not.toBeInTheDocument()
+			expect(dialog).not.toBeInTheDocument()
+		})
+
+		// The label stays the call to action's; `haspopup` is what says the press
+		// opens something rather than starting a game.
+		it('keeps the call to action’s label on the button that opens the dialog', () => {
+			renderComponent()
+
+			const start = startButton()
+
+			expect(start).toHaveAttribute('aria-haspopup', 'dialog')
+		})
+
+		it('opens the dialog on the button, without starting a game', async () => {
+			const user = userEvent.setup()
+			const { onStart } = renderComponent()
+			const start = startButton()
+
+			await user.click(start)
+
+			const dialog = screen.getByRole('dialog', { name: DIALOG_TITLE })
+			expect(dialog).toBeVisible()
+			expect(onStart).not.toHaveBeenCalled()
+		})
+
+		it('mounts one copy of the choices, inside the dialog', async () => {
+			const user = userEvent.setup()
+			renderComponent()
+
+			await user.click(startButton())
+
+			const dialog = screen.getByRole('dialog', { name: DIALOG_TITLE })
+			const controls = screen.getAllByTestId(SETUP_CONTROLS_TESTIDS.BASE)
+			const sizeGroups = screen.getAllByRole('group', {
+				name: translate(setupControlsMessages.boardSizeLabel),
+			})
+			expect(controls).toHaveLength(1)
+			expect(sizeGroups).toHaveLength(1)
+			expect(dialog).toContainElement(controls[0] ?? null)
+		})
+
+		it('starts the game from the dialog’s own call to action', async () => {
+			const user = userEvent.setup()
+			const { onStart } = renderComponent()
+			await user.click(startButton())
+
+			const dialog = screen.getByRole('dialog', { name: DIALOG_TITLE })
+			const startInDialog = within(dialog).getByRole('button', { name: START_LABEL })
+			await user.click(startInDialog)
+
+			expect(onStart).toHaveBeenCalledOnce()
+		})
+
+		it('takes the choices away again when the dialog is dismissed, keeping them made', async () => {
+			const user = userEvent.setup()
+			renderComponent({ config: { boardSize: 3 } })
+			await user.click(startButton())
+
+			const fiveByFive = within(boardSizeGroup()).getByRole('radio', { name: sizeOption(5) })
+			await user.click(fiveByFive)
+			const close = screen.getByRole('button', { name: CLOSE_LABEL })
+			await user.click(close)
+
+			const dialog = screen.queryByRole('dialog')
+			const preview = screen.getByRole('group', {
+				name: translate(setupPreviewMessages.label, { size: 5 }),
+			})
+			expect(dialog).not.toBeInTheDocument()
+			expect(preview).toBeVisible()
+		})
+	})
+
+	describe('across the breakpoint', () => {
+		it('moves focus to the grid size when the dialog gives way to the page', async () => {
+			const user = userEvent.setup()
+			renderComponent({ config: { boardSize: 5 } })
+			await user.click(startButton())
+
+			act(() => {
+				setDesktopViewport(true)
+			})
+
+			const chosenSize = within(boardSizeGroup()).getByRole('radio', { name: sizeOption(5) })
+			const dialog = screen.queryByRole('dialog')
+			// Left alone, focus would drop to <body> when the dialog unmounted.
+			expect(dialog).not.toBeInTheDocument()
+			expect(chosenSize).toHaveFocus()
+		})
+
+		it('does not reopen the dialog on the way back to mobile', async () => {
+			const user = userEvent.setup()
+			renderComponent()
+			await user.click(startButton())
+
+			act(() => {
+				setDesktopViewport(true)
+			})
+			act(() => {
+				setDesktopViewport(false)
+			})
+
+			const dialog = screen.queryByRole('dialog')
+			const start = startButton()
+			expect(dialog).not.toBeInTheDocument()
+			expect(start).toHaveAttribute('aria-haspopup', 'dialog')
+		})
+
+		it('keeps the choices across the crossover, because the config holds them', async () => {
+			const user = userEvent.setup()
+			renderComponent({ config: { boardSize: 3 } })
+			await user.click(startButton())
+			const sixBySix = within(boardSizeGroup()).getByRole('radio', { name: sizeOption(6) })
+			await user.click(sixBySix)
+
+			act(() => {
+				setDesktopViewport(true)
+			})
+
+			const stillChosen = within(boardSizeGroup()).getByRole('radio', { name: sizeOption(6) })
+			expect(stillChosen).toBeChecked()
+		})
+	})
+
+	it('exposes a testid for the screen, its preview and the mobile trigger', async () => {
 		const user = userEvent.setup()
-		renderComponent()
-
-		const fourByFour = within(boardSizeGroup()).getByRole('radio', { name: sizeOption(4) })
-		await user.click(fourByFour)
-
-		const statusRegion = screen.queryByRole('status')
-		const alertRegion = screen.queryByRole('alert')
-
-		// N/A for aria-live: the radio that caused the change is announced by the
-		// platform, and a live region on the lines it updates would double-announce.
-		expect(statusRegion).not.toBeInTheDocument()
-		expect(alertRegion).not.toBeInTheDocument()
-	})
-
-	it('exposes a testid per control and per swatch', () => {
 		renderComponent()
 
 		const screenRoot = screen.getByTestId(SETUP_TESTIDS.BASE)
-		const sizes = screen.getByTestId(`${SETUP_TESTIDS.BASE}${SETUP_TESTIDS.BOARD_SIZE_SUFFIX}`)
-		const record = screen.getByTestId(`${SETUP_TESTIDS.BASE}${SETUP_TESTIDS.RECORD_SUFFIX}`)
-		const start = screen.getByTestId(`${SETUP_TESTIDS.BASE}${SETUP_TESTIDS.START_SUFFIX}`)
-		const swatch = screen.getByTestId(
-			`${SOURCE_IMAGE_CHOICE_TESTIDS.BASE}${SOURCE_IMAGE_CHOICE_TESTIDS.SWATCH_SUFFIX}-cat`,
-		)
+		const preview = screen.getByTestId(`${SETUP_TESTIDS.BASE}${SETUP_TESTIDS.PREVIEW_SUFFIX}`)
+		const start = screen.getByTestId(`${SETUP_TESTIDS.BASE}${SETUP_TESTIDS.TRIGGER_SUFFIX}`)
+		await user.click(start)
 
+		const card = screen.getByTestId(
+			`${SETUP_DIALOG_TESTIDS.BASE}${SETUP_DIALOG_TESTIDS.CARD_SUFFIX}`,
+		)
 		expect(screenRoot).toBeVisible()
-		expect(sizes).toBeVisible()
-		expect(record).toBeVisible()
+		expect(preview).toBeVisible()
 		expect(start).toBeVisible()
-		expect(swatch).toBeInTheDocument()
+		expect(card).toBeVisible()
 	})
 })

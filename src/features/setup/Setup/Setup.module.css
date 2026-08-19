@@ -1,9 +1,11 @@
 /*
- * Figma `home`, both breakpoints. One tree, restyled by a media query rather
- * than branched in JS: the controls render inline at every width, so nothing
- * here changes shape — only where the three areas land (ADR-0016). Areas, never
- * `order`: the DOM stays preview → pitch → controls, and desktop moves the
- * preview into the right column without touching reading order.
+ * Figma `home`, both breakpoints. The three areas are the same tree at every
+ * width — only where they land changes, so this file is a media query rather
+ * than a second branch. What the controls area *holds* does change shape, and
+ * that branch lives in Setup.tsx (ADR-0016).
+ *
+ * Areas, never `order`: the DOM stays preview → pitch → controls, and desktop
+ * moves the preview into the right column without touching reading order.
  */
 .setup {
 	display: grid;
@@ -53,41 +55,15 @@
 	color: var(--text-muted);
 }
 
-/* The two choices and the action, stacked. `flex-start` so the size pill and
-   the swatch row hug their content the way Figma draws them; the call to action
-   opts back out below. */
+/* Holds whichever the viewport calls for: the controls themselves on desktop,
+   the button that opens them on mobile. Stretched, because that button is the
+   full-width one Figma draws — which of the two it is belongs to this layout,
+   not to the design system's `fullWidth` variant. */
 .controls {
 	display: flex;
 	flex-direction: column;
 	grid-area: controls;
-	gap: var(--space-6);
-	align-items: flex-start;
-}
-
-/* Mobile stacks the button over the record line and lets it fill the column;
-   desktop puts them on one row. The button is not the design system's
-   `fullWidth` variant, because which of the two it is belongs to this layout. */
-.cta {
-	display: flex;
-	flex-direction: column;
-	gap: var(--space-3);
 	align-items: stretch;
-	align-self: stretch;
-}
-
-.record {
-	display: flex;
-	gap: var(--space-2);
-	align-items: center;
-	font: var(--body-sm);
-	color: var(--text-muted);
-}
-
-/* Figma binds the trophy to amber/600 — a primitive, because a reward glyph has
-   no semantic alias. `--warning` is the same colour under the wrong name. */
-.recordIcon {
-	flex-shrink: 0;
-	color: var(--amber-600);
 }
 
 @media (width >= 48rem) {
@@ -121,12 +97,5 @@
 
 	.heading {
 		font: var(--display);
-	}
-
-	.cta {
-		flex-direction: row;
-		gap: var(--space-3);
-		align-items: center;
-		align-self: flex-start;
 	}
 }

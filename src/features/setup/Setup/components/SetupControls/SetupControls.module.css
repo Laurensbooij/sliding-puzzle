@@ -1,0 +1,81 @@
+/*
+ * Figma `home-controls` above the breakpoint and the body of `setup sheet`
+ * below it. One tree restyled by a media query rather than branched again:
+ * this component mounts inline on desktop and inside the dialog on mobile
+ * (ADR-0016), never both, so each width has exactly one design to answer to.
+ *
+ * The sheet's rows sit 20 apart, the desktop stack 24.
+ */
+.controls {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-5);
+	align-items: flex-start;
+}
+
+/* Carries the ref the crossover focus move is scoped to, and nothing else —
+   the control lays itself out as if this element were not here. */
+.sizeField {
+	display: contents;
+}
+
+/*
+ * The action and the record line. A grid with named areas, not a flex column:
+ * the sheet draws the record above the button while desktop puts it beside.
+ * Areas, the same tool the screen's own layout uses, so the placement changes
+ * and the source order does not.
+ *
+ * The action stays first in the DOM at both widths. That keeps desktop — where
+ * the two sit on one line, left to right — reading in the order it is drawn,
+ * and costs the sheet a stacked pair read bottom-up. Neither item depends on
+ * the other to make sense (SC 1.3.2), and the record line is not focusable, so
+ * nothing about the tab order turns on it.
+ */
+.cta {
+	display: grid;
+	grid-template-areas:
+		'record'
+		'action';
+	gap: var(--space-5);
+	align-self: stretch;
+	justify-items: start;
+}
+
+.start {
+	grid-area: action;
+	justify-self: center;
+}
+
+.record {
+	display: flex;
+	grid-area: record;
+	gap: var(--space-2);
+	align-items: center;
+	font: var(--body-sm);
+	color: var(--text-muted);
+}
+
+/* Figma binds the trophy to amber/600 — a primitive, because a reward glyph has
+   no semantic alias. `--warning` is the same colour under the wrong name. */
+.recordIcon {
+	flex-shrink: 0;
+	color: var(--amber-600);
+}
+
+@media (width >= 48rem) {
+	.controls {
+		gap: var(--space-6);
+	}
+
+	/* One row, record after action — the order they already sit in. */
+	.cta {
+		grid-template-areas: 'action record';
+		gap: var(--space-3);
+		align-self: flex-start;
+		align-items: center;
+	}
+
+	.start {
+		justify-self: start;
+	}
+}

@@ -38,6 +38,7 @@
   "settings-dialog.title": "Instellingen",
   "setup.board-size.label": "Rastergrootte",
   "setup.board-size.option": "{size} × {size}",
+  "setup.dialog.title": "Stel je puzzel in",
   "setup.heading": "Acht tegels, één gat.",
   "setup.lede": "Schuif de glazen stukken terug op hun plek. Minder zetten is beter — er is geen klok, tenzij je die zelf aanzet.",
   "setup.preview.label": "De opgeloste afbeelding op {size}×{size}",
