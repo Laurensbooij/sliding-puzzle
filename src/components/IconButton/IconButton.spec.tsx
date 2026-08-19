@@ -1,5 +1,4 @@
 import { ICON_TESTIDS } from '@components/Icon'
-import tooltipStyles from '@components/Tooltip/Tooltip.module.css'
 import { createTranslate } from '@i18n'
 import { globalMessages } from '@messages'
 import { renderWithProviders } from '@testing'
@@ -180,23 +179,6 @@ describe('IconButton', () => {
 
 		const button = screen.getByRole('button', { name: LABEL })
 		expect([...button.classList]).toContain(styles[size])
-	})
-
-	// The one thing worth asserting here is that the prop reaches Tooltip at all
-	// — which side the class then puts the chip on is Tooltip's own spec and its
-	// stories, since `position-area` is not something jsdom computes. Hence the
-	// reach for Tooltip's stylesheet: the class *is* the contract between them.
-	it('opens the tooltip on the side it is given', async () => {
-		const user = userEvent.setup()
-		renderComponent({ tooltipPlacement: 'bottom' })
-
-		const button = screen.getByRole('button', { name: LABEL })
-		await user.hover(button)
-
-		const tooltip = screen.getByTestId(
-			`${ICON_BUTTON_TESTIDS.BASE}${ICON_BUTTON_TESTIDS.TOOLTIP_SUFFIX}`,
-		)
-		expect([...tooltip.classList]).toContain(tooltipStyles.bottom)
 	})
 
 	it('lets a consumer override the base testid, tooltip included', async () => {

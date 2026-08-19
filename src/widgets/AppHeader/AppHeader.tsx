@@ -15,8 +15,6 @@ export interface AppHeaderProps {
 	 * SettingsDialog is SLI-66, and whoever composes the header owns it.
 	 */
 	onOpenSettings: () => void
-	/** Overrides the BASE testid. */
-	dataTestId?: string
 }
 
 /**
@@ -56,9 +54,9 @@ export interface AppHeaderProps {
  * prop: the two designs differ only in padding and wordmark size, so nothing
  * about the tree changes across it and CSS is enough (ADR-0016).
  */
-export const AppHeader: FC<AppHeaderProps> = ({ onOpenSettings, dataTestId }) => {
+export const AppHeader: FC<AppHeaderProps> = ({ onOpenSettings }) => {
 	const { translate } = useTranslate()
-	const base = dataTestId ?? APP_HEADER_TESTIDS.BASE
+	const base = APP_HEADER_TESTIDS.BASE
 
 	return (
 		<header className={styles.appHeader} data-testid={base}>
@@ -79,7 +77,6 @@ export const AppHeader: FC<AppHeaderProps> = ({ onOpenSettings, dataTestId }) =>
 				icon="settings"
 				label={translate(appHeaderMessages.settings)}
 				variant="ghost"
-				size="md"
 				tooltipPlacement="bottom"
 				onClick={onOpenSettings}
 				dataTestId={`${base}${APP_HEADER_TESTIDS.SETTINGS_SUFFIX}`}

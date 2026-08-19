@@ -34,7 +34,7 @@
 	font-family: var(--family-display);
 	font-size: var(--font-size-lg);
 	font-weight: var(--weight-bold);
-	line-height: 1.2;
+	line-height: var(--leading-snug);
 
 	/* Figma tracks -0.03em, which is between `tight` and nothing on the scale.
 	   The token is the source, the way IconButton takes the Icon scale over the
