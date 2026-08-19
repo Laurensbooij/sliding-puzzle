@@ -1,0 +1,37 @@
+.canvas {
+	display: flex;
+	gap: var(--space-4);
+	align-items: center;
+	padding: var(--space-6);
+	background-color: var(--surface-page);
+}
+
+/* onWood is the only variant allowed on the frame, so its stories are the only
+   ones that carry the wood behind it — on the page its border and ink would be
+   judged against a background the design never puts it on. */
+.wood {
+	background-color: transparent;
+	background-image: var(--material-wood);
+}
+
+/* Room above the control for the tooltip stories: the chip sits in the top
+   layer and would otherwise open past the canvas and out of the snapshot. */
+.withTooltipRoom {
+	padding-top: var(--space-12);
+}
+
+.grid {
+	display: grid;
+	gap: var(--space-3);
+	justify-items: start;
+}
+
+/* Each variant gets its own row so onWood can carry the wood behind it while
+   the rest stay on the page. */
+.row {
+	display: flex;
+	gap: var(--space-4);
+	align-items: center;
+	padding: var(--space-3);
+	border-radius: var(--radius-md);
+}

@@ -1,0 +1,162 @@
+/* The button states its own height and lets the label and glyphs centre inside
+   it, so a size is one token rather than a padding sum. No overflow clipping
+   anywhere: the focus ring sits outside the pill, and clipping it would obscure
+   the indicator (SC 2.4.11). */
+.button {
+	display: inline-flex;
+	gap: var(--space-2);
+	align-items: center;
+	justify-content: center;
+	padding-block: 0;
+	border: 0;
+	border-radius: var(--radius-pill);
+	background-color: transparent;
+	font-family: var(--family-ui);
+	font-weight: var(--weight-semibold);
+	letter-spacing: var(--tracking-snug);
+	white-space: nowrap;
+	transition: var(--transition-control);
+	cursor: pointer;
+}
+
+.sm {
+	height: var(--control-height-sm);
+	padding-inline: var(--space-4);
+	font-size: var(--font-size-sm);
+}
+
+.md {
+	height: var(--control-height-md);
+	padding-inline: var(--space-5);
+	font-size: var(--font-size-base);
+}
+
+.lg {
+	height: var(--control-height-lg);
+	padding-inline: var(--space-6);
+	font-size: var(--font-size-lg);
+}
+
+.fullWidth {
+	width: 100%;
+}
+
+/* Keyboard focus only. The 2px offset is the design's `focus spacer` layer,
+   which is how Figma draws an outline-offset it has no property for. */
+.button:focus-visible {
+	outline: 2px solid var(--focus-ring);
+	outline-offset: 2px;
+}
+
+.button:disabled {
+	box-shadow: none;
+	opacity: var(--state-disabled-opacity);
+	cursor: default;
+}
+
+/* Press drops the pill 1px and shrinks it a hair, on top of whatever colour the
+   variant moved to.
+
+   The token-layer collapse does not reach this one: `--transition-control` runs
+   on `--dur-fast`, which motion-preferences.css deliberately keeps live because
+   a sub-150ms colour fade carries no movement. This transform does carry
+   movement, so under `prefers-reduced-motion` it is the reset's blanket
+   `transition-duration` kill switch that snaps it — the safety net doing the
+   work the collapse cannot. Fighting either from here is what styling.md rules
+   out, so the press stays declared once and the net catches it. */
+.button:enabled:active {
+	transform: translateY(1px) scale(0.985);
+}
+
+/* The filled variants sit one ramp step below the design's own fills. White on
+   `--accent` measures 4.47:1 and white on `--danger` 3.81:1, both short of the
+   4.5:1 that AA asks of 16px text — and AA is a design constraint here, not a
+   preference, so the axe gate fails the story rather than the ratio sliding.
+   Stepping the whole ramp down keeps three distinct states: what the design
+   calls hover becomes rest, its press becomes hover, and press takes the next
+   step. Bound to the ramp primitives, because a rest colour named
+   `--accent-hover` would lie about what it is. This is a workaround at the
+   component tier: the real fix is the token tier moving `--accent` and
+   `--danger` to steps that clear AA, which would let this file go back to the
+   semantic names. Tracked in SLI-38.
+
+   Every variant below states hover and press as `:enabled:` rather than leaving
+   them to source order: `:hover` still matches a disabled control, which would
+   light it up under the pointer while it refuses the click. */
+.primary {
+	background-color: var(--teal-700);
+	box-shadow: var(--shadow-1);
+	color: var(--text-on-accent);
+}
+
+.primary:enabled:hover {
+	background-color: var(--teal-800);
+}
+
+.primary:enabled:active {
+	background-color: var(--teal-900);
+}
+
+/* A plain border, no compensation: the browser's border-box and Figma's
+   strokes-in-layout agree that the stroke sits inside the fixed height and
+   widens a hug-contents control by 2px. */
+.secondary {
+	border: 1px solid var(--border-default);
+	background-color: var(--surface-card);
+	color: var(--text-strong);
+}
+
+.secondary:enabled:hover {
+	border-color: var(--border-strong);
+	background-color: var(--surface-sunken);
+}
+
+.secondary:enabled:active {
+	border-color: var(--border-strong);
+	background-color: var(--state-press-tint);
+}
+
+.ghost {
+	color: var(--text-body);
+}
+
+.ghost:enabled:hover {
+	background-color: var(--state-hover-tint);
+}
+
+.ghost:enabled:active {
+	background-color: var(--state-press-tint);
+}
+
+.soft {
+	background-color: var(--accent-soft);
+	color: var(--accent-soft-text);
+}
+
+.soft:enabled:hover {
+	background-color: var(--accent-soft-hover);
+}
+
+/* The press step is the ramp primitive the design binds directly — there is no
+   `accent/soft-press` semantic token to mirror. */
+.soft:enabled:active {
+	background-color: var(--teal-300);
+}
+
+.danger {
+	background-color: var(--rose-600);
+	color: var(--text-on-accent);
+}
+
+/* Danger takes the rose ring, so the indicator stays visible against its fill. */
+.danger:focus-visible {
+	outline-color: var(--focus-ring-danger);
+}
+
+.danger:enabled:hover {
+	background-color: var(--rose-700);
+}
+
+.danger:enabled:active {
+	background-color: var(--rose-800);
+}
