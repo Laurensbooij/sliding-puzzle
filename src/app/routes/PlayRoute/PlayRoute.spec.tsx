@@ -12,6 +12,7 @@ import type { RenderResult } from '@testing-library/react'
 import { screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import type { FC } from 'react'
+import { MemoryRouter } from 'react-router'
 import { describe, expect, it } from 'vitest'
 
 import { PlayRoute } from './PlayRoute'
@@ -39,13 +40,18 @@ const renderComponent = (boardSize: BoardSize = 3): RenderResult => {
 		[GAME_CONFIG_STORAGE_KEY]: JSON.stringify({ ...DEFAULT_GAME_CONFIG, boardSize }),
 	})
 
+	// The route element navigates when a game is abandoned, so it needs a router
+	// around it. Where that navigation lands is the table's business, and
+	// `routes.spec.tsx` is where it is asserted.
 	return renderWithProviders(
-		<GameConfigProvider>
-			<SettingsProvider>
-				<PlayRoute />
-				<SizeSwitcher />
-			</SettingsProvider>
-		</GameConfigProvider>,
+		<MemoryRouter>
+			<GameConfigProvider>
+				<SettingsProvider>
+					<PlayRoute />
+					<SizeSwitcher />
+				</SettingsProvider>
+			</GameConfigProvider>
+		</MemoryRouter>,
 	)
 }
 

@@ -42,4 +42,44 @@ export const playMessages = defineMessages({
 		description:
 			'Board dimensions as the player reads them, e.g. 3×3. The separator is a multiplication sign, not the letter x',
 	},
+	abandonTitle: {
+		id: 'play.abandon.title',
+		defaultMessage: 'Abandon this game?',
+		description:
+			'Title of the confirmation shown when the player asks to leave a game in progress',
+	},
+	abandonDescription: {
+		id: 'play.abandon.description',
+		defaultMessage: 'Your moves and time are lost, and nothing is recorded.',
+		description: 'Supporting line of the abandon confirmation, spelling out what is destroyed',
+	},
+	abandonConfirm: {
+		id: 'play.abandon.confirm',
+		defaultMessage: 'Abandon',
+		description:
+			'Destructive action of the abandon confirmation. Ends the game and returns to the Setup screen',
+	},
+	restartTitle: {
+		id: 'play.restart.title',
+		defaultMessage: 'Restart this game?',
+		description:
+			'Title of the confirmation shown when the player asks for a fresh shuffle mid-game',
+	},
+	restartDescription: {
+		id: 'play.restart.description',
+		defaultMessage:
+			'You get a fresh shuffle at the same size. Your moves and time so far are lost.',
+		description: 'Supporting line of the restart confirmation, spelling out what is destroyed',
+	},
+	restartConfirm: {
+		id: 'play.restart.confirm',
+		defaultMessage: 'Restart',
+		description: 'Destructive action of the restart confirmation. Deals a new game',
+	},
+	keepPlaying: {
+		id: 'play.keep-playing',
+		defaultMessage: 'Keep playing',
+		description:
+			'Action that backs out of either confirmation, leaving the game exactly as it was',
+	},
 })
