@@ -7,7 +7,6 @@ import { useEffect, useRef, useState } from 'react'
 import styles from './Setup.module.css'
 import { SetupControls } from './components/SetupControls'
 import type { SetupControlsHandle } from './components/SetupControls'
-import { setupControlsMessages } from './components/SetupControls/translation-messages'
 import { SetupDialog } from './components/SetupDialog'
 import { SetupPreview } from './components/SetupPreview'
 import { SETUP_TESTIDS } from './constants'
@@ -82,9 +81,9 @@ export const Setup: FC<SetupProps> = ({ onStart }) => {
 							iconStart="play"
 							aria-haspopup="dialog"
 							onClick={() => setDialogOpen(true)}
-							dataTestId={`${SETUP_TESTIDS.BASE}${SETUP_TESTIDS.START_SUFFIX}`}
+							dataTestId={`${SETUP_TESTIDS.BASE}${SETUP_TESTIDS.TRIGGER_SUFFIX}`}
 						>
-							<Message message={setupControlsMessages.start} />
+							<Message message={setupMessages.start} />
 						</Button>
 
 						<SetupDialog

@@ -20,7 +20,7 @@ import { setupMessages } from './translation-messages'
 
 const { translate } = createTranslate()
 
-const START_LABEL = translate(setupControlsMessages.start)
+const START_LABEL = translate(setupMessages.start)
 const DIALOG_TITLE = translate(setupDialogMessages.title)
 const CLOSE_LABEL = translate(globalMessages.close)
 
@@ -297,7 +297,7 @@ describe('Setup', () => {
 
 		const screenRoot = screen.getByTestId(SETUP_TESTIDS.BASE)
 		const preview = screen.getByTestId(`${SETUP_TESTIDS.BASE}${SETUP_TESTIDS.PREVIEW_SUFFIX}`)
-		const start = screen.getByTestId(`${SETUP_TESTIDS.BASE}${SETUP_TESTIDS.START_SUFFIX}`)
+		const start = screen.getByTestId(`${SETUP_TESTIDS.BASE}${SETUP_TESTIDS.TRIGGER_SUFFIX}`)
 		await user.click(start)
 
 		const card = screen.getByTestId(

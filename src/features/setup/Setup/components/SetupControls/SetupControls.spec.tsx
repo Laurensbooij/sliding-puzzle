@@ -9,6 +9,7 @@ import { userEvent } from '@testing-library/user-event'
 import type { RefObject } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 
+import { setupMessages } from '../../translation-messages'
 import { SOURCE_IMAGE_CHOICE_TESTIDS } from '../SourceImageChoice'
 import {
 	sourceImageChoiceMessages,
@@ -81,7 +82,7 @@ describe('SetupControls', () => {
 		const sourceImages = screen.getByRole('group', {
 			name: translate(sourceImageChoiceMessages.legend),
 		})
-		const start = screen.getByRole('button', { name: translate(setupControlsMessages.start) })
+		const start = screen.getByRole('button', { name: translate(setupMessages.start) })
 
 		expect(sizes).toBeVisible()
 		expect(sourceImages).toBeVisible()
@@ -205,7 +206,7 @@ describe('SetupControls', () => {
 		const user = userEvent.setup()
 		const { onStart } = renderComponent()
 
-		const start = screen.getByRole('button', { name: translate(setupControlsMessages.start) })
+		const start = screen.getByRole('button', { name: translate(setupMessages.start) })
 		await user.click(start)
 
 		expect(onStart).toHaveBeenCalledOnce()
@@ -219,7 +220,7 @@ describe('SetupControls', () => {
 		const chosenSourceImage = within(sourceImageGroup()).getByRole('radio', {
 			name: translate(sourceImageNameMessages.sailboat),
 		})
-		const start = screen.getByRole('button', { name: translate(setupControlsMessages.start) })
+		const start = screen.getByRole('button', { name: translate(setupMessages.start) })
 
 		await user.tab()
 		expect(chosenSize).toHaveFocus()
@@ -297,14 +298,19 @@ describe('SetupControls', () => {
 
 	it('hands the screen a way to focus the chosen board size', () => {
 		const handleRef: RefObject<SetupControlsHandle | null> = { current: null }
-		renderComponent({ config: { boardSize: 5 }, handleRef })
+		renderComponent({ config: { boardSize: 5, sourceImage: 'cat' }, handleRef })
 
-		const chosen = within(boardSizeGroup()).getByRole('radio', { name: sizeOption(5) })
+		const chosenSize = within(boardSizeGroup()).getByRole('radio', { name: sizeOption(5) })
+		const chosenSourceImage = within(sourceImageGroup()).getByRole('radio', {
+			name: translate(sourceImageNameMessages.cat),
+		})
 		handleRef.current?.focusBoardSize()
 
 		// The chosen segment, not the first one: a radio group's checked option is
-		// its only tab stop, so that is where tabbing in would have landed.
-		expect(chosen).toHaveFocus()
+		// its only tab stop, so that is where tabbing in would have landed. The
+		// artwork group holds a checked radio too, and it is not this one.
+		expect(chosenSize).toHaveFocus()
+		expect(chosenSourceImage).not.toHaveFocus()
 	})
 
 	it('exposes a testid per control', () => {

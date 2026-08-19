@@ -11,6 +11,7 @@ import { userEvent } from '@testing-library/user-event'
 import type { ReactElement } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 
+import { setupMessages } from '../../translation-messages'
 import { SETUP_CONTROLS_TESTIDS } from '../SetupControls'
 import { setupControlsMessages } from '../SetupControls/translation-messages'
 import { setupPreviewMessages } from '../SetupPreview/translation-messages'
@@ -22,7 +23,7 @@ const { translate } = createTranslate()
 
 const TITLE = translate(setupDialogMessages.title)
 const CLOSE_LABEL = translate(globalMessages.close)
-const START_LABEL = translate(setupControlsMessages.start)
+const START_LABEL = translate(setupMessages.start)
 
 interface SetupDialogCase {
 	open?: boolean

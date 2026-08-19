@@ -1,5 +1,4 @@
 import { playMessages } from '@/features/play/Play/translation-messages'
-import { setupControlsMessages } from '@/features/setup/Setup/components/SetupControls/translation-messages'
 import { setupMessages } from '@/features/setup/Setup/translation-messages'
 import { GameConfigProvider } from '@/lib/game-config'
 import { RecordsProvider } from '@/lib/records'
@@ -23,15 +22,16 @@ const { translate } = createTranslate()
  * the screens read their state from context, not from a loader, so a route test
  * that omits them is testing a tree the app never renders.
  *
- * Desktop, because Setup's call to action leads straight to `/play` there;
- * below the breakpoint the same button opens a dialog first, which is Setup's
- * own business rather than the route table's.
+ * Desktop by default, because Setup's call to action leads straight to `/play`
+ * there. Below the breakpoint the same button opens a dialog first and the
+ * dialog's own call to action is what navigates — one case takes that route.
  */
 const renderComponent = (
 	initialEntry: string = ROUTES.setup,
 	options?: RenderWithProvidersOptions,
+	desktop = true,
 ): RenderResult => {
-	setDesktopViewport(true)
+	setDesktopViewport(desktop)
 
 	return renderWithProviders(
 		<GameConfigProvider>
@@ -78,8 +78,27 @@ describe('routes', () => {
 	it('navigates from Setup to Play, retitling and refocusing', async () => {
 		const user = userEvent.setup()
 		renderComponent()
-		const start = screen.getByRole('button', { name: translate(setupControlsMessages.start) })
+		const start = screen.getByRole('button', { name: translate(setupMessages.start) })
 
+		await user.click(start)
+
+		const heading = screen.getByRole('heading', { level: 1 })
+		expect(heading).toHaveFocus()
+		expect(document.title).toBe(translate(routeMessages.playTitle))
+	})
+
+	// The mobile half of the same journey: the page's button only opens Setup's
+	// dialog, and the one inside it is what leaves for Play.
+	it('navigates from Setup to Play through the mobile dialog', async () => {
+		const user = userEvent.setup()
+		renderComponent(ROUTES.setup, undefined, false)
+		const opener = screen.getByRole('button', { name: translate(setupMessages.start) })
+
+		await user.click(opener)
+		const dialog = screen.getByRole('dialog')
+		const start = within(dialog).getByRole('button', {
+			name: translate(setupMessages.start),
+		})
 		await user.click(start)
 
 		const heading = screen.getByRole('heading', { level: 1 })
@@ -90,7 +109,7 @@ describe('routes', () => {
 	it('navigates from Setup to Play with the keyboard alone', async () => {
 		const user = userEvent.setup()
 		renderComponent()
-		const toPlay = screen.getByRole('button', { name: translate(setupControlsMessages.start) })
+		const toPlay = screen.getByRole('button', { name: translate(setupMessages.start) })
 
 		// Past the header's two stops — wordmark, then gear — and the screen's own
 		// two radio groups, each one tab stop under the roving-tabindex model.

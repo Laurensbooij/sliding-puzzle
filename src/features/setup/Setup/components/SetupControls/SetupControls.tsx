@@ -8,6 +8,7 @@ import { Message, useTranslate } from '@i18n'
 import type { FC, Ref } from 'react'
 import { useImperativeHandle, useRef } from 'react'
 
+import { setupMessages } from '../../translation-messages'
 import { SourceImageChoice } from '../SourceImageChoice'
 import styles from './SetupControls.module.css'
 import { SETUP_CONTROLS_TESTIDS } from './constants'
@@ -44,15 +45,16 @@ export const SetupControls: FC<SetupControlsProps> = ({ onStart, ref }) => {
 	const { rows, sourceImage, setBoardSize, setSourceImage } = useGameConfig()
 	const { bestFor } = useRecords()
 	const { translate } = useTranslate()
-	const rootRef = useRef<HTMLDivElement>(null)
+	const boardSizeRef = useRef<HTMLDivElement>(null)
 
 	useImperativeHandle(
 		ref,
 		() => ({
 			focusBoardSize: () => {
-				// The size group leads this tree, and a radio group's checked option is
-				// its only tab stop — so this is the element tabbing in would reach.
-				rootRef.current?.querySelector<HTMLInputElement>('input:checked')?.focus()
+				// A radio group's checked option is its only tab stop, so this is the
+				// element tabbing into the group would reach. Scoped to the size
+				// group's own box: the artwork swatches are checked radios too.
+				boardSizeRef.current?.querySelector<HTMLInputElement>('input:checked')?.focus()
 			},
 		}),
 		[],
@@ -74,15 +76,19 @@ export const SetupControls: FC<SetupControlsProps> = ({ onStart, ref }) => {
 	}
 
 	return (
-		<div className={styles.controls} ref={rootRef} data-testid={base}>
-			<SegmentedControl
-				label={translate(setupControlsMessages.boardSizeLabel)}
-				labelVisible
-				options={boardSizeOptions}
-				value={String(rows)}
-				onChange={handleBoardSizeChange}
-				dataTestId={`${base}${SETUP_CONTROLS_TESTIDS.BOARD_SIZE_SUFFIX}`}
-			/>
+		<div className={styles.controls} data-testid={base}>
+			{/* Box-less wrapper: it exists to scope the crossover focus move to this
+			    group, and `display: contents` keeps it out of the layout. */}
+			<div className={styles.sizeField} ref={boardSizeRef}>
+				<SegmentedControl
+					label={translate(setupControlsMessages.boardSizeLabel)}
+					labelVisible
+					options={boardSizeOptions}
+					value={String(rows)}
+					onChange={handleBoardSizeChange}
+					dataTestId={`${base}${SETUP_CONTROLS_TESTIDS.BOARD_SIZE_SUFFIX}`}
+				/>
+			</div>
 
 			<SourceImageChoice value={sourceImage} onChange={setSourceImage} />
 
@@ -94,7 +100,7 @@ export const SetupControls: FC<SetupControlsProps> = ({ onStart, ref }) => {
 					className={styles.start}
 					dataTestId={`${base}${SETUP_CONTROLS_TESTIDS.START_SUFFIX}`}
 				>
-					<Message message={setupControlsMessages.start} />
+					<Message message={setupMessages.start} />
 				</Button>
 
 				<p

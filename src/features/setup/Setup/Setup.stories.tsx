@@ -9,13 +9,13 @@ import type { Meta, StoryObj } from '@storybook/react-vite'
 import { expect, fn, userEvent, waitFor, within } from 'storybook/test'
 
 import { Setup } from './Setup'
-import { setupControlsMessages } from './components/SetupControls/translation-messages'
 import { setupDialogMessages } from './components/SetupDialog/translation-messages'
 import { SOURCE_IMAGE_CHOICE_TESTIDS } from './components/SourceImageChoice'
+import { setupMessages } from './translation-messages'
 
 const { translate } = createTranslate()
 
-const START_LABEL = translate(setupControlsMessages.start)
+const START_LABEL = translate(setupMessages.start)
 const DIALOG_TITLE = translate(setupDialogMessages.title)
 const CLOSE_LABEL = translate(globalMessages.close)
 

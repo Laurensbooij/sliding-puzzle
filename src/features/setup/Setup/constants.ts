@@ -1,5 +1,5 @@
 export const SETUP_TESTIDS = {
 	BASE: 'setup',
 	PREVIEW_SUFFIX: '-preview',
-	START_SUFFIX: '-start',
+	TRIGGER_SUFFIX: '-trigger',
 } as const

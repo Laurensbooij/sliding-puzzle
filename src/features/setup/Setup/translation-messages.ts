@@ -13,4 +13,9 @@ export const setupMessages = defineMessages({
 			'Slide the glass pieces back into order. Fewer moves is better — there is no timer unless you want one.',
 		description: 'Paragraph under the Setup heading, explaining the game in one line',
 	},
+	start: {
+		id: 'setup.start',
+		defaultMessage: 'Start puzzle',
+		description: 'Label of the button that leaves Setup and starts a game',
+	},
 })

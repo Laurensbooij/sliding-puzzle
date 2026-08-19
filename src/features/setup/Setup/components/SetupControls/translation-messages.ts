@@ -25,9 +25,4 @@ export const setupControlsMessages = defineMessages({
 		description:
 			'Line beside the start button showing the fewest moves the player has solved this board size in; {size} is the board dimension',
 	},
-	start: {
-		id: 'setup.start',
-		defaultMessage: 'Start puzzle',
-		description: 'Label of the button that leaves Setup and starts a game',
-	},
 })

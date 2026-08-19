@@ -13,10 +13,23 @@
 	align-items: flex-start;
 }
 
+/* Carries the ref the crossover focus move is scoped to, and nothing else —
+   the control lays itself out as if this element were not here. */
+.sizeField {
+	display: contents;
+}
+
 /*
  * The action and the record line. A grid with named areas, not a flex column:
- * the sheet draws the record above the button while desktop puts it beside,
- * and areas let the primary action stay first in the DOM at both widths.
+ * the sheet draws the record above the button while desktop puts it beside.
+ * Areas, the same tool the screen's own layout uses, so the placement changes
+ * and the source order does not.
+ *
+ * The action stays first in the DOM at both widths. That keeps desktop — where
+ * the two sit on one line, left to right — reading in the order it is drawn,
+ * and costs the sheet a stacked pair read bottom-up. Neither item depends on
+ * the other to make sense (SC 1.3.2), and the record line is not focusable, so
+ * nothing about the tab order turns on it.
  */
 .cta {
 	display: grid;
