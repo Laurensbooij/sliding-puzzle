@@ -163,17 +163,22 @@ const firstMovableTile = (): HTMLElement => {
 }
 
 /**
- * Every tile on the board, by testid — the numbers they paint are text with no
- * accessible identity of their own, which is the point of the setting.
+ * Every tile, movable or not — the only buttons on the screen that carry a
+ * movability state. The footer's controls and the switches carry none.
  */
 const tileButtons = (): HTMLElement[] =>
-	screen.queryAllByTestId(new RegExp(`^${BOARD_TESTIDS.BASE}${BOARD_TESTIDS.TILE_SUFFIX}-\\d+$`))
+	screen.getAllByRole('button').filter((button) => button.hasAttribute('aria-disabled'))
 
-/** The numbers currently painted on the board, in tile order. */
-const paintedTileNumbers = (): string[] =>
+/**
+ * The numbers painted on the board, ascending. A painted number is text with no
+ * accessible identity of its own — which is the point of the setting — so it is
+ * read off the tile rather than queried for.
+ */
+const paintedTileNumbers = (): number[] =>
 	tileButtons()
-		.map((tile) => tile.textContent?.trim() ?? '')
+		.map((tile) => Number(tile.textContent?.trim()))
 		.filter(Boolean)
+		.sort((first, second) => first - second)
 
 /** The reference-image chip inside the footer, if it is showing. */
 const previewChip = (): HTMLElement | null =>
@@ -291,7 +296,8 @@ describe('Play', () => {
 		it('paints every tile its number while Numbered tiles is on', () => {
 			renderComponent({ numberedTiles: true })
 
-			expect(paintedTileNumbers()).toHaveLength(tileButtons().length)
+			// Eight tiles at 3x3, numbered as the solved picture reads.
+			expect(paintedTileNumbers()).toEqual([1, 2, 3, 4, 5, 6, 7, 8])
 		})
 
 		it('shows the reference image while it is on', () => {
@@ -342,20 +348,9 @@ describe('Play', () => {
 			const after = game.getSnapshot()
 			expect(after.context.board).toBe(played.context.board)
 			expect(after.context.moveCount).toBe(played.context.moveCount)
+			expect(after.context.startedAt).toBe(played.context.startedAt)
 			expect(after.value).toBe(played.value)
 		})
-
-		// The claim the Numbered tiles switch rests on: the number is paint, so the
-		// board reads the same to a screen reader on either setting.
-		it.each([false, true])(
-			'leaves every tile name untouched at numbered=%s',
-			(numberedTiles) => {
-				renderComponent({ numberedTiles })
-
-				const named = tileButtons().every((tile) => tile.getAttribute('aria-label'))
-				expect(named).toBe(true)
-			},
-		)
 	})
 
 	describe('the clock', () => {

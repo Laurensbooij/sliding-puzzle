@@ -88,11 +88,6 @@ export const Numbered: Story = {
 	args: { numbered: true },
 }
 
-/** Numbered and played: the footer, the preview chip and the numbers together. */
-export const NumberedWithFooter: Story = {
-	args: { numbered: true, footer: true },
-}
-
 /**
  * A screen-supplied footer line. The Board never works this out for itself: an
  * unshuffled board is solved too, so only the screen owning the lifecycle can

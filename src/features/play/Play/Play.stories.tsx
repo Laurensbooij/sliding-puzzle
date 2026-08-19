@@ -148,11 +148,6 @@ export const ReferenceImageHidden: Story = {
 	args: { referenceImage: false },
 }
 
-/** Every presentational setting off at once — the plainest board Play draws. */
-export const AllAssistsOff: Story = {
-	args: { referenceImage: false, numberedTiles: false, showTimer: false },
-}
-
 /** The other three sizes Setup offers. The read-outs never change shape. */
 export const FourByFour: Story = {
 	args: { boardSize: 4 },

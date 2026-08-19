@@ -2,7 +2,8 @@ import { DEFAULT_GAME_CONFIG, GAME_CONFIG_STORAGE_KEY, GameConfigProvider } from
 import type { BoardSize, GameConfig } from '@/lib/game-config'
 import { RECORDS_STORAGE_KEY, RecordsProvider } from '@/lib/records'
 import type { Records } from '@/lib/records'
-import { DEFAULT_SETTINGS, SETTINGS_STORAGE_KEY } from '@/lib/settings'
+import { DEFAULT_SETTINGS, SETTINGS_STORAGE_KEY, SettingsProvider } from '@/lib/settings'
+import type { Settings } from '@/lib/settings'
 import { createTranslate } from '@i18n'
 import { readStorage, renderWithProviders, seedStorage } from '@testing'
 import { screen, within } from '@testing-library/react'
@@ -25,6 +26,12 @@ interface SetupCase {
 	config?: Partial<GameConfig>
 	/** Seeded into the records key before the providers read it. */
 	bests?: Records['bests']
+	/**
+	 * Seeded into the settings key, for the one case about a setting this screen
+	 * deliberately ignores. Left alone otherwise: another case uses that key as
+	 * the neighbour a config write must not touch.
+	 */
+	settings?: Partial<Settings>
 }
 
 /**
@@ -32,18 +39,28 @@ interface SetupCase {
  * so the providers start on the state the case is about — which is the same
  * route a returning player takes.
  */
-const renderComponent = ({ config, bests }: SetupCase = {}) => {
+const renderComponent = ({ config, bests, settings }: SetupCase = {}) => {
 	seedStorage({
 		[GAME_CONFIG_STORAGE_KEY]: JSON.stringify({ ...DEFAULT_GAME_CONFIG, ...config }),
 		[RECORDS_STORAGE_KEY]: JSON.stringify({ bests: bests ?? {} } satisfies Records),
 	})
+	if (settings) {
+		seedStorage({
+			[SETTINGS_STORAGE_KEY]: JSON.stringify({ ...DEFAULT_SETTINGS, ...settings }),
+		})
+	}
 	const onStart = vi.fn()
 
+	// The settings provider stands above every route in the app, so it stands
+	// here too — which is what makes "Setup ignores this setting" falsifiable
+	// rather than untestable.
 	const view = renderWithProviders(
 		<GameConfigProvider>
-			<RecordsProvider>
-				<Setup onStart={onStart} />
-			</RecordsProvider>
+			<SettingsProvider>
+				<RecordsProvider>
+					<Setup onStart={onStart} />
+				</RecordsProvider>
+			</SettingsProvider>
 		</GameConfigProvider>,
 	)
 
@@ -250,10 +267,7 @@ describe('Setup', () => {
 	// Numbered tiles is a Play setting. A solved preview numbered 1-8 in order
 	// teaches nothing, so this board stays unnumbered whatever the player chose.
 	it('leaves the preview board unnumbered even with Numbered tiles on', () => {
-		seedStorage({
-			[SETTINGS_STORAGE_KEY]: JSON.stringify({ ...DEFAULT_SETTINGS, numberedTiles: true }),
-		})
-		renderComponent()
+		renderComponent({ settings: { numberedTiles: true } })
 
 		const preview = screen.getByTestId(`${SETUP_TESTIDS.BASE}${SETUP_TESTIDS.PREVIEW_SUFFIX}`)
 		const painted = within(preview)

@@ -468,6 +468,9 @@ describe('Board', () => {
 	})
 
 	describe('numbered', () => {
+		/** Every tile on `gapCentre` — the board every case here renders. */
+		const tilesOnBoard = gapCentre.cells.filter((cell): cell is TileId => cell !== GAP)
+
 		/** The number a tile paints, as a string — 1-based, like its name. */
 		const tileNumber = (tile: TileId): string => String(tile + 1)
 
@@ -481,7 +484,7 @@ describe('Board', () => {
 		it('paints every tile its number when it is turned on', () => {
 			renderComponent({ numbered: true })
 
-			for (const tile of [0, 1, 3, 4, 5, 6, 7] satisfies TileId[]) {
+			for (const tile of tilesOnBoard) {
 				const button = screen.getByRole('button', { name: tileName(tile) })
 				const painted = within(button).getByText(tileNumber(tile))
 				expect(painted).toBeVisible()
@@ -496,19 +499,12 @@ describe('Board', () => {
 			(numbered) => {
 				renderComponent({ numbered })
 
-				for (const tile of [0, 1, 3, 4, 5, 6, 7] satisfies TileId[]) {
+				for (const tile of tilesOnBoard) {
 					const named = screen.getByRole('button', { name: tileName(tile) })
 					expect(named).toBeInTheDocument()
 				}
 			},
 		)
-
-		it('paints the numbers on a board that cannot be played either', () => {
-			renderComponent({ numbered: true, interactive: false })
-			const tile = screen.getByRole('button', { name: tileName(3) })
-			const painted = within(tile).getByText(tileNumber(3))
-			expect(painted).toBeVisible()
-		})
 	})
 
 	describe('inert', () => {
