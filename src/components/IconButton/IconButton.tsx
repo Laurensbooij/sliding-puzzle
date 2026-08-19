@@ -1,6 +1,7 @@
 import { Icon } from '@components/Icon'
 import type { IconName } from '@components/Icon'
 import { Tooltip } from '@components/Tooltip'
+import type { TooltipPlacement } from '@components/Tooltip'
 import { cx } from '@css-utils'
 import type { ComponentPropsWithoutRef, FC } from 'react'
 
@@ -34,6 +35,13 @@ export interface IconButtonProps extends Omit<
 	variant?: IconButtonVariant
 	/** Square edge of the control. Defaults to `md` (40px). */
 	size?: IconButtonSize
+	/**
+	 * Which side the tooltip opens on. Defaults to `top`, and needs saying only
+	 * where there is no room above — a control against the top of the viewport
+	 * gets a chip the browser holds on screen, over the button and its focus
+	 * ring.
+	 */
+	tooltipPlacement?: TooltipPlacement
 	/** Overrides the BASE testid for instances rendered in a collection. */
 	dataTestId?: string
 }
@@ -59,13 +67,18 @@ export const IconButton: FC<IconButtonProps> = ({
 	label,
 	variant = 'solid',
 	size = 'md',
+	tooltipPlacement,
 	dataTestId,
 	...buttonProps
 }) => {
 	const base = dataTestId ?? ICON_BUTTON_TESTIDS.BASE
 
 	return (
-		<Tooltip content={label} dataTestId={`${base}${ICON_BUTTON_TESTIDS.TOOLTIP_SUFFIX}`}>
+		<Tooltip
+			content={label}
+			placement={tooltipPlacement}
+			dataTestId={`${base}${ICON_BUTTON_TESTIDS.TOOLTIP_SUFFIX}`}
+		>
 			<button
 				{...buttonProps}
 				type="button"

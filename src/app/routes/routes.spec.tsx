@@ -66,6 +66,9 @@ describe('routes', () => {
 		renderComponent(ROUTES.play)
 		const toSetup = screen.getByRole('link', { name: translate(placeholderMessages.toSetup) })
 
+		// Past the header's two stops — wordmark, then gear — to the screen's own.
+		await user.tab()
+		await user.tab()
 		await user.tab()
 		expect(toSetup).toHaveFocus()
 		await user.keyboard('{Enter}')
