@@ -2,7 +2,7 @@ import { Icon } from '@components/Icon'
 import { IconButton } from '@components/IconButton'
 import { cx } from '@css-utils'
 import { useTranslate } from '@i18n'
-import type { ComponentPropsWithoutRef, FC, ReactNode } from 'react'
+import type { ComponentPropsWithoutRef, FC, ReactNode, SyntheticEvent } from 'react'
 import { useId, useLayoutEffect, useRef } from 'react'
 
 import styles from './Dialog.module.css'
@@ -143,6 +143,14 @@ export const Dialog: FC<DialogProps> = ({
 		}
 	}, [open])
 
+	// Escape reaches the card as the UA's `cancel`, and preventing it is what
+	// keeps the close controlled: the card goes down when `open` does, not when
+	// the browser decides.
+	const handleCancel = (event: SyntheticEvent<HTMLDialogElement>) => {
+		event.preventDefault()
+		onClose()
+	}
+
 	return (
 		<dialog
 			{...dialogProps}
@@ -153,10 +161,7 @@ export const Dialog: FC<DialogProps> = ({
 			aria-describedby={descriptionId}
 			className={cx(styles.dialog, className)}
 			data-testid={base}
-			onCancel={(event) => {
-				event.preventDefault()
-				onClose()
-			}}
+			onCancel={handleCancel}
 		>
 			{dismissible && (
 				<div className={styles.dismiss}>
