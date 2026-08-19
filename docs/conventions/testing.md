@@ -82,9 +82,12 @@ helper after what it renders (`renderRecords`, `renderSettings`) — the `render
 rule above governs component specs and does not apply here. Not machine-checked.
 
 **A hook spec still runs in jsdom**, so it is a `.spec.tsx` file — which the PascalCase
-filename rule then applies to. That is why a hook's spec lives beside its _provider_
-(`RecordsProvider/RecordsProvider.spec.tsx`) rather than beside the kebab-case hook
-module.
+filename rule then applies to. A hook that has a provider puts its spec beside that
+provider (`RecordsProvider/RecordsProvider.spec.tsx`) rather than beside the kebab-case
+hook module. A hook that has none — `use-media-query/use-media-query.spec.tsx` — keeps
+its spec beside itself and stays kebab-case, which the `src/**/use-*.spec.tsx` override
+in `eslint.config.mjs` enforces. Inventing a provider just to win a PascalCase filename
+would be the tail wagging the dog.
 
 ## Storage
 
@@ -96,6 +99,17 @@ keys already on `globalThis`, so without the shim there is no storage at all.
 `readStorage` from `@testing`. A test that only re-reads its own module's value cannot
 fail when a write clobbers a neighbouring key; comparing a `readStorage` snapshot to
 what `seedStorage` returned can.
+
+## Media queries
+
+jsdom ships no `matchMedia` at all — not a stub, not a no-op — so anything calling
+`useMediaQuery` throws on first render. `vitest.setup.ts` installs the fake from
+`src/testing/match-media.ts`, which specs drive: `setMediaQueryMatches(query, matches)`
+crosses a breakpoint, `mediaQueryListenerCount(query)` catches a leaked subscription.
+
+It parses nothing — a query string is an opaque key — so a spec asserts **which query
+was asked for**, never how a browser would evaluate it. Real evaluation stays a
+Chromium question, like the popover and dialog shims beside it.
 
 ## Queries — accessible identity first (ADR-0005)
 

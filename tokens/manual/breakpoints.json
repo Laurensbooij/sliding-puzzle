@@ -1,0 +1,8 @@
+{
+  "breakpoint": {
+    "desktop": {
+      "$type": "dimension",
+      "$value": "768px"
+    }
+  }
+}

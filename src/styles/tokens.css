@@ -178,6 +178,7 @@
   --tracking-normal: 0em;
   --tracking-wide: 0.04em;
   --tracking-caps: 0.09em;
+  --breakpoint-desktop: 48rem;
   --transition-control: background-color var(--dur-fast) var(--ease-standard), color var(--dur-fast) var(--ease-standard), border-color var(--dur-fast) var(--ease-standard), box-shadow var(--dur-fast) var(--ease-standard), transform var(--dur-fast) var(--ease-standard);
   --transition-tile: left var(--dur-slide) var(--ease-slide), top var(--dur-slide) var(--ease-slide), box-shadow var(--dur-fast) var(--ease-standard), transform var(--dur-fast) var(--ease-standard);
   --transition-cell-slide: transform var(--dur-slide) var(--ease-slide);
