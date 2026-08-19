@@ -40,9 +40,12 @@ const tryNextSizeName = (size: BoardSize): string => translate(solvedMessages.tr
  * card with a name, a description and two operable actions.
  *
  * - **Accessible name** — the title, asserted below.
- * - **Keyboard** — the two actions are `Button`s, so Enter and Space activate
- *   them natively; Escape closes, asserted below. The card takes focus on
- *   arrival rather than the primary action, so a stray Enter starts nothing.
+ * - **Keyboard** — the whole map is asserted below: focus lands on the card,
+ *   Tab walks the two actions in the designed order, Enter activates the
+ *   focused one, and Escape closes. Focus starting on the card rather than the
+ *   primary action is what keeps a stray Enter from starting a game. The focus
+ *   *trap* around all of that is `showModal()`'s and Chromium's — the jsdom
+ *   shim has none — so the stories are what prove Tab never leaves the card.
  * - **Focus (SC 2.4.11)** — carried by the Dialog and its Buttons, and shown in
  *   the `FocusedActions` story there. jsdom paints nothing.
  * - **Announcements** — **N/A, deliberately.** The card *is* the announcement:
@@ -122,6 +125,43 @@ describe('Solved', () => {
 			await user.click(trySize)
 
 			expect(onTryNextSize).toHaveBeenCalledWith(3)
+		})
+	})
+
+	describe('keyboard', () => {
+		it('lands focus on the card, so its title and description are read first', () => {
+			renderComponent()
+
+			const card = screen.getByRole('dialog', { name: titleFor(42) })
+			expect(card).toHaveFocus()
+		})
+
+		it('reaches both actions with Tab, in the designed order', async () => {
+			const user = userEvent.setup()
+			renderComponent()
+
+			await user.tab()
+
+			const playAgain = screen.getByRole('button', {
+				name: translate(solvedMessages.playAgain),
+			})
+			expect(playAgain).toHaveFocus()
+
+			await user.tab()
+
+			const trySize = screen.getByRole('button', { name: tryNextSizeName(4) })
+			expect(trySize).toHaveFocus()
+		})
+
+		it('activates the focused action with Enter', async () => {
+			const user = userEvent.setup()
+			const onPlayAgain = vi.fn()
+			renderComponent({ onPlayAgain })
+			await user.tab()
+
+			await user.keyboard('{Enter}')
+
+			expect(onPlayAgain).toHaveBeenCalledTimes(1)
 		})
 	})
 

@@ -1,13 +1,15 @@
 import { DEFAULT_GAME_CONFIG, GAME_CONFIG_STORAGE_KEY, GameConfigProvider } from '@/lib/game-config'
 import type { BoardSize } from '@/lib/game-config'
 import { DEFAULT_SETTINGS, SETTINGS_STORAGE_KEY, SettingsProvider } from '@/lib/settings'
-import { createBoard, shuffle } from '@engine'
+import { applyMove, cellForDirection, createBoard, movesForCell, shuffle } from '@engine'
+import type { Board as BoardModel } from '@engine'
 import { createTranslate } from '@i18n'
 import { gameMachine } from '@machines/game-machine'
 import { renderWithProviders, seedStorage } from '@testing'
 import type { RenderResult } from '@testing-library/react'
 import { act, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import type { UserEvent } from '@testing-library/user-event'
 import { BOARD_TESTIDS } from '@widgets/Board'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { ActorRefFrom } from 'xstate'
@@ -48,38 +50,49 @@ const startGame = (boardSize: BoardSize = 3, now: () => number = () => 0): GameA
 }
 
 /**
- * The two instants a finished game is timed by, handed out in order: the
- * machine reads the clock once when the game starts and once when it finishes,
- * and a game that is already over by the first render leaves no other moment to
- * move time in.
+ * The clock a finished game is timed by, handing out its two instants in order.
+ * The machine reads one when the game starts and one when it finishes, and a
+ * game that is already over by the first render leaves no other moment to move
+ * time in.
  */
-const stopwatchReading = (elapsed: number): (() => number) => {
+const clockStoppingAt = (elapsed: number): (() => number) => {
 	const readings = [0, elapsed]
 	return () => readings.shift() ?? elapsed
 }
 
-interface SolvedGameCase {
+interface NearlySolvedGameCase {
 	boardSize?: BoardSize
-	/** Milliseconds the finished game took, as the two clock readings above. */
+	/** Milliseconds the finished game takes, as the two clock readings above. */
 	elapsed?: number
-	/** How many of this game's deals come out solved; later ones shuffle for real. */
-	dealsSolved?: number
+	/** How many of this game's deals land one move from solved; later ones shuffle for real. */
+	dealsNearlySolved?: number
 }
 
 /**
- * A game that comes out solved: the route's own actor with the shuffle taken
- * out of its first deal. The engine never returns a solved board from one —
- * deliberately, see ADR-0002 — so skipping it is the only way to hold a won
- * game, and it is exactly the step a win is the absence of.
+ * The dealt board, walked one move back from solved: a tile slid right into the
+ * gap, which sliding it left again undoes.
+ */
+const oneMoveFromSolved = (board: BoardModel): BoardModel => {
+	const cell = cellForDirection(board, 'right')
+	if (cell === null) throw new Error('The dealt board has no tile to unsolve it with')
+	return movesForCell(board, cell).reduce(applyMove, board)
+}
+
+/**
+ * A game one move from winning: the route's own actor, with the deal walked
+ * back a single move instead of shuffled. The engine never returns a solved
+ * board from a shuffle — deliberately, see ADR-0002 — and nothing solves one,
+ * so this is how a spec reaches the win the way a player does: by playing the
+ * last move.
  *
  * Every later deal shuffles as the app's does, so `Play again` from the card
- * lands on a real board rather than on another instant win.
+ * lands on a real board rather than on another game already won.
  */
-const solvedGame = ({
+const nearlySolvedGame = ({
 	boardSize = 3,
 	elapsed = 0,
-	dealsSolved = 1,
-}: SolvedGameCase = {}): GameActor => {
+	dealsNearlySolved = 1,
+}: NearlySolvedGameCase = {}): GameActor => {
 	let deals = 0
 	const machine = gameMachine.provide({
 		actions: {
@@ -87,18 +100,31 @@ const solvedGame = ({
 				board: ({ context }) => {
 					deals += 1
 					const dealt = createBoard(context.board.rows, context.board.cols)
-					return deals <= dealsSolved ? dealt : shuffle(dealt, context.random)
+					return deals <= dealsNearlySolved
+						? oneMoveFromSolved(dealt)
+						: shuffle(dealt, context.random)
 				},
 			}),
 		},
 	})
 
 	const game = createActor(machine, {
-		input: { rows: boardSize, cols: boardSize, now: stopwatchReading(elapsed) },
+		input: { rows: boardSize, cols: boardSize, now: clockStoppingAt(elapsed) },
 	})
 	game.start()
 	game.send({ type: 'game.start' })
 	return game
+}
+
+/**
+ * Wins a game dealt by `nearlySolvedGame`: the arrow names the tile that travels
+ * back into the gap (ADR-0014), and only reaches the board's handler from inside
+ * it — so focus is placed on a tile rather than tabbed to, which would depend on
+ * wherever the case left it.
+ */
+const winTheGame = async (user: UserEvent): Promise<void> => {
+	firstMovableTile().focus()
+	await user.keyboard('{ArrowLeft}')
 }
 
 const renderComponent = ({
@@ -375,55 +401,71 @@ describe('Play', () => {
 	})
 
 	/**
-	 * The win. No case here plays a move — the game is over before the first
-	 * render — so the card counts the nought moves an untouched solved board
-	 * took, and what matters is that it counts the machine's number at all.
+	 * The win, reached the way a player reaches it: every case here is dealt a
+	 * board one move from solved and plays that move, so the card counts a real
+	 * game and the board's live region has already said its piece about it.
 	 */
 	describe('once the board is solved', () => {
-		const WON_IN_NO_MOVES = translate(solvedMessages.title, { count: 0 })
+		const WON_IN_ONE_MOVE = translate(solvedMessages.title, { count: 1 })
 		const SOLVED_HINT = translate(playMessages.solvedHint)
 
-		const playAgainButton = (): HTMLElement =>
-			screen.getByRole('button', { name: translate(solvedMessages.playAgain) })
+		const winCard = (): HTMLElement => screen.getByRole('dialog', { name: WON_IN_ONE_MOVE })
 
-		it('raises the win card, named by the moves the game took', () => {
-			renderComponent({ game: solvedGame() })
+		it('raises the win card, named by the moves the game took', async () => {
+			const user = userEvent.setup()
+			renderComponent({ game: nearlySolvedGame() })
 
-			const card = screen.getByRole('dialog', { name: WON_IN_NO_MOVES })
+			await winTheGame(user)
+
+			const card = winCard()
 			expect(card).toBeVisible()
 		})
 
-		it('describes the win with the elapsed time, frozen where the clock stopped', () => {
-			renderComponent({ game: solvedGame({ elapsed: 78 * SECOND_MS }) })
+		it('describes the win with the elapsed time, frozen where the clock stopped', async () => {
+			const user = userEvent.setup()
+			renderComponent({ game: nearlySolvedGame({ elapsed: 78 * SECOND_MS }) })
 
-			const card = screen.getByRole('dialog', { name: WON_IN_NO_MOVES })
+			await winTheGame(user)
+
+			const card = winCard()
 			expect(card).toHaveAccessibleDescription(
 				translate(solvedMessages.description, { time: '01:18' }),
 			)
 		})
 
-		it('changes the board footer line to Solved', () => {
-			renderComponent({ game: solvedGame() })
+		it('changes the board footer line to Solved', async () => {
+			const user = userEvent.setup()
+			renderComponent({ game: nearlySolvedGame() })
+
+			await winTheGame(user)
 
 			const hint = screen.getByText(SOLVED_HINT)
 			expect(hint).toBeVisible()
 		})
 
 		/**
-		 * The deliberate N/A from the ticket, asserted where both surfaces exist:
-		 * the card's own arrival is the announcement, and the board's region
-		 * reports moves. Saying the win twice is worse than saying it once.
+		 * The deliberate N/A from the ticket, asserted where both surfaces exist.
+		 * The region reports the move that won the game, as it reports every
+		 * other one; the win itself is the card's arrival to announce, and saying
+		 * it twice is worse than saying it once.
 		 */
-		it('never pushes the win through the board’s live region', () => {
-			renderComponent({ game: solvedGame() })
-
+		it('never pushes the win through the board’s live region', async () => {
+			const user = userEvent.setup()
+			renderComponent({ game: nearlySolvedGame() })
 			const announcer = screen.getByRole('status')
-			expect(announcer.textContent).toBe('')
+
+			await winTheGame(user)
+
+			const card = winCard()
+			expect(card).toBeVisible()
+			expect(announcer.textContent).not.toBe('')
+			expect(announcer).not.toHaveTextContent(WON_IN_ONE_MOVE)
 		})
 
 		it('closes to the solved board on Escape, footer line intact', async () => {
 			const user = userEvent.setup()
-			renderComponent({ game: solvedGame() })
+			renderComponent({ game: nearlySolvedGame() })
+			await winTheGame(user)
 
 			await user.keyboard('{Escape}')
 
@@ -437,18 +479,25 @@ describe('Play', () => {
 
 		it('deals a new game at the same size from Play again', async () => {
 			const user = userEvent.setup()
-			renderComponent({ boardSize: 4, game: solvedGame({ boardSize: 4 }) })
+			const boardSize: BoardSize = 4
+			renderComponent({ boardSize, game: nearlySolvedGame({ boardSize }) })
+			await winTheGame(user)
+			const playAgain = screen.getByRole('button', {
+				name: translate(solvedMessages.playAgain),
+			})
 
-			await user.click(playAgainButton())
+			await user.click(playAgain)
 
 			const card = screen.queryByRole('dialog')
-			const boardSize = statValue(BOARD_SIZE_LABEL)
+			const grid = statValue(BOARD_SIZE_LABEL)
 			const solvedHint = screen.queryByText(SOLVED_HINT)
+			const moves = statValue(MOVES_LABEL)
 			expect(card).not.toBeInTheDocument()
-			expect(boardSize).toHaveTextContent(
-				translate(playMessages.boardSizeValue, { rows: 4, cols: 4 }),
+			expect(grid).toHaveTextContent(
+				translate(playMessages.boardSizeValue, { rows: boardSize, cols: boardSize }),
 			)
 			expect(solvedHint).not.toBeInTheDocument()
+			expect(moves).toHaveTextContent('00')
 		})
 
 		/**
@@ -458,16 +507,17 @@ describe('Play', () => {
 		 */
 		it('starts the next size up in place, without leaving Play', async () => {
 			const user = userEvent.setup()
-			renderComponent({ game: solvedGame() })
+			renderComponent({ game: nearlySolvedGame() })
+			await winTheGame(user)
 			const trySize = screen.getByRole('button', {
 				name: translate(solvedMessages.tryNextSize, { size: 4 }),
 			})
 
 			await user.click(trySize)
 
-			const boardSize = statValue(BOARD_SIZE_LABEL)
+			const grid = statValue(BOARD_SIZE_LABEL)
 			const play = screen.getByTestId(PLAY_TESTIDS.BASE)
-			expect(boardSize).toHaveTextContent(
+			expect(grid).toHaveTextContent(
 				translate(playMessages.boardSizeValue, { rows: 4, cols: 4 }),
 			)
 			expect(play).toBeVisible()
@@ -480,15 +530,17 @@ describe('Play', () => {
 		 */
 		it('raises the card again for the next win, after an Escape closed the last', async () => {
 			const user = userEvent.setup()
-			renderComponent({ game: solvedGame({ dealsSolved: 2 }) })
+			renderComponent({ game: nearlySolvedGame({ dealsNearlySolved: 2 }) })
+			await winTheGame(user)
 			await user.keyboard('{Escape}')
 			const restart = screen.getByTestId(
 				`${BOARD_TESTIDS.BASE}${BOARD_TESTIDS.RESTART_SUFFIX}`,
 			)
-
 			await user.click(restart)
 
-			const card = screen.getByRole('dialog', { name: WON_IN_NO_MOVES })
+			await winTheGame(user)
+
+			const card = winCard()
 			expect(card).toBeVisible()
 		})
 	})
