@@ -1,0 +1,5 @@
+/* The page the header sits on. Storybook's canvas is white; the app paints
+   `--surface-page` on the shell, and both header inks are designed against it. */
+.page {
+	background-color: var(--surface-page);
+}

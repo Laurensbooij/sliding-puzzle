@@ -1,5 +1,6 @@
-import { placeholderMessages } from '@/app/placeholders/translation-messages'
+import { setupMessages } from '@/features/setup/Setup/translation-messages'
 import { GameConfigProvider } from '@/lib/game-config'
+import { RecordsProvider } from '@/lib/records'
 import { ROUTES } from '@/lib/routes'
 import { SettingsProvider } from '@/lib/settings'
 import { createTranslate } from '@i18n'
@@ -14,18 +15,23 @@ import { routeMessages } from './translation-messages'
 
 const { translate } = createTranslate()
 
+/**
+ * The providers sit outside the router here exactly as they do in `main.tsx`:
+ * the screens read their state from context, not from a loader, so a route test
+ * that omits them is testing a tree the app never renders.
+ */
 const renderComponent = (
 	initialEntry: string = ROUTES.setup,
 	options?: RenderWithProvidersOptions,
 ): RenderResult =>
 	renderWithProviders(
-		// The same providers `main.tsx` mounts above the router: the screens read
-		// persisted state, and the router has nothing of its own to fetch.
 		<GameConfigProvider>
 			<SettingsProvider>
-				<RouterProvider
-					router={createMemoryRouter(routes, { initialEntries: [initialEntry] })}
-				/>
+				<RecordsProvider>
+					<RouterProvider
+						router={createMemoryRouter(routes, { initialEntries: [initialEntry] })}
+					/>
+				</RecordsProvider>
 			</SettingsProvider>
 		</GameConfigProvider>,
 		options,
@@ -37,7 +43,7 @@ describe('routes', () => {
 
 		const heading = screen.getByRole('heading', {
 			level: 1,
-			name: translate(placeholderMessages.setupHeading),
+			name: translate(setupMessages.heading),
 		})
 
 		expect(heading).toBeInTheDocument()
@@ -62,9 +68,9 @@ describe('routes', () => {
 	it('navigates from Setup to Play, retitling and refocusing', async () => {
 		const user = userEvent.setup()
 		renderComponent()
-		const toPlay = screen.getByRole('link', { name: translate(placeholderMessages.toPlay) })
+		const start = screen.getByRole('button', { name: translate(setupMessages.start) })
 
-		await user.click(toPlay)
+		await user.click(start)
 
 		const heading = screen.getByRole('heading', { level: 1 })
 		expect(heading).toHaveFocus()
@@ -74,12 +80,21 @@ describe('routes', () => {
 	it('navigates from Setup to Play with the keyboard alone', async () => {
 		const user = userEvent.setup()
 		renderComponent()
-		const toPlay = screen.getByRole('link', { name: translate(placeholderMessages.toPlay) })
+		const toPlay = screen.getByRole('button', { name: translate(setupMessages.start) })
 
+		// Past the header's two stops — wordmark, then gear — and the screen's own
+		// two radio groups, each one tab stop under the roving-tabindex model.
+		await user.tab()
+		await user.tab()
+		await user.tab()
+		await user.tab()
 		await user.tab()
 		expect(toPlay).toHaveFocus()
 		await user.keyboard('{Enter}')
 
+		// The screen's own copy is its spec's business; what the table owes is
+		// that Play — the real Play, not this test's own heading — is what
+		// mounts, and that it takes focus.
 		const heading = screen.getByRole('heading', { level: 1 })
 		expect(heading).toHaveFocus()
 		expect(document.title).toBe(translate(routeMessages.playTitle))
@@ -90,7 +105,7 @@ describe('routes', () => {
 
 		const heading = screen.getByRole('heading', {
 			level: 1,
-			name: translate(placeholderMessages.setupHeading),
+			name: translate(setupMessages.heading),
 		})
 
 		expect(heading).toBeInTheDocument()
@@ -108,7 +123,7 @@ describe('routes', () => {
 
 		const heading = screen.getByRole('heading', {
 			level: 1,
-			name: translate(placeholderMessages.setupHeading),
+			name: translate(setupMessages.heading),
 		})
 
 		expect(heading).toHaveFocus()
