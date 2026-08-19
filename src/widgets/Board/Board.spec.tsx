@@ -444,6 +444,78 @@ describe('Board', () => {
 		)
 	})
 
+	describe('inert', () => {
+		// What Setup names its decorative copy of the board. Board takes the string
+		// rather than a message: the name belongs to the screen composing it, so
+		// the message does too.
+		const INERT_LABEL = 'The solved picture at 3×3'
+
+		it('takes its accessible name from the caller', () => {
+			renderComponent({ interactive: false, label: INERT_LABEL })
+			const board = screen.getByRole('group', { name: INERT_LABEL })
+			expect(board).toBeInTheDocument()
+		})
+
+		it('falls back to the dimensions when the caller names nothing', () => {
+			renderComponent({ interactive: false })
+			const board = screen.getByRole('group', {
+				name: translate(boardMessages.label, { rows: 3, cols: 3 }),
+			})
+			expect(board).toBeInTheDocument()
+		})
+
+		it('still renders one tile per occupied cell', () => {
+			renderComponent({ interactive: false, label: INERT_LABEL })
+			const tiles = screen.getAllByRole('button')
+			expect(tiles).toHaveLength(gapCentre.cells.length - 1)
+		})
+
+		it('offers no tab stop at all', async () => {
+			const user = userEvent.setup()
+			renderComponent({ interactive: false, label: INERT_LABEL })
+
+			await user.tab()
+
+			const tiles = screen.getAllByRole('button')
+			for (const tile of tiles) {
+				expect(tile).not.toHaveFocus()
+			}
+		})
+
+		it('reports nothing when a tile is clicked', async () => {
+			const user = userEvent.setup()
+			const onCellPress = vi.fn()
+			renderComponent({ interactive: false, label: INERT_LABEL, onCellPress })
+
+			const tile = screen.getByRole('button', { name: tileName(3) })
+			await user.click(tile)
+
+			expect(onCellPress).not.toHaveBeenCalled()
+		})
+
+		it('leaves the arrow keys to the screen around it', async () => {
+			const user = userEvent.setup()
+			const onCellPress = vi.fn()
+			// The footer's controls are the only way to get focus inside an inert
+			// board, which is what the arrow handler needs to hear anything at all.
+			renderComponent({ interactive: false, label: INERT_LABEL, footer: true, onCellPress })
+
+			const restart = screen.getByRole('button', {
+				name: translate(boardMessages.restart),
+			})
+			restart.focus()
+			await user.keyboard('{ArrowRight}')
+
+			expect(onCellPress).not.toHaveBeenCalled()
+		})
+
+		it('mounts no live region', () => {
+			renderComponent({ interactive: false, label: INERT_LABEL })
+			const announcer = screen.queryByRole('status')
+			expect(announcer).not.toBeInTheDocument()
+		})
+	})
+
 	it('marks the empty cell without giving it an accessible identity', () => {
 		renderComponent()
 		const gap = screen.getByTestId(`${BOARD_TESTIDS.BASE}${BOARD_TESTIDS.GAP_SUFFIX}`)
