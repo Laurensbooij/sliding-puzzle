@@ -1,9 +1,11 @@
 import { DEFAULT_GAME_CONFIG, GAME_CONFIG_STORAGE_KEY, GameConfigProvider } from '@/lib/game-config'
 import type { BoardSize } from '@/lib/game-config'
+import { RECORDS_STORAGE_KEY, RecordsProvider } from '@/lib/records'
+import type { Records } from '@/lib/records'
 import { DEFAULT_SETTINGS, SETTINGS_STORAGE_KEY, SettingsProvider } from '@/lib/settings'
 import { createTranslate } from '@i18n'
 import { gameMachine } from '@machines/game-machine'
-import { renderWithProviders, seedStorage } from '@testing'
+import { readStorage, renderWithProviders, seedStorage } from '@testing'
 import type { RenderResult } from '@testing-library/react'
 import { act, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
@@ -25,6 +27,8 @@ type GameActor = ActorRefFrom<typeof gameMachine>
 interface PlayCase {
 	boardSize?: BoardSize
 	showTimer?: boolean
+	/** The records the player arrives with, as their browser would hold them. */
+	bests?: Records['bests']
 	game?: GameActor
 	onAbandon?: () => void
 }
@@ -83,23 +87,34 @@ const startNearlySolvedGame = (now: () => number = () => 0): GameActor => {
 const renderComponent = ({
 	boardSize = 3,
 	showTimer = true,
+	bests = {},
 	game = startGame(boardSize),
 	onAbandon = vi.fn(),
 }: PlayCase = {}): RenderResult => {
-	// Both providers hydrate from storage on mount, so a case states its config
-	// and settings the way a returning player's browser would.
+	// Every provider hydrates from storage on mount, so a case states its config,
+	// settings and records the way a returning player's browser would.
 	seedStorage({
 		[GAME_CONFIG_STORAGE_KEY]: JSON.stringify({ ...DEFAULT_GAME_CONFIG, boardSize }),
 		[SETTINGS_STORAGE_KEY]: JSON.stringify({ ...DEFAULT_SETTINGS, showTimer }),
+		[RECORDS_STORAGE_KEY]: JSON.stringify({ bests } satisfies Records),
 	})
 
 	return renderWithProviders(
 		<GameConfigProvider>
 			<SettingsProvider>
-				<Play game={game} onAbandon={onAbandon} />
+				<RecordsProvider>
+					<Play game={game} onAbandon={onAbandon} />
+				</RecordsProvider>
 			</SettingsProvider>
 		</GameConfigProvider>,
 	)
+}
+
+/** The records as they stand in storage — what a reload would read back. */
+const storedBests = (): Records['bests'] => {
+	const stored = readStorage([RECORDS_STORAGE_KEY])[RECORDS_STORAGE_KEY]
+	if (!stored) throw new Error('The records key holds nothing')
+	return (JSON.parse(stored) as Records).bests
 }
 
 /**
@@ -151,7 +166,9 @@ const readOutTestIds = [
  * - Announcements — **N/A for the Time card, deliberately**, and asserted
  *   below. A value that changes once a second makes a live region unusable
  *   noise; it stays in the accessibility tree and reads as "Time, 01:18" on
- *   demand. Moves are already spoken by the Board's live region, as the tile
+ *   demand. **N/A for the Best card too**, on the same reasoning and also
+ *   asserted below: a record is spoken once, through the win card's
+ *   description, and the number behind it reads as "Best, 42" on demand. Moves are already spoken by the Board's live region, as the tile
  *   movement that produced them. **N/A for the two confirmations** as well:
  *   a card's arrival is announced by its role, name and description, which the
  *   cases below assert, and neither holds a value that changes while it is
@@ -521,6 +538,173 @@ describe('Play', () => {
 	})
 
 	/**
+	 * The records, from the screen that writes them. The game is dealt one press
+	 * from solved and that press is played, so every case here records a real
+	 * one-move solve — at the size the config holds, which is what a record
+	 * belongs to.
+	 */
+	describe('the record', () => {
+		const winningGame = (): GameActor => startNearlySolvedGame()
+
+		const win = async (user: UserEvent): Promise<void> => {
+			await user.click(firstMovableTile())
+		}
+
+		const bestCard = (): HTMLElement =>
+			screen.getByTestId(`${PLAY_TESTIDS.BASE}${PLAY_TESTIDS.BEST_SUFFIX}`)
+
+		/**
+		 * The card's treatment as the DOM can state it: CSS-module class names
+		 * are hashed, so a tone is read as what this card carries that a plain
+		 * read-out — the Moves card, neutral by definition — does not.
+		 */
+		const toneClasses = (): string[] => {
+			const plain = [
+				...screen.getByTestId(`${PLAY_TESTIDS.BASE}${PLAY_TESTIDS.MOVES_SUFFIX}`).classList,
+			]
+			return [...bestCard().classList].filter((name) => !plain.includes(name))
+		}
+
+		it('fills the best card the moment the solve is recorded', async () => {
+			const user = userEvent.setup()
+			renderComponent({ game: winningGame() })
+
+			await win(user)
+
+			const best = statValue(BEST_LABEL)
+			expect(best).toHaveTextContent('01')
+		})
+
+		// The accent-tinted treatment the Solved frame draws, which only a card
+		// holding a record wears.
+		it('tints the best card once it holds a record', async () => {
+			const user = userEvent.setup()
+			renderComponent({ game: winningGame() })
+			expect(toneClasses()).toEqual([])
+
+			await win(user)
+
+			expect(toneClasses()).toEqual([expect.stringContaining('accent')])
+		})
+
+		it('shows the record a returning player already holds, tinted', () => {
+			renderComponent({ bests: { 3: 42 } })
+
+			const best = statValue(BEST_LABEL)
+			expect(best).toHaveTextContent('42')
+			expect(toneClasses()).toEqual([expect.stringContaining('accent')])
+		})
+
+		it('writes the solve to storage, so a reload still shows it', async () => {
+			const user = userEvent.setup()
+			renderComponent({ game: winningGame() })
+
+			await win(user)
+
+			expect(storedBests()).toEqual({ 3: 1 })
+		})
+
+		it('replaces a record the game beat', async () => {
+			const user = userEvent.setup()
+			renderComponent({ bests: { 3: 5 }, game: winningGame() })
+
+			await win(user)
+
+			const best = statValue(BEST_LABEL)
+			expect(best).toHaveTextContent('01')
+			expect(storedBests()).toEqual({ 3: 1 })
+		})
+
+		// A tie is not a best: the run that first got there keeps it.
+		it('leaves a record the game only matched', async () => {
+			const user = userEvent.setup()
+			renderComponent({ bests: { 3: 1 }, game: winningGame() })
+
+			await win(user)
+
+			expect(storedBests()).toEqual({ 3: 1 })
+		})
+
+		it('records nothing while the game is still being played', async () => {
+			const user = userEvent.setup()
+			renderComponent()
+
+			await user.click(firstMovableTile())
+
+			expect(storedBests()).toEqual({})
+		})
+
+		it('records nothing when the game is abandoned', async () => {
+			const user = userEvent.setup()
+			renderComponent()
+			await user.click(boardControl(BOARD_TESTIDS.ABANDON_SUFFIX))
+			const confirmation = screen.getByRole('dialog', { name: ABANDON_TITLE })
+			const confirm = within(confirmation).getByRole('button', {
+				name: translate(playMessages.abandonConfirm),
+			})
+
+			await user.click(confirm)
+
+			expect(storedBests()).toEqual({})
+		})
+
+		it('records one solve once, however long the solved board stays on screen', async () => {
+			const user = userEvent.setup()
+			renderComponent({ bests: { 3: 5 }, game: winningGame() })
+			await win(user)
+
+			// Escape closes the win card to the solved board, which re-renders the
+			// screen without ending the game — the cheapest second look at a solve
+			// already recorded.
+			await user.keyboard('{Escape}')
+
+			expect(storedBests()).toEqual({ 3: 1 })
+		})
+
+		it('celebrates a record in the win card, alongside the time', async () => {
+			const user = userEvent.setup()
+			renderComponent({ game: startNearlySolvedGame(clockStoppingAt(78 * SECOND_MS)) })
+
+			await win(user)
+
+			const card = screen.getByRole('dialog', {
+				name: translate(solvedMessages.title, { count: 1 }),
+			})
+			expect(card).toHaveAccessibleDescription(
+				`${translate(solvedMessages.newBest, { size: 3 })} ${translate(solvedMessages.description, { time: '01:18' })}`,
+			)
+		})
+
+		it('claims no record for a game that only matched one', async () => {
+			const user = userEvent.setup()
+			renderComponent({ bests: { 3: 1 }, game: winningGame() })
+
+			await win(user)
+
+			const newBestLine = screen.queryByText(translate(solvedMessages.newBest, { size: 3 }))
+			expect(newBestLine).not.toBeInTheDocument()
+		})
+
+		/**
+		 * The second deliberate N/A on this screen, for the same reason as the
+		 * Time card: the value stays readable on demand rather than interrupting.
+		 * The record is spoken once, through the win card's description, which the
+		 * case above asserts.
+		 */
+		it('never announces the record it just wrote', async () => {
+			const user = userEvent.setup()
+			renderComponent({ game: winningGame() })
+			const announcer = screen.getByRole('status')
+
+			await win(user)
+
+			const card = bestCard()
+			expect(card).not.toHaveAttribute('aria-live')
+			expect(announcer).not.toHaveTextContent('01')
+		})
+	})
+
+	/**
 	 * The win: the card the solved board raises, and the two footer controls
 	 * behind it. Every case is dealt a game one press from solved and plays that
 	 * press, so the card counts a real game and the board's live region has
@@ -547,9 +731,14 @@ describe('Play', () => {
 			expect(card).toBeVisible()
 		})
 
+		// Dealt a player who already holds this one-move best, so the win ties
+		// rather than beats it and the description is the time line alone.
 		it('describes the win with the elapsed time, frozen where the clock stopped', async () => {
 			const user = userEvent.setup()
-			renderComponent({ game: startNearlySolvedGame(clockStoppingAt(78 * SECOND_MS)) })
+			renderComponent({
+				bests: { 3: 1 },
+				game: startNearlySolvedGame(clockStoppingAt(78 * SECOND_MS)),
+			})
 
 			await win(user)
 

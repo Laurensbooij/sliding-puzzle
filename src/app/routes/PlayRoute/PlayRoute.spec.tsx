@@ -6,6 +6,7 @@ import {
 	useGameConfig,
 } from '@/lib/game-config'
 import type { BoardSize } from '@/lib/game-config'
+import { RecordsProvider } from '@/lib/records'
 import { SettingsProvider } from '@/lib/settings'
 import { renderWithProviders, seedStorage } from '@testing'
 import type { RenderResult } from '@testing-library/react'
@@ -47,8 +48,10 @@ const renderComponent = (boardSize: BoardSize = 3): RenderResult => {
 		<MemoryRouter>
 			<GameConfigProvider>
 				<SettingsProvider>
-					<PlayRoute />
-					<SizeSwitcher />
+					<RecordsProvider>
+						<PlayRoute />
+						<SizeSwitcher />
+					</RecordsProvider>
 				</SettingsProvider>
 			</GameConfigProvider>
 		</MemoryRouter>,

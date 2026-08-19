@@ -18,6 +18,11 @@ export interface SolvedProps {
 	elapsed: number
 	/** The size just solved. The second action offers the one above it. */
 	boardSize: BoardSize
+	/**
+	 * Whether the solve just recorded is a record at that size. Adds a line to
+	 * the description — it never replaces the time.
+	 */
+	isNewBest?: boolean
 	/** Deal a new board at the size just solved. */
 	onPlayAgain: () => void
 	/** Start a game at the size named by the second action, which it is called with. */
@@ -29,10 +34,11 @@ export interface SolvedProps {
 /**
  * The win card: what the game says once the board comes out solved.
  *
- * The description carries the elapsed time rather than Figma's "A new best at
- * 3×3." — nothing records a solve yet, and even once something does that line
- * only holds when the solve *is* a best. This one is the permanent fallback
- * under it, not a placeholder.
+ * The description carries the elapsed time always, and Figma's "A new best at
+ * 3×3." above it when the solve earned one — the time line is the permanent
+ * fallback under a line that only holds when the game actually beat something
+ * (SLI-44). Both are one paragraph, which is the card's whole announcement:
+ * focus lands here and reads the title and then the description.
  *
  * Both actions start a game, which is what leaves the card: one at the size
  * just solved, one at the size above it. Escape is the third way out and the
@@ -49,6 +55,7 @@ export const Solved: FC<SolvedProps> = ({
 	moveCount,
 	elapsed,
 	boardSize,
+	isNewBest = false,
 	onPlayAgain,
 	onTryNextSize,
 	onClose,
@@ -61,10 +68,20 @@ export const Solved: FC<SolvedProps> = ({
 			kind="win"
 			title={<Message message={solvedMessages.title} values={{ count: moveCount }} />}
 			description={
-				<Message
-					message={solvedMessages.description}
-					values={{ time: formatElapsedTime(elapsed) }}
-				/>
+				<>
+					{isNewBest && (
+						<>
+							<Message
+								message={solvedMessages.newBest}
+								values={{ size: boardSize }}
+							/>{' '}
+						</>
+					)}
+					<Message
+						message={solvedMessages.description}
+						values={{ time: formatElapsedTime(elapsed) }}
+					/>
+				</>
 			}
 			onClose={onClose}
 			dataTestId={SOLVED_TESTIDS.BASE}

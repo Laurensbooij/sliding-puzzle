@@ -49,7 +49,9 @@ const tryNextSizeName = (size: BoardSize): string => translate(solvedMessages.tr
  * - **Focus (SC 2.4.11)** — carried by the Dialog and its Buttons, and shown in
  *   the `FocusedActions` story there. jsdom paints nothing.
  * - **Announcements** — **N/A, deliberately.** The card *is* the announcement:
- *   focus lands on it and reads "Solved in 42 moves. Finished in 01:18.". It is
+ *   focus lands on it and reads "Solved in 42 moves. A new best at 3×3.
+ *   Finished in 01:18." — the record is spoken here and nowhere else, which is
+ *   why the Best read-out behind it stays silent (`Play.spec.tsx`). It is
  *   not also pushed through the Board's `role="status"` region, which reports
  *   moves — asserted from the screen in `Play.spec.tsx`, where both exist.
  * - **Target size (SC 2.5.8)** — Button's, 40px at the default step, scanned by
@@ -79,6 +81,28 @@ describe('Solved', () => {
 		expect(card).toHaveAccessibleDescription(
 			translate(solvedMessages.description, { time: '01:18' }),
 		)
+	})
+
+	it('adds the record line above the time when the game set one', () => {
+		renderComponent({ boardSize: 3, elapsed: 78 * SECOND_MS, isNewBest: true })
+
+		const card = screen.getByRole('dialog', { name: titleFor(42) })
+		expect(card).toHaveAccessibleDescription(
+			`${translate(solvedMessages.newBest, { size: 3 })} ${translate(solvedMessages.description, { time: '01:18' })}`,
+		)
+	})
+
+	// The fallback is permanent (SLI-44): the record line is the addition, and a
+	// game that beat nothing still says how long it took.
+	it('keeps the time line to itself when the game beat nothing', () => {
+		renderComponent({ boardSize: 3, elapsed: 78 * SECOND_MS })
+
+		const card = screen.getByRole('dialog', { name: titleFor(42) })
+		const newBestLine = screen.queryByText(translate(solvedMessages.newBest, { size: 3 }))
+		expect(card).toHaveAccessibleDescription(
+			translate(solvedMessages.description, { time: '01:18' }),
+		)
+		expect(newBestLine).not.toBeInTheDocument()
 	})
 
 	it('stays closed while the game is unsolved', () => {
