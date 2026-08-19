@@ -79,46 +79,6 @@ export const Mobile: Story = {
 	globals: { viewport: { value: 'setupMobile' } },
 }
 
-export const ThreeByThree: Story = {
-	args: { boardSize: 3 },
-}
-
-export const FourByFour: Story = {
-	args: { boardSize: 4 },
-}
-
-export const FiveByFive: Story = {
-	args: { boardSize: 5 },
-}
-
-export const SixBySix: Story = {
-	args: { boardSize: 6 },
-}
-
-export const Sailboat: Story = {
-	args: { sourceImage: 'sailboat' },
-}
-
-export const Rocket: Story = {
-	args: { sourceImage: 'rocket' },
-}
-
-export const Bicycle: Story = {
-	args: { sourceImage: 'bike' },
-}
-
-export const CoffeeCup: Story = {
-	args: { sourceImage: 'coffee' },
-}
-
-export const Cat: Story = {
-	args: { sourceImage: 'cat' },
-}
-
-export const Flower: Story = {
-	args: { sourceImage: 'flower' },
-}
-
 /** The designed empty state: nothing solved at this size yet. */
 export const WithoutRecord: Story = {
 	args: { boardSize: 4, bests: {} },
@@ -128,11 +88,6 @@ export const WithoutRecord: Story = {
  * lived on the Records screen, which was cut. */
 export const WithRecord: Story = {
 	args: { boardSize: 4, bests: { 4: 128 } },
-}
-
-/** A record at one size only, to show the line following the choice. */
-export const RecordAtAnotherSize: Story = {
-	args: { boardSize: 3, bests: { 6: 512 } },
 }
 
 /** The affordance on an unchosen swatch — the chosen one is designed not to react. */
