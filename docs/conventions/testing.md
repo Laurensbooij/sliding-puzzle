@@ -85,9 +85,14 @@ rule above governs component specs and does not apply here. Not machine-checked.
 filename rule then applies to. A hook that has a provider puts its spec beside that
 provider (`RecordsProvider/RecordsProvider.spec.tsx`) rather than beside the kebab-case
 hook module. A hook that has none — `use-media-query/use-media-query.spec.tsx` — keeps
-its spec beside itself and stays kebab-case, which the `src/**/use-*.spec.tsx` override
-in `eslint.config.mjs` enforces. Inventing a provider just to win a PascalCase filename
-would be the tail wagging the dog.
+its spec beside itself and stays kebab-case. Inventing a provider just to win a
+PascalCase filename would be the tail wagging the dog.
+
+**A spec inherits its module's casing**, hooks included: PascalCase marks a component
+file, and a `.tsx` extension on a spec only picks the jsdom project. Any kebab-case
+module that needs a DOM to test hits the same collision — `src/app/routes/routes.ts` is
+the other one today — and is listed in the `eslint.config.mjs` override that flips those
+filenames back to kebab-case. Add to that list rather than renaming the module.
 
 ## Storage
 

@@ -1,8 +1,9 @@
 ---
 paths:
   - 'src/components/**'
+  - 'src/widgets/**'
   - 'src/features/**'
-  - 'src/App.tsx'
+  - 'src/app/**'
   - '.storybook/**'
 ---
 

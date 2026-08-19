@@ -75,6 +75,14 @@ const reactIntlPattern = {
 	message: 'Import from `@i18n` — react-intl is only imported inside src/lib/i18n.',
 }
 
+// A screen never decides where it is mounted: navigation is the app tier's job,
+// and a feature takes a callback instead. See ADR-0017.
+const reactRouterPattern = {
+	group: ['react-router', 'react-router/*'],
+	message:
+		'Features never import react-router (ADR-0017) — take a callback and let `src/app/` wire it to a route.',
+}
+
 // Machines are logic, not presentation: engine + XState only. See ADR-0012.
 const machinesPurityPatterns = [
 	{
@@ -247,6 +255,17 @@ export default tseslint.config(
 		},
 	},
 	{
+		// Flat config replaces a rule's options rather than merging them, so the
+		// src-wide patterns have to be restated alongside the router one.
+		files: ['src/features/**/*.{ts,tsx}'],
+		rules: {
+			'no-restricted-imports': [
+				'error',
+				{ patterns: [...aliasSpellingPatterns, reactIntlPattern, reactRouterPattern] },
+			],
+		},
+	},
+	{
 		files: ['src/engine/**/*.ts'],
 		rules: {
 			'no-restricted-imports': [
@@ -366,18 +385,19 @@ export default tseslint.config(
 		},
 	},
 	{
-		// A hook spec needs a DOM, and the jsdom Vitest project is selected by the
-		// `.tsx` extension — so a hook that has a provider puts its spec beside
-		// that provider and inherits its PascalCase name. A hook that has none
-		// keeps its spec beside itself, where the module is kebab-case and so is
-		// the spec. PascalCase marks a component file; this is not one.
+		// A spec inherits its module's casing, and the jsdom Vitest project is
+		// selected by the `.tsx` extension — so a kebab-case module that needs a
+		// DOM to test lands on a `.tsx` filename the PascalCase rule would
+		// otherwise reject. PascalCase marks a component file; none of these is
+		// one. A hook that has a provider sidesteps this by putting its spec
+		// beside that provider and inheriting its PascalCase name.
 		// See docs/conventions/testing.md.
-		files: ['src/**/use-*.spec.tsx'],
+		files: ['src/**/use-*.spec.tsx', 'src/app/routes/routes.spec.tsx'],
 		plugins: { 'check-file': checkFile },
 		rules: {
 			'check-file/filename-naming-convention': [
 				'error',
-				{ 'src/**/use-*.spec.tsx': 'KEBAB_CASE' },
+				{ 'src/**/*.spec.tsx': 'KEBAB_CASE' },
 				{ ignoreMiddleExtensions: true },
 			],
 		},

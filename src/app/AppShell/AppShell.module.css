@@ -1,0 +1,37 @@
+/* Figma `app-shell`: the header sits above `page-content`, which takes the rest
+   of the viewport whatever the screen inside it is worth. */
+.appShell {
+	display: flex;
+	flex-direction: column;
+	min-height: 100dvh;
+	font: var(--body);
+	color: var(--text-body);
+	background-color: var(--surface-page);
+}
+
+/* Figma `page-content`: gutters either side, content capped and centred. The
+   cap only bites past the widest designed frame, so both designed breakpoints
+   render exactly as drawn. */
+.pageContent {
+	flex: 1;
+	width: 100%;
+	max-width: var(--layout-max);
+	margin-inline: auto;
+	padding-inline: var(--space-4);
+}
+
+@media (width >= 48rem) {
+	.pageContent {
+		padding-inline: var(--layout-gutter);
+	}
+}
+
+/* The heading belongs to the screen, not to the shell, so the shell tags it on
+   the way to focusing it rather than reaching in with an element selector.
+   `:focus` and not `:focus-visible`: the heading is never a tab stop, so its
+   only focus is the programmatic one after a route change — and that has to be
+   visible (SC 2.4.11). */
+.routeHeading:focus {
+	outline: 2px solid var(--focus-ring);
+	outline-offset: 2px;
+}

@@ -76,7 +76,10 @@ from any other height.
   root font size (accessibility requirement).
 - **`px`** only for borders, outlines, and shadow geometry — device-pixel details that
   shouldn't scale.
-- Unitless `line-height`. Mobile-first `min-width` media queries in `rem`/`em`.
+- Unitless `line-height`. Mobile-first media queries in `rem`/`em`, written in
+  **range notation** — `@media (width >= 48rem)`. `stylelint-config-standard`'s
+  `media-feature-range-notation` rejects the `min-width:` prefix form, so this is
+  the only spelling that lints.
 - **Viewport units** (`vw`/`vh`/`dvh`/`vmin`) only where a box must stay inside the
   viewport whatever its content says. Pick the axis deliberately: `dvh` to cap
   against a short viewport, `vmin` to stay proportional in both orientations. A
@@ -94,9 +97,11 @@ from any other height.
   duplicate tab stops. ADR-0016 records the trade-off, including what a runtime
   branch costs.
 - **A layout that only changes _looks_ stays in CSS**, with a plain
-  `@media (min-width: 48rem)`. The literal is unavoidable: a media condition
+  `@media (width >= 48rem)`. The literal is unavoidable: a media condition
   cannot read a `var()`. The token is still the source — when it moves, the
-  media queries move with it, and `grep` for the value finds them.
+  media queries move with it, and `grep` for the value finds them. Range
+  notation rather than `min-width:` because Stylelint enforces it; it reads as
+  the same mobile-first opt-in.
 - Review-guarded, not lint-enforced: no rule can tell a shape change from a
   restyle.
 
