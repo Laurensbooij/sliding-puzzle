@@ -10,6 +10,8 @@ export interface GameProps {
 	// union still narrows a dimension to one Setup actually offers.
 	rows: BoardSize
 	cols: BoardSize
+	/** Forwarded to the screen: where an abandoned game leaves the player. */
+	onAbandon: () => void
 }
 
 /**
@@ -25,7 +27,7 @@ export interface GameProps {
  * component cannot key itself, and the key is what makes a size change deal a
  * new game rather than resize one in progress.
  */
-export const Game: FC<GameProps> = ({ rows, cols }) => {
+export const Game: FC<GameProps> = ({ rows, cols, onAbandon }) => {
 	const game = useActorRef(gameMachine, { input: { rows, cols } })
 
 	// Sent from an effect because that is when @xstate/react starts the actor;
@@ -34,5 +36,5 @@ export const Game: FC<GameProps> = ({ rows, cols }) => {
 		game.send({ type: 'game.start' })
 	}, [game])
 
-	return <Play game={game} />
+	return <Play game={game} onAbandon={onAbandon} />
 }
