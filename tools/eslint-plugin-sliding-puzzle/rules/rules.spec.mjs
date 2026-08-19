@@ -235,6 +235,16 @@ ruleTester.run('stories-file-required', storiesFileRequired, {
 			code: 'export const Inner = () => null',
 			filename: `${FIXTURES}src/components/NoStories/components/Inner/Inner.tsx`,
 		},
+		// The widgets tier carries the same requirement.
+		{
+			code: 'export const WithStories = () => null',
+			filename: `${FIXTURES}src/widgets/WithStories/WithStories.tsx`,
+		},
+		// A widget's nested sub-component is exempt, same as a shared one's.
+		{
+			code: 'export const Inner = () => null',
+			filename: `${FIXTURES}src/widgets/NoStories/Inner/Inner.tsx`,
+		},
 	],
 	invalid: [
 		{
@@ -246,6 +256,11 @@ ruleTester.run('stories-file-required', storiesFileRequired, {
 		{
 			code: 'export const Flat = () => null',
 			filename: `${FIXTURES}src/components/Flat.tsx`,
+			errors: [{ messageId: 'missingStories' }],
+		},
+		{
+			code: 'export const NoStories = () => null',
+			filename: `${FIXTURES}src/widgets/NoStories/NoStories.tsx`,
 			errors: [{ messageId: 'missingStories' }],
 		},
 	],

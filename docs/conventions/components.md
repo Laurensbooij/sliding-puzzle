@@ -1,8 +1,10 @@
 ---
 paths:
   - 'src/components/**'
+  - 'src/widgets/**'
   - 'src/features/**'
   - 'src/source-images/**'
+  - 'src/app/**'
   - 'src/App.tsx'
 ---
 
@@ -56,17 +58,29 @@ from 'react'`). Props type named exactly **`ComponentNameProps`**, exported
 ## Folders
 
 - **Colocate by default; promote on the 2nd consumer.** Tiers: component-local →
-  feature (`src/features/<feature>/`) → shared (`src/components/`). Don't skip tiers
-  "just in case".
+  feature (`src/features/<feature>/`) → widget (`src/widgets/`) → shared
+  (`src/components/`). Don't skip tiers "just in case".
+- **Two shared tiers, split by the admission test below.** `src/components/` is
+  product-agnostic; `src/widgets/` is Sliding Puzzle-specific. A component used by
+  exactly one feature stays in that feature either way — `Solved` is domain-specific
+  but Play-only, so it does not climb.
+- **The admission test: could this component render unchanged in a different
+  product?** Yes → `src/components/`. No → `src/widgets/`. Board names Tiles and
+  Gaps, AppHeader carries this app's brand and routes, Settings knows these three
+  toggles — none of them ships elsewhere, so all three are widgets. Button, Dialog
+  and Switch would ship anywhere.
 - **Exception — design-system components are born shared.** A component defined in
-  the Figma design system starts in `src/components/`; its consumers are designed
+  the Figma design system starts in a shared tier; its consumers are designed
   screens, not speculation ([ADR-0009](../adr/0009-design-system-components-are-born-shared.md)).
-  Game-domain components (Board, Tile, Frame) stay in the game feature.
+  The admission test picks which tier.
 - A trivial component is flat colocated files. Once it grows satellites (spec, hook,
   helper, constants, sub-component) it graduates to a `ComponentName/` folder with an
   `index.ts` barrel — a specced module shares a folder named after it (lint-enforced:
   `sliding-puzzle/spec-in-module-folder`). Private sub-components live under its `components/`, are full
-  components recursively, and are never exported from the folder's barrel.
+  components recursively, and are never exported from the folder's barrel. A widget's
+  single-consumer sub-component instead nests directly beside it
+  (`src/widgets/Board/Tile/`): inside a widget the whole folder is the module, so the
+  extra `components/` segment only adds depth.
 - Local hooks → `hooks/use-x/` (hook + spec). Local helpers → `utils/`. Local
   constants → unprefixed `constants.ts`. Local messages →
   `translation-messages.ts` (see [i18n.md](./i18n.md)). Naming:
@@ -99,11 +113,17 @@ from 'react'`). Props type named exactly **`ComponentNameProps`**, exported
 ## Imports
 
 - Reach aliased modules by their alias only — `@engine`, `@i18n`, `@messages`,
-  `@testing`, `@css-utils`, and shared components as `@components/<Name>`. The long `@/...`
+  `@testing`, `@css-utils`, shared components as `@components/<Name>`, and widgets as
+  `@widgets/<Name>`. The long `@/...`
   spelling for those targets is a lint error, and everything else uses `@/*`. See
   [ADR-0007](../adr/0007-module-boundaries-and-import-aliases.md).
 - **Features never import other features.** Compose them at the app level.
   Shared components and `src/lib/` may not import features either.
+- **Widgets never import other widgets, and never import features.** A widget may
+  reach `@components/<Name>`, `@css-utils`, `@i18n`, `src/lib/`, and react-router.
+- **Widgets never import `@machines/*`.** A widget may hold local UI state — a dialog
+  open flag, hover — but it may not own an actor. Logic and presentation meet in
+  features ([ADR-0012](../adr/0012-state-machines-are-born-shared.md)).
 
 ## Dependencies
 
@@ -141,14 +161,14 @@ from 'react'`). Props type named exactly **`ComponentNameProps`**, exported
 
 ## Storybook
 
-- **Every shared component ships colocated stories** (`ComponentName.stories.tsx`)
-  covering each designed variant (lint-enforced:
+- **Every component in a shared tier ships colocated stories**
+  (`ComponentName.stories.tsx`) covering each designed variant — `src/components/`
+  and `src/widgets/` alike (lint-enforced:
   `sliding-puzzle/stories-file-required`).
 - Storybook is the **visual-acceptance surface**: a component is done when its
   stories match the Figma design system's component set. Figma is the source of
   truth; the Claude Design prototypes are input, not canon.
-- Feature components may have stories (Tile does); only the shared tier requires
-  them.
+- Feature components may have stories; only the two shared tiers require them.
 - **Pointer-transient states (`:hover`, `:active`) are forced via
   `storybook-addon-pseudo-states`**, not simulated: `parameters: { pseudo:
 { hover: true, active: true } }`. Play-function `userEvent` dispatches
