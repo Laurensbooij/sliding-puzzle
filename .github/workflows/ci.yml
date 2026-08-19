@@ -39,7 +39,13 @@ jobs:
 
   chromatic:
     # Visual regression via Chromatic; needs full history for TurboSnap.
-    if: github.event_name == 'pull_request'
+    #
+    # Runs on main as well as on PRs, and it has to. Chromatic finds a baseline
+    # by walking git ancestry, and PRs here squash-merge — which discards the
+    # branch commits an approval was recorded against and writes one new commit
+    # on main with no link back to them. With main unbuilt there was nothing to
+    # walk back to, so every PR re-reported the whole Storybook as changed no
+    # matter how many times those snapshots had already been accepted.
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -55,3 +61,6 @@ jobs:
         with:
           projectToken: ${{ secrets.CHROMATIC_PROJECT_TOKEN }}
           onlyChanged: true
+          # Only on main, where every snapshot has already been reviewed on the
+          # PR that introduced it. PRs still require a human to accept.
+          autoAcceptChanges: main
