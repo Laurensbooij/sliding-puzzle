@@ -102,6 +102,20 @@ export const NonSquare: Story = {
 }
 
 /**
+ * `interactive={false}`: the board as decoration. It paints exactly as the
+ * played board does — no tile is a tab stop, no press or arrow is answered, and
+ * no live region mounts — and the screen around it says what it is for. This is
+ * how Setup shows the picture the player is about to scramble.
+ */
+export const Inert: Story = {
+	args: {
+		board: createBoard(BOARD_ROWS, BOARD_COLS),
+		interactive: false,
+		label: 'The solved picture at 3×3',
+	},
+}
+
+/**
  * Playable — the only story that owns a board, and so the only one that
  * announces: Board reports the board it is given, not the press it sent out, so
  * a story with no state has nothing to report. Real lifecycle lives in the game

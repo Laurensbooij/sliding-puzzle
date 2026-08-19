@@ -32,6 +32,21 @@ export interface BoardProps {
 	 */
 	onCellPress?: (cell: CellIndex) => void
 	/**
+	 * Whether this board is played. Off, it is decoration: no tile is a tab stop,
+	 * no press is reported, no arrow is claimed, and no live region mounts.
+	 *
+	 * An explicit prop rather than "there is no `onCellPress`" — a screen that
+	 * forgets the handler would silently lose the semantics too, and a screen
+	 * that wants a rendered-but-dead board would have no way to say so.
+	 */
+	interactive?: boolean
+	/**
+	 * Overrides the group's accessible name. A board that cannot be played is
+	 * decoration belonging to the screen around it, and "Board, 3 by 3" names a
+	 * thing to play — so that screen says what its copy of the board is for.
+	 */
+	label?: string
+	/**
 	 * Shows the designed footer inside the wood: the standing hint and both game
 	 * controls. Off by default — the board Figma draws by default has none.
 	 */
@@ -86,10 +101,16 @@ const NO_ANNOUNCEMENT: Announcement = { text: '', move: 0 }
  * movable tiles — abandon, then restart. Arrows stay board-wide there: they name
  * a tile by the gap, not by what holds focus, and a button has no native arrow
  * behaviour to displace.
+ *
+ * `interactive={false}` withdraws all of that. The board paints exactly as it
+ * does when played and answers nothing: no tab stop, no press, no arrow, no live
+ * region, and the accessible name its screen gives it instead of the dimensions.
  */
 export const Board: FC<BoardProps> = ({
 	board,
 	sourceImage,
+	interactive = true,
+	label,
 	footer = false,
 	preview = true,
 	onCellPress,
@@ -112,7 +133,7 @@ export const Board: FC<BoardProps> = ({
 	if (announcedBoard.current !== board) {
 		const [first, ...rest] = movesBetween(announcedBoard.current, board)
 		announcedBoard.current = board
-		if (first) {
+		if (interactive && first) {
 			const text = translate(boardMessages.moveAnnouncement, {
 				// Every move in a run shares a direction, so the first speaks for all.
 				count: rest.length + 1,
@@ -133,10 +154,15 @@ export const Board: FC<BoardProps> = ({
 	})
 
 	const pressCell = (cell: CellIndex) => {
+		if (!interactive) return
 		if (movesForCell(board, cell).length > 0) onCellPress?.(cell)
 	}
 
 	const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+		// Returns before the `preventDefault` below: an inert board claims no keys,
+		// so arrows keep scrolling the screen it is decorating.
+		if (!interactive) return
+
 		const direction = DIRECTION_BY_KEY[event.key]
 		if (!direction) return
 
@@ -157,7 +183,9 @@ export const Board: FC<BoardProps> = ({
 			className={styles.board}
 			data-testid={base}
 			role="group"
-			aria-label={translate(boardMessages.label, { rows: board.rows, cols: board.cols })}
+			aria-label={
+				label ?? translate(boardMessages.label, { rows: board.rows, cols: board.cols })
+			}
 			onKeyDown={handleKeyDown}
 		>
 			<span className={styles.bevel} />
@@ -170,7 +198,7 @@ export const Board: FC<BoardProps> = ({
 								sourceImage={sourceImage}
 								rows={board.rows}
 								cols={board.cols}
-								movable={movable.includes(tile)}
+								movable={interactive && movable.includes(tile)}
 								// The board Figma draws carries no numbers; a tile's
 								// accessible name is its `aria-label` either way.
 								showLabel={false}
@@ -230,21 +258,31 @@ export const Board: FC<BoardProps> = ({
 					</div>
 				</div>
 			)}
-			{/* `role="status"` already implies polite and atomic; both are spelled
-			    out because older screen readers honour the attributes and not the
-			    role, and the role is what gives tests an accessible query. */}
-			<div className={styles.announcer} role="status" aria-live="polite" aria-atomic="true">
-				{/* Keyed by move count, not by text. Two identical moves in a row
-				    produce the same sentence, and rewriting a live region with the
-				    string already in it mutates no DOM, so nothing is announced.
-				    Replacing the child node makes every move a fresh utterance. */}
-				<span
-					key={announcement.move}
-					data-testid={`${base}${BOARD_TESTIDS.ANNOUNCER_SUFFIX}`}
+			{/* Not mounted at all on an inert board: an empty live region is still a
+			    live region, and a screen reader that lists them would offer one that
+			    can never speak. `role="status"` already implies polite and atomic;
+			    both are spelled out because older screen readers honour the
+			    attributes and not the role, and the role is what gives tests an
+			    accessible query. */}
+			{interactive && (
+				<div
+					className={styles.announcer}
+					role="status"
+					aria-live="polite"
+					aria-atomic="true"
 				>
-					{announcement.text}
-				</span>
-			</div>
+					{/* Keyed by move count, not by text. Two identical moves in a row
+					    produce the same sentence, and rewriting a live region with the
+					    string already in it mutates no DOM, so nothing is announced.
+					    Replacing the child node makes every move a fresh utterance. */}
+					<span
+						key={announcement.move}
+						data-testid={`${base}${BOARD_TESTIDS.ANNOUNCER_SUFFIX}`}
+					>
+						{announcement.text}
+					</span>
+				</div>
+			)}
 		</div>
 	)
 }
