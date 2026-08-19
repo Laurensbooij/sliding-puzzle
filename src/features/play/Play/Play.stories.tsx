@@ -47,6 +47,8 @@ const PlayGame: FC<PlayGameProps> = ({ boardSize, solved, onAbandon }) => {
 interface PlayStoryProps {
 	boardSize: BoardSize
 	showTimer: boolean
+	referenceImage: boolean
+	numberedTiles: boolean
 	solved: boolean
 	onAbandon: () => void
 }
@@ -59,12 +61,22 @@ interface PlayStoryProps {
  * directly, so the story writes the same keys a returning player's browser
  * would — before the providers below it are constructed.
  */
-const PlayStory: FC<PlayStoryProps> = ({ boardSize, showTimer, solved, onAbandon }) => {
+const PlayStory: FC<PlayStoryProps> = ({
+	boardSize,
+	showTimer,
+	referenceImage,
+	numberedTiles,
+	solved,
+	onAbandon,
+}) => {
 	localStorage.setItem(
 		GAME_CONFIG_STORAGE_KEY,
 		JSON.stringify({ ...DEFAULT_GAME_CONFIG, boardSize }),
 	)
-	localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify({ ...DEFAULT_SETTINGS, showTimer }))
+	localStorage.setItem(
+		SETTINGS_STORAGE_KEY,
+		JSON.stringify({ ...DEFAULT_SETTINGS, showTimer, referenceImage, numberedTiles }),
+	)
 
 	return (
 		<GameConfigProvider>
@@ -78,7 +90,14 @@ const PlayStory: FC<PlayStoryProps> = ({ boardSize, showTimer, solved, onAbandon
 const meta = {
 	title: 'Features/Play',
 	component: PlayStory,
-	args: { boardSize: 3, showTimer: true, solved: false, onAbandon: fn() },
+	args: {
+		boardSize: 3,
+		showTimer: true,
+		referenceImage: DEFAULT_SETTINGS.referenceImage,
+		numberedTiles: DEFAULT_SETTINGS.numberedTiles,
+		solved: false,
+		onAbandon: fn(),
+	},
 	parameters: { layout: 'fullscreen' },
 	decorators: [
 		// Stands in for the shell's `page-content`: the gutters and the outer cap
@@ -110,6 +129,23 @@ export const Playing: Story = {}
  */
 export const TimerHidden: Story = {
 	args: { showTimer: false },
+}
+
+/**
+ * Numbered tiles on. The number is paint the player asked for: a tile is still
+ * named "Tile 3" either way, so nothing about the board changes for a screen
+ * reader and nothing is announced when the setting flips.
+ */
+export const NumberedTiles: Story = {
+	args: { numberedTiles: true },
+}
+
+/**
+ * Reference image off. The footer keeps the hint and both controls and collapses
+ * to a single control-height row without the chip.
+ */
+export const ReferenceImageHidden: Story = {
+	args: { referenceImage: false },
 }
 
 /** The other three sizes Setup offers. The read-outs never change shape. */
