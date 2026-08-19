@@ -2,6 +2,7 @@ export {
 	installMatchMedia,
 	mediaQueryListenerCount,
 	resetMatchMedia,
+	setDesktopViewport,
 	setMediaQueryMatches,
 } from './match-media'
 export { renderWithProviders } from './render-with-providers'

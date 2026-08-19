@@ -3,11 +3,21 @@ import type { BoardSize } from '@/lib/game-config'
 import { RECORDS_STORAGE_KEY, RecordsProvider } from '@/lib/records'
 import type { Records } from '@/lib/records'
 import type { SourceImageName } from '@/source-images'
+import { createTranslate } from '@i18n'
+import { globalMessages } from '@messages'
 import type { Meta, StoryObj } from '@storybook/react-vite'
-import { fn } from 'storybook/test'
+import { expect, fn, userEvent, waitFor, within } from 'storybook/test'
 
 import { Setup } from './Setup'
+import { setupDialogMessages } from './components/SetupDialog/translation-messages'
 import { SOURCE_IMAGE_CHOICE_TESTIDS } from './components/SourceImageChoice'
+import { setupMessages } from './translation-messages'
+
+const { translate } = createTranslate()
+
+const START_LABEL = translate(setupMessages.start)
+const DIALOG_TITLE = translate(setupDialogMessages.title)
+const CLOSE_LABEL = translate(globalMessages.close)
 
 /** The two frames Figma draws Setup at, so a story can be read against one. */
 const VIEWPORTS = {
@@ -23,6 +33,18 @@ const VIEWPORTS = {
 const seed = (boardSize: BoardSize, sourceImage: SourceImageName, bests: Records['bests']) => {
 	localStorage.setItem(GAME_CONFIG_STORAGE_KEY, JSON.stringify({ boardSize, sourceImage }))
 	localStorage.setItem(RECORDS_STORAGE_KEY, JSON.stringify({ bests } satisfies Records))
+}
+
+/** Opens the mobile dialog the way a player does, and hands back its card. */
+const openDialog = async (canvasElement: HTMLElement): Promise<HTMLElement> => {
+	const canvas = within(canvasElement)
+	const trigger = canvas.getByRole('button', { name: START_LABEL })
+	await userEvent.click(trigger)
+
+	const card = await canvas.findByRole('dialog', { name: DIALOG_TITLE })
+	await waitFor(() => expect(card).toBeVisible())
+
+	return card
 }
 
 interface SetupStoryArgs {
@@ -67,16 +89,57 @@ const meta = {
 export default meta
 type Story = StoryObj<typeof meta>
 
-/** Figma `1 · Setup` at 1000px: pitch and controls left, the board right. */
+/** Figma `1 · Setup` at 1000: pitch and controls left, the board right. */
 export const Desktop: Story = {}
 
 /**
- * Figma `1 · Setup — mobile` at 390px, plus the two controls the design moves
- * into a sheet (SLI-64). One tree at both widths, so the reading order is the
- * same here as above: preview, pitch, controls.
+ * Figma `1 · Setup — mobile` at 390: preview, pitch, and the one button that
+ * opens the choices. The controls are not on this page at this width — they are
+ * in the dialog below (ADR-0016).
  */
 export const Mobile: Story = {
 	globals: { viewport: { value: 'setupMobile' } },
+}
+
+/**
+ * Figma `1b · Setup sheet — mobile`, opened the way a player opens it.
+ *
+ * Also what jsdom can't answer: the top layer, the inert page behind, and focus
+ * landing on the card so its name is read before any control.
+ */
+export const MobileDialog: Story = {
+	globals: { viewport: { value: 'setupMobile' } },
+	play: async ({ canvasElement }) => {
+		const card = await openDialog(canvasElement)
+
+		await expect(card).toHaveFocus()
+		await expect(card.matches(':modal')).toBe(true)
+	},
+}
+
+/** The dialog on the size with a record — the one line that changes with it. */
+export const MobileDialogWithRecord: Story = {
+	args: { boardSize: 4, bests: { 4: 128 } },
+	globals: { viewport: { value: 'setupMobile' } },
+	play: async ({ canvasElement }) => {
+		await openDialog(canvasElement)
+	},
+}
+
+/**
+ * The ✕'s ring, reached by a real Tab from the card — checks it clears the
+ * card's own edge (SC 2.4.11). Also the dialog's first stop.
+ */
+export const MobileDialogCloseFocused: Story = {
+	globals: { viewport: { value: 'setupMobile' } },
+	play: async ({ canvasElement }) => {
+		const card = await openDialog(canvasElement)
+		const close = within(card).getByRole('button', { name: CLOSE_LABEL })
+
+		await userEvent.tab()
+
+		await expect(close).toHaveFocus()
+	},
 }
 
 /** The designed empty state: nothing solved at this size yet. */

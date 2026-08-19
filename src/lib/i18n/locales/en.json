@@ -41,6 +41,7 @@
   "settings-dialog.title": "Settings",
   "setup.board-size.label": "Grid size",
   "setup.board-size.option": "{size} × {size}",
+  "setup.dialog.title": "Set up your puzzle",
   "setup.heading": "Eight tiles, one gap.",
   "setup.lede": "Slide the glass pieces back into order. Fewer moves is better — there is no timer unless you want one.",
   "setup.preview.label": "The solved picture at {size}×{size}",
