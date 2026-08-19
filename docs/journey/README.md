@@ -9,7 +9,7 @@ How this sliding puzzle got built, phase by phase. Each milestone documents the 
 | 01  | [Task manager](01-task-manager.md)                   | Done        |
 | 02  | [Design](02-design.md)                               | Done        |
 | 03  | [Project setup](03-project-setup.md)                 | Done        |
-| 04  | [Component set](04-component-set.md)                 | Not started |
+| 04  | [Component set](04-component-set.md)                 | Done        |
 | 05  | [Puzzle implementation](05-puzzle-implementation.md) | Not started |
 
 ## Writing a milestone
