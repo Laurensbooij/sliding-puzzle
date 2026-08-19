@@ -8,8 +8,17 @@ Build the components the puzzle needs. Document each one in Storybook.
 
 ## Screenshots
 
-_Add Storybook shots to `assets/04-component-set/`. The Board mid-game, the Dialog open
-over a blurred backdrop, and the Button/IconButton variant grids make good ones._
+The Board mid-game, on the wooden frame with the footer's hint line and restart control:
+
+<img src="assets/04-component-set/storybook-board.png" width="550" alt="Board component in Storybook: a 3x3 wooden frame holding glass tiles with sailboat fragments, one gap, and a footer reading 'Tap a tile beside the gap' next to a restart button">
+
+Button's variant set — filled, outline, ghost, soft and danger, all sharing one icon:
+
+![Five Shuffle buttons in a row: solid green, white outline, plain text, soft mint fill, and solid red](assets/04-component-set/storybook-button.png)
+
+Dialog's confirmation variant, glass material and motion over a blurred, inert backdrop:
+
+<img src="assets/04-component-set/storybook-dialog.png" width="700" alt="Dialog component in Storybook: an 'Abandon this game?' confirmation over a blurred, dimmed game board, with red Abandon and text Keep playing actions">
 
 ## How it went
 
