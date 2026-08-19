@@ -5,7 +5,7 @@ import { Dialog } from '@components/Dialog'
 import { Icon } from '@components/Icon'
 import { StatCard } from '@components/StatCard'
 import { cx } from '@css-utils'
-import type { CellIndex } from '@engine'
+import type { Board as BoardModel, CellIndex } from '@engine'
 import { Message } from '@i18n'
 import type { gameMachine } from '@machines/game-machine'
 import { elapsedMs } from '@machines/game-machine'
@@ -16,6 +16,7 @@ import { useState } from 'react'
 import type { ActorRefFrom, SnapshotFrom } from 'xstate'
 
 import styles from './Play.module.css'
+import { Solved } from './components/Solved'
 import { PLAY_TESTIDS } from './constants'
 import { useElapsedTick } from './hooks/use-elapsed-tick/use-elapsed-tick'
 import { playMessages } from './translation-messages'
@@ -72,6 +73,12 @@ export interface PlayProps {
  * accessibility tree, where StatCard's `aria-labelledby` reads it as "Time,
  * 01:18" whenever it is asked for.
  *
+ * Solving the board raises the win card over it and changes the footer line to
+ * "Solved". Escape closes the card to that board — a destination the mobile
+ * Solved frame draws deliberately, with the read-outs standing at their final
+ * values and both board controls still live. It does not come back for that
+ * solve; the next win raises it again, however the game got there.
+ *
  * The footer's two controls each destroy a game in progress, so each asks
  * first. Both questions are plain `Dialog` compositions rather than one shared
  * confirm wrapper: they differ in copy, in consequence and in who acts on the
@@ -79,12 +86,18 @@ export interface PlayProps {
  * nothing — its result is already in hand, so ✕ and ↺ act at once.
  */
 export const Play: FC<PlayProps> = ({ game, onAbandon }) => {
-	const { rows, cols, sourceImage } = useGameConfig()
+	const { rows, cols, sourceImage, setBoardSize } = useGameConfig()
 	const { showTimer } = useSettings()
 	const context = useSelector(game, selectContext)
 	const isPlaying = useSelector(game, selectIsPlaying)
 	const isSolved = useSelector(game, selectIsSolved)
 	const [confirming, setConfirming] = useState<Confirmation | null>(null)
+	// The board an Escape closed the win card over, rather than a flag: the same
+	// actor plays every game here, so a dismissal has to name the solve it
+	// belongs to or it would swallow every win after it. Every deal assigns a
+	// new board, and no state between two of them is guaranteed to be rendered —
+	// a restart that deals a solved board never leaves `solved` at all.
+	const [dismissedBoard, setDismissedBoard] = useState<BoardModel | null>(null)
 
 	// The only reason a clock exists at all — which is why it stops the moment
 	// the card it feeds is hidden, or the game stops running.
@@ -170,11 +183,26 @@ export const Play: FC<PlayProps> = ({ game, onAbandon }) => {
 					onRestart={handleRestartPress}
 					onAbandon={handleAbandonPress}
 					footer
+					// The Board cannot work this out itself — an unshuffled board is
+					// solved too — so the screen owning the lifecycle says it.
+					hint={isSolved ? <Message message={playMessages.solvedHint} /> : undefined}
 					// Hard on until the Reference image setting reaches the Board,
 					// which arrives with the numbered-tiles half of the same job.
 					preview
 				/>
 			</div>
+			<Solved
+				open={isSolved && dismissedBoard !== context.board}
+				moveCount={context.moveCount}
+				elapsed={elapsedMs(context)}
+				boardSize={rows}
+				onPlayAgain={restart}
+				// The size goes to the config provider, which is what deals the new
+				// game: the actor is keyed on it a tier up (ADR-0017). The player
+				// stays on Play — this is a play-again variant, not a trip to Setup.
+				onTryNextSize={setBoardSize}
+				onClose={() => setDismissedBoard(context.board)}
+			/>
 			{/* `Keep playing` leads both action rows, because focus lands on the
 			    card and the first Tab off it should reach the way out rather than
 			    the way through. Tab order is DOM order here — nothing reorders the
