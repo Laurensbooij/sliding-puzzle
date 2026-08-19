@@ -13,6 +13,12 @@ export const globalMessages = defineMessages({
 		defaultMessage: 'Sliding Puzzle',
 		description: 'The name of the application',
 	},
+	keepPlaying: {
+		id: 'common.keep-playing',
+		defaultMessage: 'Keep playing',
+		description:
+			'Action that backs out of a confirmation raised over a game in progress, leaving the game exactly as it was',
+	},
 	close: {
 		id: 'common.close',
 		defaultMessage: 'Close',

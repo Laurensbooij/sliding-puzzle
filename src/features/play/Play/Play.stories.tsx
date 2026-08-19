@@ -5,6 +5,7 @@ import type { Records } from '@/lib/records'
 import { DEFAULT_SETTINGS, SETTINGS_STORAGE_KEY, SettingsProvider } from '@/lib/settings'
 import { createTranslate } from '@i18n'
 import { gameMachine } from '@machines/game-machine'
+import { globalMessages } from '@messages'
 import type { Meta, StoryObj } from '@storybook/react-vite'
 import { BOARD_TESTIDS } from '@widgets/Board'
 import { useActorRef } from '@xstate/react'
@@ -204,7 +205,7 @@ export const AbandonConfirmation: Story = {
 		// The first Tab off the card reaches the way out, not the way through.
 		await userEvent.tab()
 		const keepPlaying = within(confirmation).getByRole('button', {
-			name: translate(playMessages.keepPlaying),
+			name: translate(globalMessages.keepPlaying),
 		})
 		await expect(keepPlaying).toHaveFocus()
 	},
@@ -225,7 +226,7 @@ export const RestartConfirmation: Story = {
 
 		await userEvent.tab()
 		const keepPlaying = within(confirmation).getByRole('button', {
-			name: translate(playMessages.keepPlaying),
+			name: translate(globalMessages.keepPlaying),
 		})
 		await expect(keepPlaying).toHaveFocus()
 	},

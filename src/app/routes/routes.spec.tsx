@@ -1,3 +1,4 @@
+import { PLAY_TESTIDS } from '@/features/play'
 import { playMessages } from '@/features/play/Play/translation-messages'
 import { setupMessages } from '@/features/setup/Setup/translation-messages'
 import { GameConfigProvider } from '@/lib/game-config'
@@ -5,17 +6,62 @@ import { RecordsProvider } from '@/lib/records'
 import { ROUTES } from '@/lib/routes'
 import { SettingsProvider } from '@/lib/settings'
 import { createTranslate } from '@i18n'
+import { globalMessages } from '@messages'
 import { type RenderWithProvidersOptions, renderWithProviders, setDesktopViewport } from '@testing'
 import { type RenderResult, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { APP_HEADER_TESTIDS } from '@widgets/AppHeader'
 import { BOARD_TESTIDS } from '@widgets/Board'
+import { SETTINGS_DIALOG_TESTIDS } from '@widgets/SettingsDialog'
 import { RouterProvider, createMemoryRouter } from 'react-router'
 import { describe, expect, it } from 'vitest'
 
+import { leaveConfirmationMessages } from './PlayRoute/components/LeaveConfirmation/translation-messages'
 import { routes } from './routes'
 import { routeMessages } from './translation-messages'
 
 const { translate } = createTranslate()
+
+const LEAVE_TITLE = translate(leaveConfirmationMessages.title)
+const LEAVE = translate(leaveConfirmationMessages.leave)
+const KEEP_PLAYING = translate(globalMessages.keepPlaying)
+const WORDMARK = translate(globalMessages.appName)
+
+/**
+ * The gear by testid rather than by its accessible name: that name comes from a
+ * message colocated inside the AppHeader widget, and a widget's barrel is its
+ * whole public API (ADR-0007). The wordmark needs no such escape hatch — it is
+ * a link named by the app name, which `@messages` carries.
+ */
+const GEAR_TESTID = `${APP_HEADER_TESTIDS.BASE}${APP_HEADER_TESTIDS.SETTINGS_SUFFIX}`
+
+const wordmark = (): HTMLElement => screen.getByRole('link', { name: WORDMARK })
+
+const leaveConfirmation = (): HTMLElement | null =>
+	screen.queryByRole('dialog', { name: LEAVE_TITLE })
+
+/** Scoped to the card: the answers are only ever pressed from inside it. */
+const leaveControl = (name: string): HTMLElement => {
+	const confirmation = screen.getByRole('dialog', { name: LEAVE_TITLE })
+	return within(confirmation).getByRole('button', { name })
+}
+
+/** The read-out that says whether the game underneath survived the question. */
+const moveCount = (): HTMLElement =>
+	screen.getByTestId(`${PLAY_TESTIDS.BASE}${PLAY_TESTIDS.MOVES_SUFFIX}`)
+
+/**
+ * The tiles a press would move — the only buttons the board leaves enabled.
+ * Scoped to the board, so the header's controls can never be mistaken for one.
+ */
+const firstMovableTile = (): HTMLElement => {
+	const board = screen.getByTestId(BOARD_TESTIDS.BASE)
+	const tile = within(board)
+		.getAllByRole('button')
+		.find((button) => button.getAttribute('aria-disabled') === 'false')
+	if (!tile) throw new Error('The board rendered no movable tile')
+	return tile
+}
 
 /**
  * The providers sit outside the router here exactly as they do in `main.tsx`:
@@ -182,6 +228,105 @@ describe('routes', () => {
 			name: translate(setupMessages.heading),
 		})
 		expect(heading).toBeInTheDocument()
+		expect(document.title).toBe(translate(routeMessages.setupTitle))
+	})
+
+	/**
+	 * The wordmark is the header's only navigation and so the only in-app
+	 * trigger this guard has. It holds the navigation rather than undoing
+	 * one — the player is still on their game while the question stands.
+	 */
+	it('asks before the wordmark takes the player off a game in progress', async () => {
+		const user = userEvent.setup()
+		renderComponent(ROUTES.play)
+		const home = wordmark()
+
+		await user.click(home)
+
+		const confirmation = leaveConfirmation()
+		expect(confirmation).toBeVisible()
+		expect(document.title).toBe(translate(routeMessages.playTitle))
+	})
+
+	/**
+	 * Confirming is what abandons the game: the route unmounts, which stops the
+	 * actor. The board going with it is as much of that teardown as the DOM can
+	 * be asked to show.
+	 */
+	it('leaves for Setup once the player confirms, taking the game with it', async () => {
+		const user = userEvent.setup()
+		renderComponent(ROUTES.play)
+		const home = wordmark()
+		await user.click(home)
+		const leave = leaveControl(LEAVE)
+
+		await user.click(leave)
+
+		const heading = screen.getByRole('heading', {
+			level: 1,
+			name: translate(setupMessages.heading),
+		})
+		const board = screen.queryByTestId(BOARD_TESTIDS.BASE)
+		expect(heading).toBeInTheDocument()
+		expect(board).not.toBeInTheDocument()
+		expect(document.title).toBe(translate(routeMessages.setupTitle))
+	})
+
+	it('stays on the game, untouched, when the player keeps playing', async () => {
+		const user = userEvent.setup()
+		renderComponent(ROUTES.play)
+		await user.click(firstMovableTile())
+		const moves = moveCount()
+		const movesPlayed = moves.textContent
+		const home = wordmark()
+		await user.click(home)
+		const keepPlaying = leaveControl(KEEP_PLAYING)
+
+		await user.click(keepPlaying)
+
+		expect(leaveConfirmation()).not.toBeInTheDocument()
+		expect(moves.textContent).toBe(movesPlayed)
+		expect(document.title).toBe(translate(routeMessages.playTitle))
+	})
+
+	/**
+	 * The gear opens a dialog over the game rather than navigating, so it is
+	 * none of the guard's business — mid-game it stays exactly as live as it is
+	 * anywhere else.
+	 */
+	it('opens Settings mid-game without asking about the game', async () => {
+		const user = userEvent.setup()
+		renderComponent(ROUTES.play)
+		const gear = screen.getByTestId(GEAR_TESTID)
+
+		await user.click(gear)
+
+		const settings = screen.getByTestId(SETTINGS_DIALOG_TESTIDS.BASE)
+		expect(settings).toBeVisible()
+		expect(leaveConfirmation()).not.toBeInTheDocument()
+	})
+
+	/**
+	 * The screen asks its own question first and reports the answer, so the
+	 * guard lets that navigation past: two cards for one answer would be the
+	 * bug.
+	 */
+	it('asks nothing more when the screen has already confirmed the abandonment', async () => {
+		const user = userEvent.setup()
+		renderComponent(ROUTES.play)
+		const abandon = screen.getByTestId(`${BOARD_TESTIDS.BASE}${BOARD_TESTIDS.ABANDON_SUFFIX}`)
+		await user.click(abandon)
+		const confirmation = screen.getByRole('dialog', {
+			name: translate(playMessages.abandonTitle),
+		})
+
+		const confirm = within(confirmation).getByRole('button', {
+			name: translate(playMessages.abandonConfirm),
+		})
+
+		await user.click(confirm)
+
+		expect(leaveConfirmation()).not.toBeInTheDocument()
 		expect(document.title).toBe(translate(routeMessages.setupTitle))
 	})
 })
