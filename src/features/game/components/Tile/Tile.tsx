@@ -2,7 +2,7 @@ import { SOURCE_IMAGES } from '@/source-images'
 import type { SourceImageName } from '@/source-images'
 import type { TileId } from '@engine'
 import { useTranslate } from '@i18n'
-import type { FC } from 'react'
+import type { FC, KeyboardEvent } from 'react'
 import { useState } from 'react'
 
 import styles from './Tile.module.css'
@@ -66,6 +66,20 @@ export const Tile: FC<TileProps> = ({
 	const SourceImage = SOURCE_IMAGES[sourceImage]
 	const base = dataTestId ?? TILE_TESTIDS.BASE
 	const label = tile + 1
+	const handleClick = () => {
+		if (!movable) return
+		onPress?.(tile)
+	}
+
+	// Space activates a button on key *up*, so the press reads as held.
+	const handleKeyDown = (event: KeyboardEvent<HTMLButtonElement>) => {
+		if (event.key === ' ' && movable) setPressedByKey(true)
+	}
+
+	const handleKeyUp = (event: KeyboardEvent<HTMLButtonElement>) => {
+		if (event.key === ' ') setPressedByKey(false)
+	}
+
 	const fragmentStyle: FragmentStyle = {
 		'--fragment-cols': cols,
 		'--fragment-rows': rows,
@@ -82,17 +96,9 @@ export const Tile: FC<TileProps> = ({
 			aria-disabled={!movable}
 			tabIndex={movable ? 0 : -1}
 			data-pressed={pressedByKey || undefined}
-			onClick={() => {
-				if (!movable) return
-				onPress?.(tile)
-			}}
-			// Space activates a button on key *up*, so the press reads as held.
-			onKeyDown={(event) => {
-				if (event.key === ' ' && movable) setPressedByKey(true)
-			}}
-			onKeyUp={(event) => {
-				if (event.key === ' ') setPressedByKey(false)
-			}}
+			onClick={handleClick}
+			onKeyDown={handleKeyDown}
+			onKeyUp={handleKeyUp}
 			// Focus can leave mid-hold; the key-up would never arrive.
 			onBlur={() => setPressedByKey(false)}
 		>

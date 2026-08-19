@@ -119,6 +119,7 @@ export default tseslint.config(
 				{ argsIgnorePattern: '^_', varsIgnorePattern: '^_' },
 			],
 			'sliding-puzzle/no-inline-testid': 'error',
+			'sliding-puzzle/no-inline-handler-block': 'error',
 			'sliding-puzzle/testids-in-constants-file': 'error',
 			'sliding-puzzle/props-type-naming': 'error',
 			'sliding-puzzle/props-type-in-component-file': 'error',

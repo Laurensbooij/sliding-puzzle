@@ -3,6 +3,7 @@ import tseslint from 'typescript-eslint'
 import { afterAll, describe, it } from 'vitest'
 
 import assignBeforeAssert from './assign-before-assert.mjs'
+import noInlineHandlerBlock from './no-inline-handler-block.mjs'
 import noInlineTestid from './no-inline-testid.mjs'
 import propsTypeInComponentFile from './props-type-in-component-file.mjs'
 import propsTypeNaming from './props-type-naming.mjs'
@@ -24,6 +25,46 @@ const ruleTester = new RuleTester({
 		sourceType: 'module',
 		parserOptions: { ecmaFeatures: { jsx: true } },
 	},
+})
+
+ruleTester.run('no-inline-handler-block', noInlineHandlerBlock, {
+	valid: [
+		{ code: '<button onClick={handlePress} />', filename: 'Tile.tsx' },
+		{ code: '<button onClick={onRestart} />', filename: 'Board.tsx' },
+		{ code: '<button onClick={() => pressCell(cell)} />', filename: 'Board.tsx' },
+		{ code: '<button onBlur={() => setPressedByKey(false)} />', filename: 'Tile.tsx' },
+		{
+			code: '<Board onRestart={() => setBoard(shuffle(createBoard(3, 3), Math.random))} />',
+			filename: 'Board.stories.tsx',
+		},
+		// Not an event handler: only on* props are the rule's business.
+		{
+			code: '<Story render={() => { const a = 1; return a }} />',
+			filename: 'Board.stories.tsx',
+		},
+	],
+	invalid: [
+		{
+			code: '<div onKeyDown={(event) => { event.preventDefault() }} />',
+			filename: 'Board.tsx',
+			errors: [{ messageId: 'inlineBlock' }],
+		},
+		{
+			code: '<button onClick={() => { if (!movable) return; onPress?.(tile) }} />',
+			filename: 'Tile.tsx',
+			errors: [{ messageId: 'inlineBlock' }],
+		},
+		{
+			code: '<button onClick={function () { doThing() }} />',
+			filename: 'Tile.tsx',
+			errors: [{ messageId: 'inlineBlock' }],
+		},
+		{
+			code: '<Select onChange={async (next) => { await save(next) }} />',
+			filename: 'Select.tsx',
+			errors: [{ messageId: 'inlineBlock' }],
+		},
+	],
 })
 
 ruleTester.run('no-inline-testid', noInlineTestid, {

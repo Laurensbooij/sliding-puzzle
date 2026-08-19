@@ -12,7 +12,7 @@ import {
 	toPlacements,
 } from '@engine'
 import { Message, useTranslate } from '@i18n'
-import type { FC } from 'react'
+import type { FC, KeyboardEvent } from 'react'
 import { useRef, useState } from 'react'
 
 import { Tile } from '../Tile'
@@ -128,6 +128,17 @@ export const Board: FC<BoardProps> = ({
 		if (movesForCell(board, cell).length > 0) onCellPress?.(cell)
 	}
 
+	const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+		const direction = DIRECTION_BY_KEY[event.key]
+		if (!direction) return
+
+		// Claimed whether or not a tile answers, so a blocked direction never
+		// falls through to scrolling the page instead.
+		event.preventDefault()
+		const cell = cellForDirection(board, direction)
+		if (cell !== null) pressCell(cell)
+	}
+
 	return (
 		// The handler serves the tiles that bubble into it, not this element:
 		// every key it acts on arrives from a focused <button>, and the board
@@ -139,16 +150,7 @@ export const Board: FC<BoardProps> = ({
 			data-testid={base}
 			role="group"
 			aria-label={translate(boardMessages.label, { rows: board.rows, cols: board.cols })}
-			onKeyDown={(event) => {
-				const direction = DIRECTION_BY_KEY[event.key]
-				if (!direction) return
-
-				// Claimed whether or not a tile answers, so a blocked direction never
-				// falls through to scrolling the page instead.
-				event.preventDefault()
-				const cell = cellForDirection(board, direction)
-				if (cell !== null) pressCell(cell)
-			}}
+			onKeyDown={handleKeyDown}
 		>
 			<span className={styles.bevel} />
 			<div className={styles.well} style={wellStyle}>

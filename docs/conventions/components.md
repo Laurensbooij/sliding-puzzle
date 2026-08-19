@@ -25,6 +25,34 @@ from 'react'`). Props type named exactly **`ComponentNameProps`**, exported
 - Keep components presentational: game logic lives in the engine, lifecycle in the game
   machine. Components send events and read state via selectors.
 
+## Event handlers
+
+- **A handler that needs a body block gets a name** (lint-enforced:
+  `sliding-puzzle/no-inline-handler-block`). An `on*` JSX prop takes a reference or a
+  one-expression arrow; the moment a handler needs statements — a guard, a
+  `preventDefault`, a local — it moves into the component body:
+
+  ```tsx
+  const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+    const direction = DIRECTION_BY_KEY[event.key]
+    if (!direction) return
+    event.preventDefault()
+    // …
+  }
+
+  return <div onKeyDown={handleKeyDown}>            // ✅
+  return <div onKeyDown={(event) => { /* … */ }}>   // ❌
+  return <Tile onPress={() => pressCell(cell)} />   // ✅ one expression, stays inline
+  ```
+
+- The block is the line because it is the point where reading the JSX starts meaning
+  reading the logic. A one-expression arrow that forwards an argument
+  (`() => pressCell(cell)`) reads as part of the markup and stays.
+- **Name extracted handlers `handle*`** — `handleKeyDown`, `handlePointerLeave`. Not
+  machine-checked, and deliberately: a bare state setter (`onChange={setOpen}`) or a
+  forwarded prop (`onClick={onRestart}`) is a legitimate handler value that should
+  _not_ be renamed. The rule only checks that the body block moved out.
+
 ## Folders
 
 - **Colocate by default; promote on the 2nd consumer.** Tiers: component-local →

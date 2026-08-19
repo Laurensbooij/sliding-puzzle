@@ -1,4 +1,5 @@
 import assignBeforeAssert from './rules/assign-before-assert.mjs'
+import noInlineHandlerBlock from './rules/no-inline-handler-block.mjs'
 import noInlineTestid from './rules/no-inline-testid.mjs'
 import propsTypeInComponentFile from './rules/props-type-in-component-file.mjs'
 import propsTypeNaming from './rules/props-type-naming.mjs'
@@ -14,6 +15,7 @@ export default {
 	},
 	rules: {
 		'no-inline-testid': noInlineTestid,
+		'no-inline-handler-block': noInlineHandlerBlock,
 		'testids-in-constants-file': testidsInConstantsFile,
 		'props-type-naming': propsTypeNaming,
 		'props-type-in-component-file': propsTypeInComponentFile,
