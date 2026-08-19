@@ -49,6 +49,8 @@ const PlayGame: FC<PlayGameProps> = ({ boardSize, solved, onAbandon }) => {
 interface PlayStoryProps {
 	boardSize: BoardSize
 	showTimer: boolean
+	referenceImage: boolean
+	numberedTiles: boolean
 	solved: boolean
 	/** The records the player arrives with — what the Best card reads. */
 	bests: Records['bests']
@@ -56,19 +58,30 @@ interface PlayStoryProps {
 }
 
 /**
- * The app around the screen: the two providers it reads, holding what each
- * story wants them to hold.
+ * The app around the screen: the providers it reads, holding what each story
+ * wants them to hold.
  *
- * Both hydrate from storage when they mount and expose no way to be seeded
+ * Each hydrates from storage when it mounts and exposes no way to be seeded
  * directly, so the story writes the same keys a returning player's browser
  * would — before the providers below it are constructed.
  */
-const PlayStory: FC<PlayStoryProps> = ({ boardSize, showTimer, solved, bests, onAbandon }) => {
+const PlayStory: FC<PlayStoryProps> = ({
+	boardSize,
+	showTimer,
+	referenceImage,
+	numberedTiles,
+	solved,
+	bests,
+	onAbandon,
+}) => {
 	localStorage.setItem(
 		GAME_CONFIG_STORAGE_KEY,
 		JSON.stringify({ ...DEFAULT_GAME_CONFIG, boardSize }),
 	)
-	localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify({ ...DEFAULT_SETTINGS, showTimer }))
+	localStorage.setItem(
+		SETTINGS_STORAGE_KEY,
+		JSON.stringify({ ...DEFAULT_SETTINGS, showTimer, referenceImage, numberedTiles }),
+	)
 	localStorage.setItem(RECORDS_STORAGE_KEY, JSON.stringify({ bests } satisfies Records))
 
 	return (
@@ -85,7 +98,15 @@ const PlayStory: FC<PlayStoryProps> = ({ boardSize, showTimer, solved, bests, on
 const meta = {
 	title: 'Features/Play',
 	component: PlayStory,
-	args: { boardSize: 3, showTimer: true, solved: false, bests: {}, onAbandon: fn() },
+	args: {
+		boardSize: 3,
+		showTimer: true,
+		referenceImage: DEFAULT_SETTINGS.referenceImage,
+		numberedTiles: DEFAULT_SETTINGS.numberedTiles,
+		solved: false,
+		bests: {},
+		onAbandon: fn(),
+	},
 	parameters: { layout: 'fullscreen' },
 	decorators: [
 		// Stands in for the shell's `page-content`: the gutters and the outer cap
@@ -126,6 +147,23 @@ export const WithRecord: Story = {
  */
 export const TimerHidden: Story = {
 	args: { showTimer: false },
+}
+
+/**
+ * Numbered tiles on. The number is paint the player asked for: a tile is still
+ * named "Tile 3" either way, so nothing about the board changes for a screen
+ * reader and nothing is announced when the setting flips.
+ */
+export const NumberedTiles: Story = {
+	args: { numberedTiles: true },
+}
+
+/**
+ * Reference image off. The footer keeps the hint and both controls and collapses
+ * to a single control-height row without the chip.
+ */
+export const ReferenceImageHidden: Story = {
+	args: { referenceImage: false },
 }
 
 /** The other three sizes Setup offers. The read-outs never change shape. */

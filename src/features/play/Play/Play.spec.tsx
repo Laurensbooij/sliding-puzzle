@@ -2,7 +2,12 @@ import { DEFAULT_GAME_CONFIG, GAME_CONFIG_STORAGE_KEY, GameConfigProvider } from
 import type { BoardSize } from '@/lib/game-config'
 import { RECORDS_STORAGE_KEY, RecordsProvider } from '@/lib/records'
 import type { Records } from '@/lib/records'
-import { DEFAULT_SETTINGS, SETTINGS_STORAGE_KEY, SettingsProvider } from '@/lib/settings'
+import {
+	DEFAULT_SETTINGS,
+	SETTINGS_STORAGE_KEY,
+	SettingsProvider,
+	useSettings,
+} from '@/lib/settings'
 import { createTranslate } from '@i18n'
 import { gameMachine } from '@machines/game-machine'
 import { readStorage, renderWithProviders, seedStorage } from '@testing'
@@ -11,6 +16,7 @@ import { act, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import type { UserEvent } from '@testing-library/user-event'
 import { BOARD_TESTIDS } from '@widgets/Board'
+import type { FC } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { ActorRefFrom } from 'xstate'
 import { createActor } from 'xstate'
@@ -27,6 +33,10 @@ type GameActor = ActorRefFrom<typeof gameMachine>
 interface PlayCase {
 	boardSize?: BoardSize
 	showTimer?: boolean
+	referenceImage?: boolean
+	numberedTiles?: boolean
+	/** Mounts the two switches beside the screen, for the cases that flip one mid-game. */
+	withSettingsSwitches?: boolean
 	/** The records the player arrives with, as their browser would hold them. */
 	bests?: Records['bests']
 	game?: GameActor
@@ -66,6 +76,29 @@ const clockStoppingAt = (elapsed: number): (() => number) => {
 	return () => readings.shift() ?? elapsed
 }
 
+const NUMBERED_SWITCH = 'Numbered tiles'
+const REFERENCE_IMAGE_SWITCH = 'Reference image'
+
+/**
+ * The Settings dialog's two presentational switches, reduced to what a case
+ * needs: something outside Play that writes the provider it reads. The real
+ * dialog lives in the shell, so a case cannot reach one from here.
+ */
+const SettingsSwitches: FC = () => {
+	const { referenceImage, numberedTiles, setReferenceImage, setNumberedTiles } = useSettings()
+
+	return (
+		<>
+			<button type="button" onClick={() => setNumberedTiles(!numberedTiles)}>
+				{NUMBERED_SWITCH}
+			</button>
+			<button type="button" onClick={() => setReferenceImage(!referenceImage)}>
+				{REFERENCE_IMAGE_SWITCH}
+			</button>
+		</>
+	)
+}
+
 /**
  * A game one move from being solved: a 1×2 board can only be shuffled by
  * sliding its single tile aside, so pressing that tile finishes the game. Every
@@ -87,6 +120,9 @@ const startNearlySolvedGame = (now: () => number = () => 0): GameActor => {
 const renderComponent = ({
 	boardSize = 3,
 	showTimer = true,
+	referenceImage = DEFAULT_SETTINGS.referenceImage,
+	numberedTiles = DEFAULT_SETTINGS.numberedTiles,
+	withSettingsSwitches = false,
 	bests = {},
 	game = startGame(boardSize),
 	onAbandon = vi.fn(),
@@ -95,7 +131,12 @@ const renderComponent = ({
 	// settings and records the way a returning player's browser would.
 	seedStorage({
 		[GAME_CONFIG_STORAGE_KEY]: JSON.stringify({ ...DEFAULT_GAME_CONFIG, boardSize }),
-		[SETTINGS_STORAGE_KEY]: JSON.stringify({ ...DEFAULT_SETTINGS, showTimer }),
+		[SETTINGS_STORAGE_KEY]: JSON.stringify({
+			...DEFAULT_SETTINGS,
+			showTimer,
+			referenceImage,
+			numberedTiles,
+		}),
 		[RECORDS_STORAGE_KEY]: JSON.stringify({ bests } satisfies Records),
 	})
 
@@ -104,6 +145,7 @@ const renderComponent = ({
 			<SettingsProvider>
 				<RecordsProvider>
 					<Play game={game} onAbandon={onAbandon} />
+					{withSettingsSwitches && <SettingsSwitches />}
 				</RecordsProvider>
 			</SettingsProvider>
 		</GameConfigProvider>,
@@ -142,6 +184,28 @@ const firstMovableTile = (): HTMLElement => {
 const win = async (user: UserEvent): Promise<void> => {
 	await user.click(firstMovableTile())
 }
+
+/**
+ * Every tile, movable or not — the only buttons on the screen that carry a
+ * movability state. The footer's controls and the switches carry none.
+ */
+const tileButtons = (): HTMLElement[] =>
+	screen.getAllByRole('button').filter((button) => button.hasAttribute('aria-disabled'))
+
+/**
+ * The numbers painted on the board, ascending. A painted number is text with no
+ * accessible identity of its own — which is the point of the setting — so it is
+ * read off the tile rather than queried for.
+ */
+const paintedTileNumbers = (): number[] =>
+	tileButtons()
+		.map((tile) => Number(tile.textContent?.trim()))
+		.filter(Boolean)
+		.sort((first, second) => first - second)
+
+/** The reference-image chip inside the footer, if it is showing. */
+const previewChip = (): HTMLElement | null =>
+	screen.queryByTestId(`${BOARD_TESTIDS.BASE}${BOARD_TESTIDS.PREVIEW_SUFFIX}`)
 
 /**
  * A footer control, by testid: its name is the Board's own message, which the
@@ -245,6 +309,73 @@ describe('Play', () => {
 
 			const found = readOutTestIds.map((testId) => screen.queryByTestId(testId))
 			expect(found.every(Boolean)).toBe(true)
+		})
+	})
+
+	describe('presentational settings', () => {
+		it('paints no tile numbers while Numbered tiles is off', () => {
+			renderComponent({ numberedTiles: false })
+
+			expect(paintedTileNumbers()).toHaveLength(0)
+		})
+
+		it('paints every tile its number while Numbered tiles is on', () => {
+			renderComponent({ numberedTiles: true })
+
+			// Eight tiles at 3x3, numbered as the solved picture reads.
+			expect(paintedTileNumbers()).toEqual([1, 2, 3, 4, 5, 6, 7, 8])
+		})
+
+		it('shows the reference image while it is on', () => {
+			renderComponent({ referenceImage: true })
+
+			expect(previewChip()).toBeVisible()
+		})
+
+		it('drops the reference image while it is off', () => {
+			renderComponent({ referenceImage: false })
+
+			expect(previewChip()).not.toBeInTheDocument()
+		})
+
+		// Both switches are paint. The game underneath them is the actor's, and
+		// flipping one mid-play must not cost the player a move or a second.
+		it('numbers the board mid-game without disturbing the game', async () => {
+			const user = userEvent.setup()
+			const game = startGame()
+			renderComponent({ game, numberedTiles: false, withSettingsSwitches: true })
+			await user.click(firstMovableTile())
+			const played = game.getSnapshot()
+
+			const numberedSwitch = screen.getByRole('button', { name: NUMBERED_SWITCH })
+			await user.click(numberedSwitch)
+
+			expect(paintedTileNumbers()).toHaveLength(tileButtons().length)
+			const after = game.getSnapshot()
+			expect(after.context.board).toBe(played.context.board)
+			expect(after.context.moveCount).toBe(played.context.moveCount)
+			expect(after.context.startedAt).toBe(played.context.startedAt)
+			expect(after.value).toBe(played.value)
+		})
+
+		it('drops the reference image mid-game without disturbing the game', async () => {
+			const user = userEvent.setup()
+			const game = startGame()
+			renderComponent({ game, referenceImage: true, withSettingsSwitches: true })
+			await user.click(firstMovableTile())
+			const played = game.getSnapshot()
+
+			const referenceImageSwitch = screen.getByRole('button', {
+				name: REFERENCE_IMAGE_SWITCH,
+			})
+			await user.click(referenceImageSwitch)
+
+			expect(previewChip()).not.toBeInTheDocument()
+			const after = game.getSnapshot()
+			expect(after.context.board).toBe(played.context.board)
+			expect(after.context.moveCount).toBe(played.context.moveCount)
+			expect(after.context.startedAt).toBe(played.context.startedAt)
+			expect(after.value).toBe(played.value)
 		})
 	})
 
