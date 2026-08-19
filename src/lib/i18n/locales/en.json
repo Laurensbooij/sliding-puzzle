@@ -5,5 +5,6 @@
   "board.move-announcement": "{direction, select, up {{count, plural, one {# tile moved up} other {# tiles moved up}}} down {{count, plural, one {# tile moved down} other {# tiles moved down}}} left {{count, plural, one {# tile moved left} other {# tiles moved left}}} other {{count, plural, one {# tile moved right} other {# tiles moved right}}}}",
   "board.preview": "The solved picture",
   "board.restart": "Restart",
+  "dialog.close": "Close",
   "tile.label": "Tile {number}"
 }
