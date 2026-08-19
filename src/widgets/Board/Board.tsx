@@ -12,7 +12,7 @@ import {
 	toPlacements,
 } from '@engine'
 import { Message, useTranslate } from '@i18n'
-import type { FC, KeyboardEvent } from 'react'
+import type { FC, KeyboardEvent, ReactNode } from 'react'
 import { useRef, useState } from 'react'
 
 import styles from './Board.module.css'
@@ -51,6 +51,17 @@ export interface BoardProps {
 	 * controls. Off by default — the board Figma draws by default has none.
 	 */
 	footer?: boolean
+	/**
+	 * The standing line in the footer. Defaults to the copy that tells a new
+	 * player how to move a tile; a screen that has something better to say —
+	 * "Solved" — passes its own.
+	 *
+	 * Deliberately not derived from the board: an unshuffled board is solved
+	 * too, so a Board that worked it out itself would announce the win before
+	 * the first shuffle. Only the screen owning the lifecycle knows the
+	 * difference.
+	 */
+	hint?: ReactNode
 	/**
 	 * Shows the solved picture as a glass chip beside the hint. Only rendered
 	 * inside the footer, and on by default there — the same default the Figma
@@ -112,6 +123,7 @@ export const Board: FC<BoardProps> = ({
 	interactive = true,
 	label,
 	footer = false,
+	hint = <Message message={boardMessages.hint} />,
 	preview = true,
 	onCellPress,
 	onRestart,
@@ -131,13 +143,23 @@ export const Board: FC<BoardProps> = ({
 	// the machine ignores one outside `playing` — and a live region that reports
 	// intent rather than fact lies to the only people relying on it.
 	if (announcedBoard.current !== board) {
-		const [first, ...rest] = movesBetween(announcedBoard.current, board)
+		const moves = movesBetween(announcedBoard.current, board)
 		announcedBoard.current = board
-		if (interactive && first) {
+		const [first] = moves
+		const direction = first ? directionOfMove(board, first) : undefined
+
+		// Every tile a press relocates travels the same way, so the first move
+		// speaks for all of them — and a board whose tiles went several ways at
+		// once was not played, it was replaced. A deal, a restart or a change of
+		// size is not a move, and the sentence below could only misdescribe it.
+		if (
+			interactive &&
+			direction &&
+			moves.every((move) => directionOfMove(board, move) === direction)
+		) {
 			const text = translate(boardMessages.moveAnnouncement, {
-				// Every move in a run shares a direction, so the first speaks for all.
-				count: rest.length + 1,
-				direction: directionOfMove(board, first),
+				count: moves.length,
+				direction,
 			})
 			setAnnouncement((previous) => ({ text, move: previous.move + 1 }))
 		}
@@ -234,9 +256,7 @@ export const Board: FC<BoardProps> = ({
 								<span className={styles.previewSheen} />
 							</span>
 						)}
-						<p className={styles.hint}>
-							<Message message={boardMessages.hint} />
-						</p>
+						<p className={styles.hint}>{hint}</p>
 					</div>
 					<div className={styles.actions}>
 						<IconButton

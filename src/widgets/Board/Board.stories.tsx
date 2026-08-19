@@ -79,6 +79,15 @@ export const FooterWithoutPreview: Story = {
 	args: { footer: true, preview: false },
 }
 
+/**
+ * A screen-supplied footer line. The Board never works this out for itself: an
+ * unshuffled board is solved too, so only the screen owning the lifecycle can
+ * tell a win from a deal that has not happened yet.
+ */
+export const WithCustomHint: Story = {
+	args: { footer: true, hint: 'Solved' },
+}
+
 /** A different source image on the same arrangement. */
 export const AlternateSourceImage: Story = {
 	args: { sourceImage: 'bike' },

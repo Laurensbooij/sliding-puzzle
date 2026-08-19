@@ -1,0 +1,84 @@
+/*
+ * Figma `game`: the stats row, then the board. The shell's `page-content`
+ * already supplies the gutters and the outer cap, so nothing here restates
+ * them — this file only decides how the two blocks share the column.
+ */
+.play {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: var(--space-4);
+}
+
+/*
+ * The design draws no heading — the board is the screen. One is rendered
+ * anyway and clipped: the shell moves focus to the screen's <h1> after a route
+ * change, and that is what tells a screen-reader user where they landed.
+ */
+.heading {
+	position: absolute;
+	overflow: hidden;
+	clip-path: inset(50%);
+	width: 0.0625rem;
+	height: 0.0625rem;
+	white-space: nowrap;
+}
+
+/*
+ * Phones get the designed 2×2 block, each column half the gutter-to-gutter
+ * width. `minmax(0, 1fr)` rather than `1fr` so a long translated label wraps
+ * inside its column instead of pushing the column past its share.
+ */
+.stats {
+	display: grid;
+	width: 100%;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: var(--space-3);
+}
+
+/*
+ * Show timer off leaves three cards. No Figma frame draws this state: the row
+ * keeps its two columns and the odd card takes the whole second row, rather
+ * than leaving a hole beside it.
+ */
+.withoutTimer > *:last-child {
+	grid-column: 1 / -1;
+}
+
+@media (width >= 48rem) {
+	.play {
+		gap: var(--space-5);
+	}
+
+	/*
+	 * Figma draws the row 560 wide and centred above a narrower board — the
+	 * same 560 that `--board-max` carries. Tied to the token rather than
+	 * restating its number: the row is as wide as a board is ever allowed to
+	 * get, and if that ceiling moves the row should move with it.
+	 */
+	.stats {
+		width: min(100%, var(--board-max));
+		grid-template-columns: repeat(4, minmax(0, 1fr));
+	}
+
+	/* Three across in the same footprint: the cards widen, the row stays put. */
+	.withoutTimer {
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+	}
+
+	.withoutTimer > *:last-child {
+		grid-column: auto;
+	}
+}
+
+/*
+ * Figma draws the board 400 wide on desktop and gutter-to-gutter on a phone,
+ * where 400 is already wider than the screen — so one cap covers both. It is a
+ * frame measurement with no variable behind it, like StatCard's
+ * `min-inline-size`: `--board-max` is the widest a board may ever get, not the
+ * width this screen chooses to give it.
+ */
+.boardArea {
+	width: 100%;
+	max-width: 25rem;
+}

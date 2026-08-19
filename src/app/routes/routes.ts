@@ -1,8 +1,8 @@
 import { AppShell } from '@/app/AppShell'
-import { PlayPlaceholder } from '@/app/placeholders/PlayPlaceholder'
 import { ROUTES } from '@/lib/routes'
 import type { RouteObject } from 'react-router'
 
+import { PlayRoute } from './PlayRoute'
 import { RouteFallback } from './RouteFallback'
 import { SetupRoute } from './SetupRoute'
 import { routeMessages } from './translation-messages'
@@ -30,7 +30,7 @@ export const routes: RouteObject[] = [
 			},
 			{
 				path: ROUTES.play,
-				Component: PlayPlaceholder,
+				Component: PlayRoute,
 				handle: { title: routeMessages.playTitle } satisfies RouteHandle,
 			},
 			{ path: '*', Component: RouteFallback },
