@@ -71,6 +71,12 @@ below on its own terms.
 - **Unknown paths redirect to Setup**, replacing the history entry. There is no
   designed 404 surface, and inventing one for a two-screen app would be a screen
   nobody drew.
+- **No skip link (SC 2.4.1) — an explicit N/A.** A skip link exists to bypass a
+  block of repeated content ahead of the main content. What repeats above
+  `page-content` is the header's two focusable elements — the wordmark and the
+  gear — which is two tab presses, not a block. Route changes move focus to the
+  new screen's `<h1>` instead, which is the thing a skip link would have been
+  approximating. Revisit if the header ever grows a nav list.
 - **No `basename` and no SPA fallback are configured.** Both are deploy-time
   concerns and there is no deploy workflow yet. Static hosting will need the
   rewrite-to-`index.html` rule; that lands with the deploy.

@@ -75,6 +75,14 @@ const reactIntlPattern = {
 	message: 'Import from `@i18n` — react-intl is only imported inside src/lib/i18n.',
 }
 
+// A screen never decides where it is mounted: navigation is the app tier's job,
+// and a feature takes a callback instead. See ADR-0017.
+const reactRouterPattern = {
+	group: ['react-router', 'react-router/*'],
+	message:
+		'Features never import react-router (ADR-0017) — take a callback and let `src/app/` wire it to a route.',
+}
+
 // Machines are logic, not presentation: engine + XState only. See ADR-0012.
 const machinesPurityPatterns = [
 	{
@@ -244,6 +252,17 @@ export default tseslint.config(
 		plugins: { formatjs },
 		rules: {
 			'formatjs/no-literal-string-in-jsx': 'error',
+		},
+	},
+	{
+		// Flat config replaces a rule's options rather than merging them, so the
+		// src-wide patterns have to be restated alongside the router one.
+		files: ['src/features/**/*.{ts,tsx}'],
+		rules: {
+			'no-restricted-imports': [
+				'error',
+				{ patterns: [...aliasSpellingPatterns, reactIntlPattern, reactRouterPattern] },
+			],
 		},
 	},
 	{

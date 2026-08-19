@@ -2,7 +2,6 @@ import type { FC } from 'react'
 import { Outlet } from 'react-router'
 
 import styles from './AppShell.module.css'
-import { APP_SHELL_TESTIDS } from './constants'
 import { useDocumentTitle } from './hooks/use-document-title/use-document-title'
 import { useFocusHeadingOnNavigation } from './hooks/use-focus-heading-on-navigation/use-focus-heading-on-navigation'
 
@@ -14,16 +13,12 @@ import { useFocusHeadingOnNavigation } from './hooks/use-focus-heading-on-naviga
  */
 export const AppShell: FC = () => {
 	useDocumentTitle()
-	const pageContentRef = useFocusHeadingOnNavigation()
+	const pageContentRef = useFocusHeadingOnNavigation(styles.routeHeading)
 
 	return (
-		<div className={styles.appShell} data-testid={APP_SHELL_TESTIDS.BASE}>
+		<div className={styles.appShell}>
 			{/* AppHeader mounts here — SLI-53. */}
-			<main
-				ref={pageContentRef}
-				className={styles.pageContent}
-				data-testid={`${APP_SHELL_TESTIDS.BASE}${APP_SHELL_TESTIDS.PAGE_CONTENT_SUFFIX}`}
-			>
+			<main ref={pageContentRef} className={styles.pageContent}>
 				<Outlet />
 			</main>
 		</div>

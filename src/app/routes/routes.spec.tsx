@@ -1,3 +1,4 @@
+import { placeholderMessages } from '@/app/placeholders/translation-messages'
 import { ROUTES } from '@/lib/routes'
 import { createTranslate } from '@i18n'
 import { type RenderWithProvidersOptions, renderWithProviders } from '@testing'
@@ -6,7 +7,6 @@ import userEvent from '@testing-library/user-event'
 import { RouterProvider, createMemoryRouter } from 'react-router'
 import { describe, expect, it } from 'vitest'
 
-import { placeholderMessages } from '../placeholders/translation-messages'
 import { routes } from './routes'
 import { routeMessages } from './translation-messages'
 
@@ -88,5 +88,22 @@ describe('routes', () => {
 
 		expect(heading).toBeInTheDocument()
 		expect(document.title).toBe(translate(routeMessages.setupTitle))
+	})
+
+	/**
+	 * The one load that moves focus. Landing on an unknown path redirects, which
+	 * changes the pathname before anyone has interacted — so the shell treats it
+	 * as a navigation. Left that way on purpose: the heading is where someone who
+	 * mistyped a URL should end up.
+	 */
+	it('focuses the Setup heading after redirecting an unknown path', () => {
+		renderComponent('/no-such-screen')
+
+		const heading = screen.getByRole('heading', {
+			level: 1,
+			name: translate(placeholderMessages.setupHeading),
+		})
+
+		expect(heading).toHaveFocus()
 	})
 })

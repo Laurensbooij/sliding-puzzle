@@ -1,9 +1,9 @@
+import { AppShell } from '@/app/AppShell'
+import { PlayPlaceholder } from '@/app/placeholders/PlayPlaceholder'
+import { SetupPlaceholder } from '@/app/placeholders/SetupPlaceholder'
 import { ROUTES } from '@/lib/routes'
 import type { RouteObject } from 'react-router'
 
-import { AppShell } from '../AppShell'
-import { PlayPlaceholder } from '../placeholders/PlayPlaceholder'
-import { SetupPlaceholder } from '../placeholders/SetupPlaceholder'
 import { RouteFallback } from './RouteFallback'
 import { routeMessages } from './translation-messages'
 import type { RouteHandle } from './types'

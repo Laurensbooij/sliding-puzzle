@@ -1,3 +1,4 @@
+import type { RouteHandle } from '@/app/routes/types'
 import { type TranslationMessage, createTranslate } from '@i18n'
 import { type RenderWithProvidersOptions, renderWithProviders } from '@testing'
 import { type RenderResult, screen } from '@testing-library/react'
@@ -6,9 +7,7 @@ import type { FC } from 'react'
 import { Link, RouterProvider, createMemoryRouter } from 'react-router'
 import { describe, expect, it } from 'vitest'
 
-import type { RouteHandle } from '../routes/types'
 import { AppShell } from './AppShell'
-import { APP_SHELL_TESTIDS } from './constants'
 
 const { translate } = createTranslate()
 
@@ -84,6 +83,34 @@ const renderComponent = (
 		options,
 	)
 
+/**
+ * WCAG 2.2 AA determinations for AppShell, per docs/conventions/accessibility.md.
+ *
+ * - Accessible name — the `main` landmark takes none: a document with one `main`
+ *   is named by being the only one, and a redundant label would be read on every
+ *   screen. Role plus name is carried by each screen's `<h1>`, asserted below.
+ * - Keyboard — the shell binds no keys. Its whole operation map is the screen's
+ *   own tab order, plus the focus move a route change performs; both are
+ *   asserted below.
+ * - Focus (SC 2.4.11) — the heading takes a 2px `--focus-ring` outline at a 2px
+ *   offset, from `.routeHeading:focus`. Nothing overlays `page-content`, so the
+ *   indicator cannot be obscured.
+ * - Announcements — N/A as a live region: a route change announces itself by
+ *   moving focus to the new heading, asserted below. A second live region saying
+ *   the same thing would double-speak.
+ * - Target size (SC 2.5.8) — N/A: the shell renders no target. The header's two
+ *   buttons arrive with SLI-53 and are sized there.
+ * - Contrast — N/A here, and deliberately unevidenced: contrast is only
+ *   computable in the real-Chromium story project, and this shell ships no
+ *   story (it has no designed variant beyond one padding value). The tokens it
+ *   paints — `--surface-page` under `--text-body` — are already scanned wherever
+ *   a component renders on the page surface. Note `--focus-ring` against
+ *   `--surface-page` measures 2.63:1, under SC 1.4.11's 3:1: a known
+ *   repo-wide token issue, not one this shell introduces.
+ * - Reduced motion — N/A: declares no transition or animation.
+ * - Skip link (SC 2.4.1) — N/A: the header holds two focusable elements, which
+ *   is not a block of repeated content to bypass.
+ */
 describe('AppShell', () => {
 	it('hosts the routed screen inside the main landmark', () => {
 		renderComponent()
@@ -92,10 +119,6 @@ describe('AppShell', () => {
 		const heading = screen.getByRole('heading', { level: 1, name: 'First screen' })
 
 		expect(pageContent).toContainElement(heading)
-		expect(pageContent).toHaveAttribute(
-			'data-testid',
-			`${APP_SHELL_TESTIDS.BASE}${APP_SHELL_TESTIDS.PAGE_CONTENT_SUFFIX}`,
-		)
 	})
 
 	it('titles the document from the matched route', () => {
