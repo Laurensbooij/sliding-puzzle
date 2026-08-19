@@ -114,7 +114,7 @@ export const WordmarkFocused: Story = {
  * is only the top of the viewport, so a chip placed there gets held on screen
  * over the button and the ring it is meant to sit beside (SC 2.4.11).
  */
-export const GearFocused: Story = {
+export const SettingsButtonFocused: Story = {
 	globals: { viewport: { value: 'desktop' } },
 	decorators: [atRoute(ROUTES.setup)],
 	play: async ({ canvasElement }) => {
