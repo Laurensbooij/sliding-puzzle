@@ -9,16 +9,26 @@ import { useEffect } from 'react'
 
 import { Play } from './Play'
 
+/**
+ * A game that comes out solved: the route's own machine with the shuffle taken
+ * out of the deal. The engine never returns a solved board from one — ADR-0002
+ * — so skipping it is the only way to draw the win.
+ */
+const solvedMachine = gameMachine.provide({ actions: { shuffleBoard: () => undefined } })
+
 interface PlayGameProps {
 	boardSize: BoardSize
+	solved: boolean
 }
 
 /**
  * The half of the Play route a story can carry: it creates the game actor and
  * deals it, exactly as the route does.
  */
-const PlayGame: FC<PlayGameProps> = ({ boardSize }) => {
-	const game = useActorRef(gameMachine, { input: { rows: boardSize, cols: boardSize } })
+const PlayGame: FC<PlayGameProps> = ({ boardSize, solved }) => {
+	const game = useActorRef(solved ? solvedMachine : gameMachine, {
+		input: { rows: boardSize, cols: boardSize },
+	})
 
 	useEffect(() => {
 		game.send({ type: 'game.start' })
@@ -30,6 +40,7 @@ const PlayGame: FC<PlayGameProps> = ({ boardSize }) => {
 interface PlayStoryProps {
 	boardSize: BoardSize
 	showTimer: boolean
+	solved: boolean
 }
 
 /**
@@ -40,7 +51,7 @@ interface PlayStoryProps {
  * directly, so the story writes the same keys a returning player's browser
  * would — before the providers below it are constructed.
  */
-const PlayStory: FC<PlayStoryProps> = ({ boardSize, showTimer }) => {
+const PlayStory: FC<PlayStoryProps> = ({ boardSize, showTimer, solved }) => {
 	localStorage.setItem(
 		GAME_CONFIG_STORAGE_KEY,
 		JSON.stringify({ ...DEFAULT_GAME_CONFIG, boardSize }),
@@ -50,7 +61,7 @@ const PlayStory: FC<PlayStoryProps> = ({ boardSize, showTimer }) => {
 	return (
 		<GameConfigProvider>
 			<SettingsProvider>
-				<PlayGame boardSize={boardSize} />
+				<PlayGame boardSize={boardSize} solved={solved} />
 			</SettingsProvider>
 		</GameConfigProvider>
 	)
@@ -59,7 +70,7 @@ const PlayStory: FC<PlayStoryProps> = ({ boardSize, showTimer }) => {
 const meta = {
 	title: 'Features/Play',
 	component: PlayStory,
-	args: { boardSize: 3, showTimer: true },
+	args: { boardSize: 3, showTimer: true, solved: false },
 	parameters: { layout: 'fullscreen' },
 	decorators: [
 		// Stands in for the shell's `page-content`: the gutters and the outer cap
@@ -104,4 +115,14 @@ export const FiveByFive: Story = {
 
 export const SixBySix: Story = {
 	args: { boardSize: 6 },
+}
+
+/**
+ * The win, as the Solved frame draws it: the card over the solved board, whose
+ * footer now reads "Solved". The read-outs stand at nought moves and no time —
+ * this game was won by never being shuffled, and the card counts what the
+ * machine counted. `Features/Play/Solved` is where the played numbers are.
+ */
+export const SolvedGame: Story = {
+	args: { solved: true },
 }

@@ -1,6 +1,7 @@
 import { DEFAULT_GAME_CONFIG, GAME_CONFIG_STORAGE_KEY, GameConfigProvider } from '@/lib/game-config'
 import type { BoardSize } from '@/lib/game-config'
 import { DEFAULT_SETTINGS, SETTINGS_STORAGE_KEY, SettingsProvider } from '@/lib/settings'
+import { createBoard, shuffle } from '@engine'
 import { createTranslate } from '@i18n'
 import { gameMachine } from '@machines/game-machine'
 import { renderWithProviders, seedStorage } from '@testing'
@@ -10,9 +11,10 @@ import userEvent from '@testing-library/user-event'
 import { BOARD_TESTIDS } from '@widgets/Board'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { ActorRefFrom } from 'xstate'
-import { createActor } from 'xstate'
+import { assign, createActor } from 'xstate'
 
 import { Play } from './Play'
+import { solvedMessages } from './components/Solved/translation-messages'
 import { PLAY_TESTIDS } from './constants'
 import { playMessages } from './translation-messages'
 
@@ -40,6 +42,60 @@ const SECOND_MS = 1000
  */
 const startGame = (boardSize: BoardSize = 3, now: () => number = () => 0): GameActor => {
 	const game = createActor(gameMachine, { input: { rows: boardSize, cols: boardSize, now } })
+	game.start()
+	game.send({ type: 'game.start' })
+	return game
+}
+
+/**
+ * The two instants a finished game is timed by, handed out in order: the
+ * machine reads the clock once when the game starts and once when it finishes,
+ * and a game that is already over by the first render leaves no other moment to
+ * move time in.
+ */
+const stopwatchReading = (elapsed: number): (() => number) => {
+	const readings = [0, elapsed]
+	return () => readings.shift() ?? elapsed
+}
+
+interface SolvedGameCase {
+	boardSize?: BoardSize
+	/** Milliseconds the finished game took, as the two clock readings above. */
+	elapsed?: number
+	/** How many of this game's deals come out solved; later ones shuffle for real. */
+	dealsSolved?: number
+}
+
+/**
+ * A game that comes out solved: the route's own actor with the shuffle taken
+ * out of its first deal. The engine never returns a solved board from one —
+ * deliberately, see ADR-0002 — so skipping it is the only way to hold a won
+ * game, and it is exactly the step a win is the absence of.
+ *
+ * Every later deal shuffles as the app's does, so `Play again` from the card
+ * lands on a real board rather than on another instant win.
+ */
+const solvedGame = ({
+	boardSize = 3,
+	elapsed = 0,
+	dealsSolved = 1,
+}: SolvedGameCase = {}): GameActor => {
+	let deals = 0
+	const machine = gameMachine.provide({
+		actions: {
+			shuffleBoard: assign({
+				board: ({ context }) => {
+					deals += 1
+					const dealt = createBoard(context.board.rows, context.board.cols)
+					return deals <= dealsSolved ? dealt : shuffle(dealt, context.random)
+				},
+			}),
+		},
+	})
+
+	const game = createActor(machine, {
+		input: { rows: boardSize, cols: boardSize, now: stopwatchReading(elapsed) },
+	})
 	game.start()
 	game.send({ type: 'game.start' })
 	return game
@@ -316,5 +372,124 @@ describe('Play', () => {
 		// A fresh deal is not a move, however many tiles it put somewhere else —
 		// so the region gains nothing to say and stays on its last sentence.
 		expect(announcer.textContent).toBe(announcedByTheMove)
+	})
+
+	/**
+	 * The win. No case here plays a move — the game is over before the first
+	 * render — so the card counts the nought moves an untouched solved board
+	 * took, and what matters is that it counts the machine's number at all.
+	 */
+	describe('once the board is solved', () => {
+		const WON_IN_NO_MOVES = translate(solvedMessages.title, { count: 0 })
+		const SOLVED_HINT = translate(playMessages.solvedHint)
+
+		const playAgainButton = (): HTMLElement =>
+			screen.getByRole('button', { name: translate(solvedMessages.playAgain) })
+
+		it('raises the win card, named by the moves the game took', () => {
+			renderComponent({ game: solvedGame() })
+
+			const card = screen.getByRole('dialog', { name: WON_IN_NO_MOVES })
+			expect(card).toBeVisible()
+		})
+
+		it('describes the win with the elapsed time, frozen where the clock stopped', () => {
+			renderComponent({ game: solvedGame({ elapsed: 78 * SECOND_MS }) })
+
+			const card = screen.getByRole('dialog', { name: WON_IN_NO_MOVES })
+			expect(card).toHaveAccessibleDescription(
+				translate(solvedMessages.description, { time: '01:18' }),
+			)
+		})
+
+		it('changes the board footer line to Solved', () => {
+			renderComponent({ game: solvedGame() })
+
+			const hint = screen.getByText(SOLVED_HINT)
+			expect(hint).toBeVisible()
+		})
+
+		/**
+		 * The deliberate N/A from the ticket, asserted where both surfaces exist:
+		 * the card's own arrival is the announcement, and the board's region
+		 * reports moves. Saying the win twice is worse than saying it once.
+		 */
+		it('never pushes the win through the board’s live region', () => {
+			renderComponent({ game: solvedGame() })
+
+			const announcer = screen.getByRole('status')
+			expect(announcer.textContent).toBe('')
+		})
+
+		it('closes to the solved board on Escape, footer line intact', async () => {
+			const user = userEvent.setup()
+			renderComponent({ game: solvedGame() })
+
+			await user.keyboard('{Escape}')
+
+			const card = screen.queryByRole('dialog')
+			const board = screen.getByRole('group')
+			const hint = screen.getByText(SOLVED_HINT)
+			expect(card).not.toBeInTheDocument()
+			expect(board).toBeVisible()
+			expect(hint).toBeVisible()
+		})
+
+		it('deals a new game at the same size from Play again', async () => {
+			const user = userEvent.setup()
+			renderComponent({ boardSize: 4, game: solvedGame({ boardSize: 4 }) })
+
+			await user.click(playAgainButton())
+
+			const card = screen.queryByRole('dialog')
+			const boardSize = statValue(BOARD_SIZE_LABEL)
+			const solvedHint = screen.queryByText(SOLVED_HINT)
+			expect(card).not.toBeInTheDocument()
+			expect(boardSize).toHaveTextContent(
+				translate(playMessages.boardSizeValue, { rows: 4, cols: 4 }),
+			)
+			expect(solvedHint).not.toBeInTheDocument()
+		})
+
+		/**
+		 * The card writes the size to the config provider and stays put; the
+		 * actor keyed on that size is the route's, and `PlayRoute.spec` is where
+		 * the new deal it forces is asserted.
+		 */
+		it('starts the next size up in place, without leaving Play', async () => {
+			const user = userEvent.setup()
+			renderComponent({ game: solvedGame() })
+			const trySize = screen.getByRole('button', {
+				name: translate(solvedMessages.tryNextSize, { size: 4 }),
+			})
+
+			await user.click(trySize)
+
+			const boardSize = statValue(BOARD_SIZE_LABEL)
+			const play = screen.getByTestId(PLAY_TESTIDS.BASE)
+			expect(boardSize).toHaveTextContent(
+				translate(playMessages.boardSizeValue, { rows: 4, cols: 4 }),
+			)
+			expect(play).toBeVisible()
+		})
+
+		/**
+		 * A dismissal belongs to the solve it closed. The same actor plays every
+		 * game on this screen, so a card that stayed dismissed would swallow every
+		 * win after the first one an Escape closed.
+		 */
+		it('raises the card again for the next win, after an Escape closed the last', async () => {
+			const user = userEvent.setup()
+			renderComponent({ game: solvedGame({ dealsSolved: 2 }) })
+			await user.keyboard('{Escape}')
+			const restart = screen.getByTestId(
+				`${BOARD_TESTIDS.BASE}${BOARD_TESTIDS.RESTART_SUFFIX}`,
+			)
+
+			await user.click(restart)
+
+			const card = screen.getByRole('dialog', { name: WON_IN_NO_MOVES })
+			expect(card).toBeVisible()
+		})
 	})
 })

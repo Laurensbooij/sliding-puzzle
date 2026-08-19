@@ -7,6 +7,12 @@ export const playMessages = defineMessages({
 		description:
 			'Heading of the Play screen. Visually hidden — the design draws no heading — and what a screen reader announces on arrival',
 	},
+	solvedHint: {
+		id: 'play.board.solved-hint',
+		defaultMessage: 'Solved',
+		description:
+			'Line in the board footer once the board comes out solved, replacing the standing hint about how to move a tile',
+	},
 	movesLabel: {
 		id: 'play.stats.moves.label',
 		defaultMessage: 'Moves',
