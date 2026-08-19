@@ -22,7 +22,8 @@ class, no IDs, no `!important` (element selectors belong to the global reset onl
     re-export replaces it wholesale. Export profile: DTCG 2025.10 **on**,
     style export **on**, split by collection, hex colors.
   - **`tokens/manual/`** — hand-owned: materials (wood/glass gradient stacks
-    plus glass blur/border/glow extras) and composed `transition` shorthands.
+    plus glass blur/border/glow extras), composed `transition` shorthands, and
+    the responsive breakpoints (Figma has no breakpoint variable to export).
     Easings ship in the export as Motion `ease/*` string variables, and `font`
     shorthands are generated from its Typography styles — neither is manual.
     The design prototype's CSS is the reference when updating this tier.
@@ -81,6 +82,23 @@ from any other height.
   against a short viewport, `vmin` to stay proportional in both orientations. A
   `vmin` cap on a width silently steals width in portrait, where `vmin` _is_ the
   width.
+
+## Breakpoints (ADR-0016)
+
+- **One breakpoint token, `--breakpoint-desktop`** (768px, generated as `48rem`).
+  Mobile-first: everything below it is the base, desktop is the `min-width`
+  opt-in.
+- **A layout that changes _shape_ branches in JS**, through `useIsDesktop()` from
+  `src/lib/use-media-query/` — never by rendering both trees and hiding one. Two
+  hidden copies of the same form mean duplicate ids, duplicate testids and
+  duplicate tab stops. ADR-0016 records the trade-off, including what a runtime
+  branch costs.
+- **A layout that only changes _looks_ stays in CSS**, with a plain
+  `@media (min-width: 48rem)`. The literal is unavoidable: a media condition
+  cannot read a `var()`. The token is still the source — when it moves, the
+  media queries move with it, and `grep` for the value finds them.
+- Review-guarded, not lint-enforced: no rule can tell a shape change from a
+  restyle.
 
 ## Motion
 

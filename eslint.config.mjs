@@ -365,6 +365,21 @@ export default tseslint.config(
 		},
 	},
 	{
+		// A hook is a kebab-case module, and so is its spec — but a hook spec needs
+		// a DOM, and the jsdom Vitest project is selected by the `.tsx` extension
+		// (docs/conventions/testing.md). PascalCase marks a component file; this
+		// is not one.
+		files: ['src/**/use-*.spec.tsx'],
+		plugins: { 'check-file': checkFile },
+		rules: {
+			'check-file/filename-naming-convention': [
+				'error',
+				{ 'src/**/use-*.spec.tsx': 'KEBAB_CASE' },
+				{ ignoreMiddleExtensions: true },
+			],
+		},
+	},
+	{
 		// PascalCase marks a component file. Helpers that merely happen to contain
 		// JSX — test renderers, decorators — stay kebab-case like any other module.
 		files: ['src/testing/**/*.{ts,tsx}'],

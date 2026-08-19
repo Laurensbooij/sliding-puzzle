@@ -57,6 +57,9 @@ widgets → features → app`. Features never import each other, and neither do
 - **No runtime UI or animation libraries** (ADR-0011): primitives are hand-rolled
   on native elements and platform APIs; the only design-driven packages are
   `lucide-react` and `@fontsource` fonts.
+- **Responsive layout branches in JS** (ADR-0016): a screen that changes shape
+  across `--breakpoint-desktop` picks its tree with `useIsDesktop()`, never by
+  rendering both and hiding one. CSS `@media` stays for restyling a stable tree.
 
 To add or change a convention, use the `/update-conventions` skill.
 

@@ -2,8 +2,21 @@ import '@testing-library/jest-dom/vitest'
 import { cleanup } from '@testing-library/react'
 import { afterEach } from 'vitest'
 
+import { installMatchMedia, resetMatchMedia } from './src/testing/match-media'
+
 // Vitest globals are off, so RTL can't self-register its cleanup — do it here.
 afterEach(cleanup)
+
+/**
+ * jsdom ships no `matchMedia` at all, so anything that subscribes to a media
+ * query throws on first render. The fake lives in `@testing` rather than here
+ * because a spec has to drive it — flip a query, cross a breakpoint, count the
+ * listeners left behind. Reached by path rather than by its `@testing` alias:
+ * this file sits outside every tsconfig's `include`, so nothing resolves the
+ * aliases for it.
+ */
+installMatchMedia()
+afterEach(resetMatchMedia)
 
 /**
  * jsdom ships the popover UA stylesheet but not the popover API, so a

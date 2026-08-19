@@ -17,6 +17,12 @@ every story with axe in headless Chromium. See
 Accessibility gates and the per-component a11y acceptance criteria live in
 [accessibility.md](accessibility.md).
 
+A hook spec is the one file that breaks the naming rule for a good reason: hooks are
+kebab-case modules, but a hook spec needs a DOM, and the DOM project is selected by
+the extension. `use-media-query.spec.tsx` is therefore kebab-case where every other
+`.tsx` is PascalCase — lint-enforced by the `src/**/use-*.spec.tsx` override in
+`eslint.config.mjs`.
+
 **A specced module lives in a folder named after it** (lint-enforced:
 `sliding-puzzle/spec-in-module-folder`): `board/board.ts` + `board/board.spec.ts`,
 `Tile/Tile.tsx` + `Tile/Tile.spec.tsx`. The pair is one unit; the folder keeps it
@@ -62,6 +68,20 @@ test. The helper states that baseline once.
 The rule checks that the helper is declared at module top level, takes at least one
 parameter, and is the only caller of `renderWithProviders` — under any import alias.
 Whether its arguments are the _right_ ones stays a review judgement.
+
+## jsdom shims
+
+`vitest.setup.ts` installs the few platform pieces jsdom is missing. Each is
+deliberately thin — it restores observable state and nothing more, and the real
+behaviour is proved by the storybook project in Chromium.
+
+- **Popover** and **`<dialog>`** — open/closed state and the Esc route.
+- **`matchMedia`** — jsdom ships none at all, so anything using `useMediaQuery`
+  throws on first render without it. The fake lives in `src/testing/match-media.ts`
+  because specs have to drive it: `setMediaQueryMatches(query, matches)` crosses a
+  breakpoint, `mediaQueryListenerCount(query)` catches a leaked subscription. It
+  parses nothing — a query string is an opaque key, so a spec asserts which query
+  was asked for, not how a browser would evaluate it.
 
 ## Queries — accessible identity first (ADR-0005)
 
