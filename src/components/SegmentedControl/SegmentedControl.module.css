@@ -6,10 +6,11 @@
 	min-inline-size: 0;
 }
 
-/* The group name is for assistive tech only — the design has no visible legend.
-   Clipped rather than hidden: display:none or visibility:hidden would take the
-   group's accessible name with it. The 1px box stays a rem so it cannot outgrow
-   its clip at large root font sizes. */
+/* Two treatments of one string, picked by `labelVisible`. The default is the
+   group name for assistive tech only — most designs place the control without a
+   caption. Clipped rather than hidden: display:none or visibility:hidden would
+   take the group's accessible name with it. The 1px box stays a rem so it cannot
+   outgrow its clip at large root font sizes. */
 .legend {
 	position: absolute;
 	overflow: hidden;
@@ -17,6 +18,19 @@
 	width: 0.0625rem;
 	height: 0.0625rem;
 	white-space: nowrap;
+}
+
+/* Setup's design captions the control — the same uppercase micro-label Select
+   draws above its field, identical at both breakpoints. The UA gives a legend
+   its own inline padding and the global reset only zeroes margins. Zeroing it
+   here is what keeps the caption flush with the track it names. */
+.legendVisible {
+	padding: 0;
+	margin-block-end: var(--space-2);
+	font: var(--label-caps);
+	letter-spacing: var(--tracking-caps);
+	text-transform: uppercase;
+	color: var(--text-muted);
 }
 
 /* The track owns the height; segments divide what is left. A plain border works
@@ -90,7 +104,9 @@
 	color: var(--text-strong);
 }
 
-.group:disabled .track {
+/* The whole group dims, caption included — a full-strength label over a dimmed
+   track would read as two controls in two states. */
+.group:disabled {
 	opacity: var(--state-disabled-opacity);
 }
 

@@ -312,9 +312,10 @@ export default tseslint.config(
 		},
 	},
 	{
-		// The spec-side half of the rendering convention: `renderComponent` is
-		// only a single entry point if RTL's bare `render` cannot be reached
-		// around it. src/testing/ is where the wrapper legitimately calls it.
+		// The spec-side half of the rendering convention: a spec's own helper is
+		// only a single entry point if RTL's bare `render` and `renderHook` cannot
+		// be reached around it. src/testing/ is where the wrappers legitimately
+		// call them.
 		//
 		// Flat config replaces a rule's options rather than merging them, so the
 		// patterns from the src-wide block above have to be restated here or spec
@@ -328,9 +329,9 @@ export default tseslint.config(
 					paths: [
 						{
 							name: '@testing-library/react',
-							importNames: ['render'],
+							importNames: ['render', 'renderHook'],
 							message:
-								"Render through the spec's renderComponent() helper, which wraps renderWithProviders from `@testing`.",
+								"Render through the spec's own helper, which wraps renderWithProviders (components) or renderHookWithProviders (hooks) from `@testing`.",
 						},
 					],
 				},
@@ -365,10 +366,12 @@ export default tseslint.config(
 		},
 	},
 	{
-		// A hook is a kebab-case module, and so is its spec — but a hook spec needs
-		// a DOM, and the jsdom Vitest project is selected by the `.tsx` extension
-		// (docs/conventions/testing.md). PascalCase marks a component file; this
-		// is not one.
+		// A hook spec needs a DOM, and the jsdom Vitest project is selected by the
+		// `.tsx` extension — so a hook that has a provider puts its spec beside
+		// that provider and inherits its PascalCase name. A hook that has none
+		// keeps its spec beside itself, where the module is kebab-case and so is
+		// the spec. PascalCase marks a component file; this is not one.
+		// See docs/conventions/testing.md.
 		files: ['src/**/use-*.spec.tsx'],
 		plugins: { 'check-file': checkFile },
 		rules: {

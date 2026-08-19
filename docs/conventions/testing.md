@@ -17,12 +17,6 @@ every story with axe in headless Chromium. See
 Accessibility gates and the per-component a11y acceptance criteria live in
 [accessibility.md](accessibility.md).
 
-A hook spec is the one file that breaks the naming rule for a good reason: hooks are
-kebab-case modules, but a hook spec needs a DOM, and the DOM project is selected by
-the extension. `use-media-query.spec.tsx` is therefore kebab-case where every other
-`.tsx` is PascalCase — lint-enforced by the `src/**/use-*.spec.tsx` override in
-`eslint.config.mjs`.
-
 **A specced module lives in a folder named after it** (lint-enforced:
 `sliding-puzzle/spec-in-module-folder`): `board/board.ts` + `board/board.spec.ts`,
 `Tile/Tile.tsx` + `Tile/Tile.spec.tsx`. The pair is one unit; the folder keeps it
@@ -69,19 +63,53 @@ The rule checks that the helper is declared at module top level, takes at least 
 parameter, and is the only caller of `renderWithProviders` — under any import alias.
 Whether its arguments are the _right_ ones stays a review judgement.
 
-## jsdom shims
+## Hook specs
 
-`vitest.setup.ts` installs the few platform pieces jsdom is missing. Each is
-deliberately thin — it restores observable state and nothing more, and the real
-behaviour is proved by the storybook project in Chromium.
+A hook whose whole surface is its return value is rendered through
+**`renderHookWithProviders`** from `@testing`, not through a probe component built to
+display it. Same real providers, same real catalogues; pass the provider under test as
+`wrapper`:
 
-- **Popover** and **`<dialog>`** — open/closed state and the Esc route.
-- **`matchMedia`** — jsdom ships none at all, so anything using `useMediaQuery`
-  throws on first render without it. The fake lives in `src/testing/match-media.ts`
-  because specs have to drive it: `setMediaQueryMatches(query, matches)` crosses a
-  breakpoint, `mediaQueryListenerCount(query)` catches a leaked subscription. It
-  parses nothing — a query string is an opaque key, so a spec asserts which query
-  was asked for, not how a browser would evaluate it.
+```tsx
+const renderRecords = (stored?: string) => {
+  if (stored !== undefined) localStorage.setItem(RECORDS_STORAGE_KEY, stored)
+  return renderHookWithProviders(useRecords, { wrapper: RecordsProvider })
+}
+```
+
+RTL's bare `renderHook` is a lint error in a spec, exactly as bare `render` is. Name the
+helper after what it renders (`renderRecords`, `renderSettings`) — the `renderComponent`
+rule above governs component specs and does not apply here. Not machine-checked.
+
+**A hook spec still runs in jsdom**, so it is a `.spec.tsx` file — which the PascalCase
+filename rule then applies to. A hook that has a provider puts its spec beside that
+provider (`RecordsProvider/RecordsProvider.spec.tsx`) rather than beside the kebab-case
+hook module. A hook that has none — `use-media-query/use-media-query.spec.tsx` — keeps
+its spec beside itself and stays kebab-case, which the `src/**/use-*.spec.tsx` override
+in `eslint.config.mjs` enforces. Inventing a provider just to win a PascalCase filename
+would be the tail wagging the dog.
+
+## Storage
+
+`localStorage` is shimmed in `vitest.setup.ts` and cleared after every test. Node 24
+ships its own inert `localStorage` global, and Vitest's jsdom environment skips window
+keys already on `globalThis`, so without the shim there is no storage at all.
+
+**Assert persistence isolation against raw stored strings**, via `seedStorage` and
+`readStorage` from `@testing`. A test that only re-reads its own module's value cannot
+fail when a write clobbers a neighbouring key; comparing a `readStorage` snapshot to
+what `seedStorage` returned can.
+
+## Media queries
+
+jsdom ships no `matchMedia` at all — not a stub, not a no-op — so anything calling
+`useMediaQuery` throws on first render. `vitest.setup.ts` installs the fake from
+`src/testing/match-media.ts`, which specs drive: `setMediaQueryMatches(query, matches)`
+crosses a breakpoint, `mediaQueryListenerCount(query)` catches a leaked subscription.
+
+It parses nothing — a query string is an opaque key — so a spec asserts **which query
+was asked for**, never how a browser would evaluate it. Real evaluation stays a
+Chromium question, like the popover and dialog shims beside it.
 
 ## Queries — accessible identity first (ADR-0005)
 

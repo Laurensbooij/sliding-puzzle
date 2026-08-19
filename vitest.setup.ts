@@ -83,3 +83,38 @@ if (typeof HTMLDialogElement !== 'undefined' && !HTMLDialogElement.prototype.sho
 		this.dispatchEvent(new Event('close'))
 	}
 }
+
+/**
+ * Node 24 ships its own experimental `localStorage` global, inert unless the
+ * process was started with `--localstorage-file`. Vitest's jsdom environment
+ * skips any window key that already exists on `globalThis`, so Node's inert one
+ * wins and jsdom's real Storage never becomes reachable — `localStorage` is
+ * `undefined` in every jsdom spec.
+ *
+ * The shim is the smallest thing that restores the observable contract the
+ * persisted-state hook is written against: string in, string out, per-key
+ * isolation, and a `clear()` between tests. No quota, no `storage` events.
+ */
+if (globalThis.localStorage === undefined) {
+	const entries = new Map<string, string>()
+
+	const memoryStorage: Storage = {
+		get length() {
+			return entries.size
+		},
+		key: (index: number) => [...entries.keys()][index] ?? null,
+		getItem: (key: string) => entries.get(key) ?? null,
+		setItem: (key: string, value: string) => void entries.set(key, String(value)),
+		removeItem: (key: string) => void entries.delete(key),
+		clear: () => entries.clear(),
+	}
+
+	Object.defineProperty(globalThis, 'localStorage', {
+		configurable: true,
+		value: memoryStorage,
+	})
+}
+
+// Storage outlives a render, so it needs clearing like the DOM does — otherwise
+// one spec's stored preferences become the next spec's starting state.
+afterEach(() => localStorage.clear())

@@ -68,3 +68,13 @@ export const Focused: Story = {
 export const Disabled: Story = {
 	args: { disabled: true },
 }
+
+// Setup captions the control with GRID SIZE. The same string still names the
+// group, so the visible and clipped stories differ in paint only.
+export const LabelVisible: Story = {
+	args: { label: 'Grid size', labelVisible: true },
+}
+
+export const LabelVisibleDisabled: Story = {
+	args: { label: 'Grid size', labelVisible: true, disabled: true },
+}
