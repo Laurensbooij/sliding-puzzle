@@ -87,7 +87,7 @@ export interface PlayProps {
  */
 export const Play: FC<PlayProps> = ({ game, onAbandon }) => {
 	const { rows, cols, sourceImage, setBoardSize } = useGameConfig()
-	const { showTimer } = useSettings()
+	const { referenceImage, numberedTiles, showTimer } = useSettings()
 	const context = useSelector(game, selectContext)
 	const isPlaying = useSelector(game, selectIsPlaying)
 	const isSolved = useSelector(game, selectIsSolved)
@@ -186,9 +186,11 @@ export const Play: FC<PlayProps> = ({ game, onAbandon }) => {
 					// The Board cannot work this out itself — an unshuffled board is
 					// solved too — so the screen owning the lifecycle says it.
 					hint={isSolved ? <Message message={playMessages.solvedHint} /> : undefined}
-					// Hard on until the Reference image setting reaches the Board,
-					// which arrives with the numbered-tiles half of the same job.
-					preview
+					// Both are paint the player chose, read straight off the provider:
+					// the reference chip only exists inside a footer, and this is the
+					// only screen that asks for one.
+					preview={referenceImage}
+					numbered={numberedTiles}
 				/>
 			</div>
 			<Solved

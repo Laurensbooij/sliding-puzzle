@@ -69,6 +69,15 @@ export interface BoardProps {
 	 */
 	preview?: boolean
 	/**
+	 * Paints each tile's number on it. Off by default — the board Figma draws
+	 * carries no numbers.
+	 *
+	 * Visual only: a tile is named "Tile 3" by its `aria-label` either way, so
+	 * this changes nothing a screen reader reports and nothing is announced when
+	 * it flips.
+	 */
+	numbered?: boolean
+	/**
 	 * Called when the restart control is pressed. Board does not deal the new
 	 * board; `game.restart` belongs to whoever composes it.
 	 */
@@ -125,6 +134,7 @@ export const Board: FC<BoardProps> = ({
 	footer = false,
 	hint = <Message message={boardMessages.hint} />,
 	preview = true,
+	numbered = false,
 	onCellPress,
 	onRestart,
 	onAbandon,
@@ -221,9 +231,7 @@ export const Board: FC<BoardProps> = ({
 								rows={board.rows}
 								cols={board.cols}
 								movable={interactive && movable.includes(tile)}
-								// The board Figma draws carries no numbers; a tile's
-								// accessible name is its `aria-label` either way.
-								showLabel={false}
+								showLabel={numbered}
 								onPress={() => pressCell(cell)}
 								dataTestId={`${base}${BOARD_TESTIDS.TILE_SUFFIX}-${tile}`}
 							/>

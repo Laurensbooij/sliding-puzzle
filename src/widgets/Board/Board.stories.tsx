@@ -80,6 +80,20 @@ export const FooterWithoutPreview: Story = {
 }
 
 /**
+ * `Numbered=true`: the assist label on every tile. Paint only — a tile is named
+ * "Tile 3" by its `aria-label` on either setting, so the board reads the same to
+ * a screen reader. Play turns this on from the Numbered tiles setting.
+ */
+export const Numbered: Story = {
+	args: { numbered: true },
+}
+
+/** Numbered and played: the footer, the preview chip and the numbers together. */
+export const NumberedWithFooter: Story = {
+	args: { numbered: true, footer: true },
+}
+
+/**
  * A screen-supplied footer line. The Board never works this out for itself: an
  * unshuffled board is solved too, so only the screen owning the lifecycle can
  * tell a win from a deal that has not happened yet.

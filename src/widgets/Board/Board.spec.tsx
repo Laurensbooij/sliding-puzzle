@@ -5,7 +5,7 @@ import { createTranslate } from '@i18n'
 import type { RenderWithProvidersOptions } from '@testing'
 import { renderWithProviders } from '@testing'
 import type { RenderResult } from '@testing-library/react'
-import { screen } from '@testing-library/react'
+import { screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import type { FC } from 'react'
 import { useState } from 'react'
@@ -465,6 +465,50 @@ describe('Board', () => {
 				expect(control).toBeInTheDocument()
 			},
 		)
+	})
+
+	describe('numbered', () => {
+		/** The number a tile paints, as a string — 1-based, like its name. */
+		const tileNumber = (tile: TileId): string => String(tile + 1)
+
+		it('paints no numbers by default', () => {
+			renderComponent()
+			const tile = screen.getByRole('button', { name: tileName(3) })
+			const painted = within(tile).queryByText(tileNumber(3))
+			expect(painted).not.toBeInTheDocument()
+		})
+
+		it('paints every tile its number when it is turned on', () => {
+			renderComponent({ numbered: true })
+
+			for (const tile of [0, 1, 3, 4, 5, 6, 7] satisfies TileId[]) {
+				const button = screen.getByRole('button', { name: tileName(tile) })
+				const painted = within(button).getByText(tileNumber(tile))
+				expect(painted).toBeVisible()
+			}
+		})
+
+		// The claim the whole setting rests on: it is paint, not identity, so a
+		// screen-reader user hears the same board either way and nothing is
+		// announced when it flips.
+		it.each([false, true])(
+			'leaves every accessible name untouched at numbered=%s',
+			(numbered) => {
+				renderComponent({ numbered })
+
+				for (const tile of [0, 1, 3, 4, 5, 6, 7] satisfies TileId[]) {
+					const named = screen.getByRole('button', { name: tileName(tile) })
+					expect(named).toBeInTheDocument()
+				}
+			},
+		)
+
+		it('paints the numbers on a board that cannot be played either', () => {
+			renderComponent({ numbered: true, interactive: false })
+			const tile = screen.getByRole('button', { name: tileName(3) })
+			const painted = within(tile).getByText(tileNumber(3))
+			expect(painted).toBeVisible()
+		})
 	})
 
 	describe('inert', () => {

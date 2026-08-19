@@ -2,6 +2,7 @@ import { DEFAULT_GAME_CONFIG, GAME_CONFIG_STORAGE_KEY, GameConfigProvider } from
 import type { BoardSize, GameConfig } from '@/lib/game-config'
 import { RECORDS_STORAGE_KEY, RecordsProvider } from '@/lib/records'
 import type { Records } from '@/lib/records'
+import { DEFAULT_SETTINGS, SETTINGS_STORAGE_KEY } from '@/lib/settings'
 import { createTranslate } from '@i18n'
 import { readStorage, renderWithProviders, seedStorage } from '@testing'
 import { screen, within } from '@testing-library/react'
@@ -244,6 +245,23 @@ describe('Setup', () => {
 		await user.click(start)
 
 		expect(onStart).toHaveBeenCalledOnce()
+	})
+
+	// Numbered tiles is a Play setting. A solved preview numbered 1-8 in order
+	// teaches nothing, so this board stays unnumbered whatever the player chose.
+	it('leaves the preview board unnumbered even with Numbered tiles on', () => {
+		seedStorage({
+			[SETTINGS_STORAGE_KEY]: JSON.stringify({ ...DEFAULT_SETTINGS, numberedTiles: true }),
+		})
+		renderComponent()
+
+		const preview = screen.getByTestId(`${SETUP_TESTIDS.BASE}${SETUP_TESTIDS.PREVIEW_SUFFIX}`)
+		const painted = within(preview)
+			.getAllByRole('button')
+			.map((tile) => tile.textContent?.trim() ?? '')
+			.filter(Boolean)
+
+		expect(painted).toHaveLength(0)
 	})
 
 	it('gives each choice group one tab stop and the preview board none', async () => {
