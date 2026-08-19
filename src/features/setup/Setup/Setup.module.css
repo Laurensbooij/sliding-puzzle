@@ -1,0 +1,132 @@
+/*
+ * Figma `home`, both breakpoints. One tree, restyled by a media query rather
+ * than branched in JS: the controls render inline at every width, so nothing
+ * here changes shape — only where the three areas land (ADR-0016). Areas, never
+ * `order`: the DOM stays preview → pitch → controls, and desktop moves the
+ * preview into the right column without touching reading order.
+ */
+.setup {
+	display: grid;
+	grid-template-areas:
+		'preview'
+		'pitch'
+		'controls';
+	row-gap: var(--space-6);
+	padding-block-start: var(--space-4);
+}
+
+/*
+ * The mobile stack sets 32 above the pitch and 24 between the control rows
+ * below it. A grid carries one row-gap, so the preview makes up the difference
+ * rather than every other row restating its own.
+ */
+.preview {
+	grid-area: preview;
+	justify-self: center;
+	width: min(100%, 16.25rem);
+	margin-block-end: var(--space-2);
+}
+
+.pitch {
+	display: flex;
+	flex-direction: column;
+	grid-area: pitch;
+	gap: var(--space-3);
+}
+
+/*
+ * `balance` rather than the hard line break Figma draws: the tagline is one
+ * sentence, and a break baked into it would be inherited by every translation.
+ * Where the line actually wraps — the desktop column — balance produces the
+ * designed two even halves. On a phone the sentence fits on one line and stays
+ * there, which is the one place this reads narrower than the mobile frame.
+ */
+.heading {
+	font: var(--title);
+	letter-spacing: var(--tracking-tight);
+	text-wrap: balance;
+	color: var(--text-strong);
+}
+
+.lede {
+	font: var(--body);
+	color: var(--text-muted);
+}
+
+/* The two choices and the action, stacked. `flex-start` so the size pill and
+   the swatch row hug their content the way Figma draws them; the call to action
+   opts back out below. */
+.controls {
+	display: flex;
+	flex-direction: column;
+	grid-area: controls;
+	gap: var(--space-6);
+	align-items: flex-start;
+}
+
+/* Mobile stacks the button over the record line and lets it fill the column;
+   desktop puts them on one row. The button is not the design system's
+   `fullWidth` variant, because which of the two it is belongs to this layout. */
+.cta {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-3);
+	align-items: stretch;
+	align-self: stretch;
+}
+
+.record {
+	display: flex;
+	gap: var(--space-2);
+	align-items: center;
+	font: var(--body-sm);
+	color: var(--text-muted);
+}
+
+/* Figma binds the trophy to amber/600 — a primitive, because a reward glyph has
+   no semantic alias. `--warning` is the same colour under the wrong name. */
+.recordIcon {
+	flex-shrink: 0;
+	color: var(--amber-600);
+}
+
+@media (width >= 48rem) {
+	.setup {
+		/*
+		 * Rows first, then the columns after the slash. The second row takes the
+		 * slack, so the pitch and the controls stay one row-gap apart however tall
+		 * the board beside them is. The preview column shrinks before the controls
+		 * column does: six 60px swatches and a four-segment pill need the room more
+		 * than the board does.
+		 */
+		grid-template:
+			'pitch preview' auto
+			'controls preview' 1fr
+			/ minmax(20rem, 1fr) minmax(0, 23.75rem);
+		column-gap: var(--space-12);
+		align-items: start;
+		padding-block-start: var(--space-6);
+	}
+
+	.preview {
+		align-self: center;
+		width: min(100%, 22.5rem);
+		margin-block-end: 0;
+	}
+
+	/* Figma's 380px column for both the tagline and the lede. */
+	.pitch {
+		max-width: 23.75rem;
+	}
+
+	.heading {
+		font: var(--display);
+	}
+
+	.cta {
+		flex-direction: row;
+		gap: var(--space-3);
+		align-items: center;
+		align-self: flex-start;
+	}
+}

@@ -1,4 +1,7 @@
 import { placeholderMessages } from '@/app/placeholders/translation-messages'
+import { setupMessages } from '@/features/setup/Setup/translation-messages'
+import { GameConfigProvider } from '@/lib/game-config'
+import { RecordsProvider } from '@/lib/records'
 import { ROUTES } from '@/lib/routes'
 import { createTranslate } from '@i18n'
 import { type RenderWithProvidersOptions, renderWithProviders } from '@testing'
@@ -12,12 +15,23 @@ import { routeMessages } from './translation-messages'
 
 const { translate } = createTranslate()
 
+/**
+ * The providers sit outside the router here exactly as they do in `main.tsx`:
+ * the screens read their state from context, not from a loader, so a route test
+ * that omits them is testing a tree the app never renders.
+ */
 const renderComponent = (
 	initialEntry: string = ROUTES.setup,
 	options?: RenderWithProvidersOptions,
 ): RenderResult =>
 	renderWithProviders(
-		<RouterProvider router={createMemoryRouter(routes, { initialEntries: [initialEntry] })} />,
+		<GameConfigProvider>
+			<RecordsProvider>
+				<RouterProvider
+					router={createMemoryRouter(routes, { initialEntries: [initialEntry] })}
+				/>
+			</RecordsProvider>
+		</GameConfigProvider>,
 		options,
 	)
 
@@ -27,7 +41,7 @@ describe('routes', () => {
 
 		const heading = screen.getByRole('heading', {
 			level: 1,
-			name: translate(placeholderMessages.setupHeading),
+			name: translate(setupMessages.heading),
 		})
 
 		expect(heading).toBeInTheDocument()
@@ -49,9 +63,9 @@ describe('routes', () => {
 	it('navigates from Setup to Play, retitling and refocusing', async () => {
 		const user = userEvent.setup()
 		renderComponent()
-		const toPlay = screen.getByRole('link', { name: translate(placeholderMessages.toPlay) })
+		const start = screen.getByRole('button', { name: translate(setupMessages.start) })
 
-		await user.click(toPlay)
+		await user.click(start)
 
 		const heading = screen.getByRole('heading', {
 			level: 1,
@@ -75,7 +89,7 @@ describe('routes', () => {
 
 		const heading = screen.getByRole('heading', {
 			level: 1,
-			name: translate(placeholderMessages.setupHeading),
+			name: translate(setupMessages.heading),
 		})
 		expect(heading).toHaveFocus()
 		expect(document.title).toBe(translate(routeMessages.setupTitle))
@@ -86,7 +100,7 @@ describe('routes', () => {
 
 		const heading = screen.getByRole('heading', {
 			level: 1,
-			name: translate(placeholderMessages.setupHeading),
+			name: translate(setupMessages.heading),
 		})
 
 		expect(heading).toBeInTheDocument()
@@ -104,7 +118,7 @@ describe('routes', () => {
 
 		const heading = screen.getByRole('heading', {
 			level: 1,
-			name: translate(placeholderMessages.setupHeading),
+			name: translate(setupMessages.heading),
 		})
 
 		expect(heading).toHaveFocus()

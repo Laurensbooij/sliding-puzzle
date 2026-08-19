@@ -1,10 +1,10 @@
 import { AppShell } from '@/app/AppShell'
 import { PlayPlaceholder } from '@/app/placeholders/PlayPlaceholder'
-import { SetupPlaceholder } from '@/app/placeholders/SetupPlaceholder'
 import { ROUTES } from '@/lib/routes'
 import type { RouteObject } from 'react-router'
 
 import { RouteFallback } from './RouteFallback'
+import { SetupRoute } from './SetupRoute'
 import { routeMessages } from './translation-messages'
 import type { RouteHandle } from './types'
 
@@ -14,7 +14,7 @@ import type { RouteHandle } from './types'
  * the router, so there is nothing for the router to fetch.
  *
  * `/play` carries no guard and needs none. The game config is persisted, so a
- * grid size and an artwork always exist, which makes the route valid however it
+ * board size and an artwork always exist, which makes the route valid however it
  * is reached — and mounting it means a fresh shuffled game. Pasting the URL or
  * refreshing mid-game therefore starts over instead of resuming. That is the
  * decision, not an oversight: there is no resume story to bounce anyone back to.
@@ -25,7 +25,7 @@ export const routes: RouteObject[] = [
 		children: [
 			{
 				path: ROUTES.setup,
-				Component: SetupPlaceholder,
+				Component: SetupRoute,
 				handle: { title: routeMessages.setupTitle } satisfies RouteHandle,
 			},
 			{
