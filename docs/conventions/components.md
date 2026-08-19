@@ -121,6 +121,10 @@ from 'react'`). Props type named exactly **`ComponentNameProps`**, exported
   Shared components and `src/lib/` may not import features either.
 - **Widgets never import other widgets, and never import features.** A widget may
   reach `@components/<Name>`, `@css-utils`, `@i18n`, `src/lib/`, and react-router.
+- **A widget's barrel is its whole public API.** `@widgets/<Name>` and nothing
+  deeper: a nested sub-component like `@widgets/Board/Tile` is a lint error
+  (`no-restricted-imports`), because inside a widget the sub-component sits beside
+  its parent rather than under a `components/` segment.
 - **Widgets never import `@machines/*`.** A widget may hold local UI state — a dialog
   open flag, hover — but it may not own an actor. Logic and presentation meet in
   features ([ADR-0012](../adr/0012-state-machines-are-born-shared.md)).

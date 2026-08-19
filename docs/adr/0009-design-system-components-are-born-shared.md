@@ -1,4 +1,4 @@
-# Design-system components are born shared in `src/components/`
+# Design-system components are born shared in `src/components/` or `src/widgets/`
 
 Components defined by the Figma design system skip the colocation ladder: they
 start in a shared tier, with colocated Storybook stories as their acceptance

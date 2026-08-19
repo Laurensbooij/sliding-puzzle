@@ -33,7 +33,11 @@ the machines/components sibling rule.
 
 **Amended (widgets tier):** `@widgets/*` joins on the same shape as
 `@components/*` and `@machines/*` — per-widget modules with an `index.ts` barrel
-each, no tree barrel. The tier sits between components and features:
+each, no tree barrel. The barrel is also the whole public API: anything deeper
+than `@widgets/<Name>` is a lint error, because a widget nests its
+single-consumer sub-components directly beside it rather than under a
+`components/` segment, which would otherwise leave them as importable as the
+widget itself. The tier sits between components and features:
 `engine → lib → {machines | components} → widgets → features → app`. A widget may
 import `@components/*`, `@css-utils`, `@i18n`, `src/lib/` and react-router; it may
 not import a feature, another widget, or `@machines/*` — logic and presentation

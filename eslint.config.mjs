@@ -53,6 +53,14 @@ const aliasSpellingPatterns = [
 		group: ['@/widgets', '@/widgets/*'],
 		message: 'Import widgets as `@widgets/<Name>`.',
 	},
+	// A widget's barrel is its whole public API. Its nested sub-components sit
+	// beside it rather than under a `components/` segment, so without this the
+	// deep path is just as importable as the barrel.
+	{
+		group: ['@widgets/*/*', '@widgets/*/**'],
+		message:
+			'Reach a widget through its barrel — `@widgets/<Name>`. What sits inside it is private.',
+	},
 	{
 		group: ['@/source-images/vectors/*', '**/source-images/vectors/*'],
 		message:
