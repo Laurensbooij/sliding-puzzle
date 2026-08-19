@@ -1,0 +1,105 @@
+/* The UA gives a fieldset its own border, padding and min-inline-size; the
+   group is a plain stack of a caption and a row of swatches. */
+.group {
+	margin: 0;
+	padding: 0;
+	border: 0;
+	min-inline-size: 0;
+}
+
+/* Figma `art field`: the same uppercase micro-label the size field draws above
+   its control. The UA also gives a legend inline padding, which the global reset
+   does not touch — zeroing it is what keeps the caption flush with the swatches. */
+.legend {
+	padding: 0;
+	margin-block-end: var(--space-2);
+	font: var(--label-caps);
+	letter-spacing: var(--tracking-caps);
+	text-transform: uppercase;
+	color: var(--text-muted);
+}
+
+/* Wraps rather than shrinks: a swatch is a 60px target (SC 2.5.8), so a narrow
+   column gets a second row instead of six squeezed squares. */
+.swatches {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--space-2);
+	align-items: center;
+}
+
+.swatch {
+	/* A Figma component-set value with no variable behind it: the swatch box
+	   belongs to this control, not to the token tiers. */
+	--swatch-size: 3.75rem;
+
+	position: relative;
+	display: grid;
+	place-items: center;
+	width: var(--swatch-size);
+	height: var(--swatch-size);
+}
+
+/*
+ * The radio is the swatch: stripped of its native look and stretched over the
+ * box, so the painted card, the hit target and the focus ring are one element.
+ * No clipping anywhere above it — the ring sits at a positive offset and must
+ * stay visible (SC 2.4.11).
+ */
+.input {
+	position: absolute;
+	inset: 0;
+	appearance: none;
+	margin: 0;
+	border: 1px solid var(--border-subtle);
+	border-radius: var(--radius-md);
+	background-color: var(--surface-card);
+	transition: var(--transition-control);
+	cursor: pointer;
+}
+
+.input:checked {
+	border: 2px solid var(--accent);
+}
+
+.input:focus-visible {
+	outline: 2px solid var(--focus-ring);
+	outline-offset: 2px;
+}
+
+/* States what it means rather than relying on source order: only an enabled,
+   unchosen swatch takes the darker edge. The chosen one keeps its accent ring. */
+.input:enabled:not(:checked):hover {
+	border-color: var(--border-default);
+}
+
+/*
+ * The whole artwork, never a fragment — this is the picture the board becomes.
+ * Source images stroke in currentColor (ADR-0013), so this is where the ink is
+ * set. The unchosen five stay faint; choosing one is what brings it forward.
+ */
+.artwork {
+	position: relative;
+	width: 2.375rem;
+	height: 2.375rem;
+	color: var(--art-ink);
+	opacity: 0.55;
+	transition: var(--transition-control);
+	pointer-events: none;
+}
+
+.input:checked ~ .artwork {
+	opacity: 0.95;
+}
+
+/* The swatch's accessible name. Clipped rather than hidden: display:none would
+   take the radio's name with it. The 1px box stays a rem so it cannot outgrow
+   its clip at large root font sizes. */
+.name {
+	position: absolute;
+	overflow: hidden;
+	clip-path: inset(50%);
+	width: 0.0625rem;
+	height: 0.0625rem;
+	white-space: nowrap;
+}
