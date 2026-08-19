@@ -1,11 +1,12 @@
 import { playMessages } from '@/features/play/Play/translation-messages'
+import { setupControlsMessages } from '@/features/setup/Setup/components/SetupControls/translation-messages'
 import { setupMessages } from '@/features/setup/Setup/translation-messages'
 import { GameConfigProvider } from '@/lib/game-config'
 import { RecordsProvider } from '@/lib/records'
 import { ROUTES } from '@/lib/routes'
 import { SettingsProvider } from '@/lib/settings'
 import { createTranslate } from '@i18n'
-import { type RenderWithProvidersOptions, renderWithProviders } from '@testing'
+import { type RenderWithProvidersOptions, renderWithProviders, setDesktopViewport } from '@testing'
 import { type RenderResult, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { BOARD_TESTIDS } from '@widgets/Board'
@@ -21,12 +22,18 @@ const { translate } = createTranslate()
  * The providers sit outside the router here exactly as they do in `main.tsx`:
  * the screens read their state from context, not from a loader, so a route test
  * that omits them is testing a tree the app never renders.
+ *
+ * Desktop, because Setup's call to action leads straight to `/play` there;
+ * below the breakpoint the same button opens a dialog first, which is Setup's
+ * own business rather than the route table's.
  */
 const renderComponent = (
 	initialEntry: string = ROUTES.setup,
 	options?: RenderWithProvidersOptions,
-): RenderResult =>
-	renderWithProviders(
+): RenderResult => {
+	setDesktopViewport(true)
+
+	return renderWithProviders(
 		<GameConfigProvider>
 			<SettingsProvider>
 				<RecordsProvider>
@@ -38,6 +45,7 @@ const renderComponent = (
 		</GameConfigProvider>,
 		options,
 	)
+}
 
 describe('routes', () => {
 	it('serves the Setup screen at the root path', () => {
@@ -70,7 +78,7 @@ describe('routes', () => {
 	it('navigates from Setup to Play, retitling and refocusing', async () => {
 		const user = userEvent.setup()
 		renderComponent()
-		const start = screen.getByRole('button', { name: translate(setupMessages.start) })
+		const start = screen.getByRole('button', { name: translate(setupControlsMessages.start) })
 
 		await user.click(start)
 
@@ -82,7 +90,7 @@ describe('routes', () => {
 	it('navigates from Setup to Play with the keyboard alone', async () => {
 		const user = userEvent.setup()
 		renderComponent()
-		const toPlay = screen.getByRole('button', { name: translate(setupMessages.start) })
+		const toPlay = screen.getByRole('button', { name: translate(setupControlsMessages.start) })
 
 		// Past the header's two stops — wordmark, then gear — and the screen's own
 		// two radio groups, each one tab stop under the roving-tabindex model.

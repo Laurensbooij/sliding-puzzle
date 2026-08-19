@@ -1,0 +1,47 @@
+/*
+ * Figma `setup sheet`. A separate element from the `<dialog>` shell — with
+ * `scrimClose` on, any box the dialog painted itself would dismiss on click.
+ *
+ * 358 wide is the 390 frame minus its 16px gutters, stated as the gutters so a
+ * wider phone keeps them. The card only ever mounts below the breakpoint, so
+ * there is no second width to describe.
+ *
+ * The 78/77 the design leaves above and below is `Modal`'s centring, not an
+ * offset — the cap is what keeps that true on a viewport shorter than the one
+ * Figma draws, by letting the card scroll instead of growing past it.
+ */
+.card {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-5);
+	box-sizing: border-box;
+	width: calc(100vw - var(--space-8));
+	max-height: calc(100dvh - var(--space-8));
+	overflow-y: auto;
+	border-radius: var(--radius-xl);
+	padding: var(--space-6);
+	background-color: var(--surface-card);
+	box-shadow: var(--shadow-4);
+}
+
+/* The ✕ sits in flow beside the heading, unlike `Dialog`'s absolute corner. */
+.head {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: var(--space-4);
+}
+
+/* `font` carries family/size/weight/leading; tracking has no shorthand slot. */
+.title {
+	margin: 0;
+	color: var(--text-strong);
+	font: var(--title);
+	letter-spacing: var(--tracking-tight);
+}
+
+/* Figma's 220 board, centred in the card and free to shrink under it. */
+.preview {
+	align-self: center;
+	width: min(100%, 13.75rem);
+}

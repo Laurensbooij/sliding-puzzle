@@ -6,6 +6,10 @@ interface MediaQueryState {
 	listeners: Set<ChangeListener>
 }
 
+/** The property and the value `--breakpoint-desktop` carries in tokens.css. */
+const DESKTOP_BREAKPOINT_PROPERTY = '--breakpoint-desktop'
+const DESKTOP_BREAKPOINT = '48rem'
+
 /** One state per query string, so every `matchMedia(query)` call sees the same list. */
 const statesByQuery = new Map<string, MediaQueryState>()
 
@@ -70,9 +74,11 @@ export const installMatchMedia = (): void => {
 	window.matchMedia = createMediaQueryList
 }
 
-/** Drops every query's state and listeners. Runs between tests. */
+/** Drops every query's state and listeners, and the breakpoint token a spec may
+ * have declared. Runs between tests. */
 export const resetMatchMedia = (): void => {
 	statesByQuery.clear()
+	document.documentElement.style.removeProperty(DESKTOP_BREAKPOINT_PROPERTY)
 }
 
 /** Sets whether a query matches and notifies its subscribers, as a resize would. */
@@ -83,6 +89,19 @@ export const setMediaQueryMatches = (query: string, matches: boolean): void => {
 	state.matches = matches
 	const event = Object.assign(new Event('change'), { matches, media: query })
 	for (const listener of state.listeners) notify(listener, event)
+}
+
+/**
+ * Puts the fake viewport on one side of the desktop breakpoint, the way a real
+ * one would be: the token `useIsDesktop()` reads is declared on `:root` — jsdom
+ * loads no stylesheet, so nothing else declares it — and its query is flipped
+ * to match.
+ *
+ * Call it before rendering, or inside `act` to cross the breakpoint mid-test.
+ */
+export const setDesktopViewport = (isDesktop: boolean): void => {
+	document.documentElement.style.setProperty(DESKTOP_BREAKPOINT_PROPERTY, DESKTOP_BREAKPOINT)
+	setMediaQueryMatches(`(min-width: ${DESKTOP_BREAKPOINT})`, isDesktop)
 }
 
 /**
