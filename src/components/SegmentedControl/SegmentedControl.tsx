@@ -12,8 +12,10 @@ export interface SegmentedControlOption {
 }
 
 export interface SegmentedControlProps {
-	/** Accessible name of the group. Localized by the caller; never rendered visibly. */
+	/** Accessible name of the group. Localized by the caller. */
 	label: string
+	/** Draws `label` as the design's uppercase micro-label above the track. */
+	labelVisible?: boolean
 	/** The design set draws three and four; more than four belongs in a Select. */
 	options: readonly SegmentedControlOption[]
 	/** Value of the currently selected option. */
@@ -39,6 +41,7 @@ export interface SegmentedControlProps {
  */
 export const SegmentedControl: FC<SegmentedControlProps> = ({
 	label,
+	labelVisible = false,
 	options,
 	value,
 	onChange,
@@ -52,7 +55,7 @@ export const SegmentedControl: FC<SegmentedControlProps> = ({
 
 	return (
 		<fieldset className={styles.group} disabled={disabled} data-testid={base}>
-			<legend className={styles.legend}>{label}</legend>
+			<legend className={labelVisible ? styles.legendVisible : styles.legend}>{label}</legend>
 			<div className={styles.track}>
 				{options.map((option) => (
 					<label className={styles.segment} key={option.value}>
