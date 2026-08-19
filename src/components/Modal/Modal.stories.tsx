@@ -150,11 +150,14 @@ export const ScrimClose: Story = {
 
 		// A press that starts on the card and releases outside it — same click
 		// target as the scrim, so only the press origin keeps the modal up.
+		// Checks the `open` attribute rather than `toBeVisible()`: the open
+		// transition fades in over --dur-medium, and a CSS-derived visibility
+		// check can race that fade — the attribute can't.
 		await userEvent.pointer([
 			{ target: title, keys: '[MouseLeft>]' },
 			{ target: modal, keys: '[/MouseLeft]' },
 		])
-		await expect(modal).toBeVisible()
+		await expect(modal).toHaveAttribute('open')
 
 		await userEvent.click(modal)
 		await waitFor(() => expect(modal).not.toBeVisible())
