@@ -6,6 +6,16 @@ export const boardMessages = defineMessages({
 		defaultMessage: 'Board, {rows} by {cols}',
 		description: 'Accessible name of the board; {rows} and {cols} are its dimensions',
 	},
+	hint: {
+		id: 'board.hint',
+		defaultMessage: 'Tap a tile beside the gap',
+		description: 'Standing hint under the board, telling a new player how to move a tile',
+	},
+	restart: {
+		id: 'board.restart',
+		defaultMessage: 'Restart',
+		description: 'Accessible name and tooltip of the control that deals a new board',
+	},
 	moveAnnouncement: {
 		id: 'board.move-announcement',
 		defaultMessage:

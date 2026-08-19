@@ -1,5 +1,5 @@
 import type { Board as BoardModel, CellIndex, TileId } from '@engine'
-import { GAP, applyMove, createBoard, movesForCell } from '@engine'
+import { GAP, applyMove, createBoard, movesForCell, shuffle } from '@engine'
 import type { Meta, StoryObj } from '@storybook/react-vite'
 import { useState } from 'react'
 
@@ -51,6 +51,15 @@ export const Solved: Story = {
 	args: { board: createBoard(BOARD_ROWS, BOARD_COLS) },
 }
 
+/**
+ * Figma `Footer=true`: the standing hint and the restart control, inside the
+ * wood below the well. The restart is the shared IconButton on its `onWood`
+ * variant — the only one the design allows on the frame.
+ */
+export const WithFooter: Story = {
+	args: { footer: true },
+}
+
 /** A different source image on the same arrangement. */
 export const AlternateSourceImage: Story = {
 	args: { sourceImage: 'bike' },
@@ -80,13 +89,25 @@ export const NonSquare: Story = {
  * machine (ADR-0003); this stand-in is not a pattern to copy.
  */
 export const Playable: Story = {
+	args: { footer: true },
 	render: (args) => {
 		const PlayableBoard = () => {
 			const [board, setBoard] = useState(midGame)
 			const press = (cell: CellIndex) =>
 				setBoard((current) => movesForCell(current, cell).reduce(applyMove, current))
 
-			return <Board {...args} board={board} onCellPress={press} />
+			return (
+				<Board
+					{...args}
+					board={board}
+					onCellPress={press}
+					// The story is the edge here, so it supplies the randomness the
+					// engine refuses to reach for itself (ADR-0001).
+					onRestart={() =>
+						setBoard(shuffle(createBoard(BOARD_ROWS, BOARD_COLS), Math.random))
+					}
+				/>
+			)
 		}
 
 		return <PlayableBoard />

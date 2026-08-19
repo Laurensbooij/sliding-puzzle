@@ -1,4 +1,5 @@
 import type { SourceImageName } from '@/source-images'
+import { IconButton } from '@components/IconButton'
 import type { Board as BoardModel, CellIndex } from '@engine'
 import {
 	cellForDirection,
@@ -9,7 +10,7 @@ import {
 	movesForCell,
 	toPlacements,
 } from '@engine'
-import { useTranslate } from '@i18n'
+import { Message, useTranslate } from '@i18n'
 import type { FC } from 'react'
 import { useRef, useState } from 'react'
 
@@ -29,6 +30,16 @@ export interface BoardProps {
 	 * relocates is the engine's business, and the machine's to apply.
 	 */
 	onCellPress?: (cell: CellIndex) => void
+	/**
+	 * Shows the designed footer inside the wood: the standing hint and the
+	 * restart control. Off by default — the board Figma draws by default has none.
+	 */
+	footer?: boolean
+	/**
+	 * Called when the restart control is pressed. Board does not deal the new
+	 * board; `game.restart` belongs to whoever composes it.
+	 */
+	onRestart?: () => void
 	/** Overrides the BASE testid. */
 	dataTestId?: string
 }
@@ -57,8 +68,19 @@ const NO_ANNOUNCEMENT: Announcement = { text: '', move: 0 }
  *
  * Tiles render in tile order rather than cell order, so a move animates the same
  * element from its old cell to its new one instead of remounting it elsewhere.
+ *
+ * With `footer`, the restart control becomes the last tab stop after the movable
+ * tiles. Arrows stay board-wide there: they name a tile by the gap, not by what
+ * holds focus, and a button has no native arrow behaviour to displace.
  */
-export const Board: FC<BoardProps> = ({ board, sourceImage, onCellPress, dataTestId }) => {
+export const Board: FC<BoardProps> = ({
+	board,
+	sourceImage,
+	footer = false,
+	onCellPress,
+	onRestart,
+	dataTestId,
+}) => {
 	const [announcement, setAnnouncement] = useState(NO_ANNOUNCEMENT)
 	const announcedBoard = useRef(board)
 	const { translate } = useTranslate()
@@ -146,6 +168,21 @@ export const Board: FC<BoardProps> = ({ board, sourceImage, onCellPress, dataTes
 					/>
 				</div>
 			</div>
+			{footer && (
+				<div className={styles.footer}>
+					<p className={styles.hint}>
+						<Message message={boardMessages.hint} />
+					</p>
+					<IconButton
+						icon="rotate-ccw"
+						label={translate(boardMessages.restart)}
+						variant="onWood"
+						size="sm"
+						onClick={onRestart}
+						dataTestId={`${base}${BOARD_TESTIDS.RESTART_SUFFIX}`}
+					/>
+				</div>
+			)}
 			{/* `role="status"` already implies polite and atomic; both are spelled
 			    out because older screen readers honour the attributes and not the
 			    role, and the role is what gives tests an accessible query. */}

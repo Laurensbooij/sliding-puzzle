@@ -8,6 +8,13 @@
 
 .board {
 	position: relative;
+	display: flex;
+	flex-direction: column;
+
+	/* The well and the footer sit one frame-padding apart, which is what makes
+	   the wood below the well read the same width as the wood beside it.
+	   Absolutely positioned children — bevel, announcer — stay out of this. */
+	gap: var(--frame-padding);
 
 	/* Contains the bevel's soft-light blend, which would otherwise reach for
 	   whatever the board is composited over. */
@@ -93,6 +100,24 @@
 
 /* The gap paints nothing — it is the well showing through. It exists so the
    empty cell has a stable target, and is hidden from assistive tech. */
+
+/* Inside the wood, below the well: the standing hint on the left, the restart
+   control on the right. Its height is the control's — nothing states 32 twice. */
+.footer {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: var(--space-3);
+}
+
+.hint {
+	font: var(--body-sm);
+	color: var(--text-on-wood);
+
+	/* A Figma layer opacity with no variable behind it: it belongs to the
+	   footer, not to the token tiers. */
+	opacity: 0.8;
+}
 
 .announcer {
 	position: absolute;

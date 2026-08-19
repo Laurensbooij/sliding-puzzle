@@ -95,6 +95,37 @@ describe('Board', () => {
 			}
 		})
 
+		it('puts the restart control after the tiles, as the last tab stop', async () => {
+			const user = userEvent.setup()
+			renderComponent({ footer: true })
+
+			for (const tile of [1, 3, 4, 6]) {
+				await user.tab()
+				const reached = screen.getByRole('button', { name: tileName(tile) })
+				expect(reached).toHaveFocus()
+			}
+
+			await user.tab()
+			const restart = screen.getByRole('button', {
+				name: translate(boardMessages.restart),
+			})
+			expect(restart).toHaveFocus()
+		})
+
+		it('still moves a tile when an arrow is pressed from the restart control', async () => {
+			const user = userEvent.setup()
+			const onCellPress = vi.fn()
+			renderComponent({ footer: true, onCellPress })
+
+			const restart = screen.getByRole('button', {
+				name: translate(boardMessages.restart),
+			})
+			restart.focus()
+			await user.keyboard('{ArrowRight}')
+
+			expect(onCellPress).toHaveBeenCalledExactlyOnceWith(3)
+		})
+
 		it.each<[string, string, CellIndex]>([
 			['Enter', '{Enter}', 1],
 			['Space', ' ', 1],
@@ -272,6 +303,66 @@ describe('Board', () => {
 			expect(announcer).toHaveTextContent(
 				translateDutch(boardMessages.moveAnnouncement, { count: 1, direction: 'right' }),
 			)
+		})
+	})
+
+	describe('footer', () => {
+		it('shows neither the hint nor the restart control by default', () => {
+			renderComponent()
+			const restart = screen.queryByRole('button', {
+				name: translate(boardMessages.restart),
+			})
+			expect(restart).not.toBeInTheDocument()
+		})
+
+		it('names the restart control for assistive technology', () => {
+			renderComponent({ footer: true })
+			const restart = screen.getByRole('button', {
+				name: translate(boardMessages.restart),
+			})
+			expect(restart).toBeInTheDocument()
+		})
+
+		it('carries the standing hint as text', () => {
+			renderComponent({ footer: true })
+			const hint = screen.getByText(translate(boardMessages.hint))
+			expect(hint).toBeInTheDocument()
+		})
+
+		it('reports a restart without dealing the board itself', async () => {
+			const user = userEvent.setup()
+			const onRestart = vi.fn()
+			renderComponent({ footer: true, onRestart })
+
+			const restart = screen.getByRole('button', {
+				name: translate(boardMessages.restart),
+			})
+			await user.click(restart)
+
+			expect(onRestart).toHaveBeenCalledOnce()
+		})
+
+		it('says nothing in the live region when the board is restarted', async () => {
+			const user = userEvent.setup()
+			renderComponent({ footer: true, onRestart: vi.fn() })
+
+			const restart = screen.getByRole('button', {
+				name: translate(boardMessages.restart),
+			})
+			await user.click(restart)
+
+			const announcer = screen.getByRole('status')
+			expect(announcer).toHaveTextContent('')
+		})
+
+		it('translates the footer with the rest of the board', () => {
+			renderComponent({ footer: true }, { locale: 'nl' })
+
+			const { translate: translateDutch } = createTranslate('nl')
+			const restart = screen.getByRole('button', {
+				name: translateDutch(boardMessages.restart),
+			})
+			expect(restart).toBeInTheDocument()
 		})
 	})
 
