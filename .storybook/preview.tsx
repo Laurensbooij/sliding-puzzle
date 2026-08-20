@@ -50,9 +50,11 @@ const preview: Preview = {
 	},
 	initialGlobals: { locale: 'en' },
 	decorators: [
-		// `key` remounts the provider so the toolbar reseeds the starting locale.
+		// Controlled, so the toolbar drives it directly — no remount needed.
+		// Stories that also mount `SettingsProvider` seed the same global into
+		// storage, so the picker and the copy never disagree on screen.
 		(Story, context) => (
-			<I18nProvider key={context.globals.locale} initialLocale={context.globals.locale}>
+			<I18nProvider locale={context.globals.locale}>
 				<Story />
 			</I18nProvider>
 		),

@@ -32,4 +32,9 @@ export const settingsDialogMessages = defineMessages({
 		description:
 			'Label of the switch that shows the running clock while playing. The design gives this one no supporting line',
 	},
+	languageLabel: {
+		id: 'settings-dialog.language.label',
+		defaultMessage: 'Language',
+		description: 'Label of the select that chooses which language the app is shown in',
+	},
 })

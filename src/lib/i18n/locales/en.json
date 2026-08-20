@@ -33,6 +33,7 @@
   "play.stats.time.label": "Time",
   "route.play.title": "Playing · Sliding Puzzle",
   "route.setup.title": "Sliding Puzzle",
+  "settings-dialog.language.label": "Language",
   "settings-dialog.numbered-tiles.description": "Shows each tile’s solved position",
   "settings-dialog.numbered-tiles.label": "Numbered tiles",
   "settings-dialog.reference-image.description": "Shows the solved picture beside the board",

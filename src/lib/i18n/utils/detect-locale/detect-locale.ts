@@ -1,8 +1,6 @@
-import { DEFAULT_LOCALE, SUPPORTED_LOCALES } from '../../constants'
+import { DEFAULT_LOCALE } from '../../constants'
+import { isSupportedLocale } from '../../guards'
 import type { Locale } from '../../types'
-
-const isSupportedLocale = (value: string): value is Locale =>
-	(SUPPORTED_LOCALES as readonly string[]).includes(value)
 
 /**
  * Picks the first browser language we actually translate, falling back to the

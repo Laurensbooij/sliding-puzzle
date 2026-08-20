@@ -19,6 +19,7 @@ const CLOSE_LABEL = translate(globalMessages.close)
 const REFERENCE_IMAGE_LABEL = translate(settingsDialogMessages.referenceImageLabel)
 const NUMBERED_TILES_LABEL = translate(settingsDialogMessages.numberedTilesLabel)
 const SHOW_TIMER_LABEL = translate(settingsDialogMessages.showTimerLabel)
+const LANGUAGE_LABEL = translate(settingsDialogMessages.languageLabel)
 const GEAR_LABEL = 'Settings'
 
 const REFERENCE_IMAGE_TESTID = `${SETTINGS_DIALOG_TESTIDS.BASE}${SETTINGS_DIALOG_TESTIDS.REFERENCE_IMAGE_SUFFIX}`
@@ -57,8 +58,16 @@ const meta = {
 	},
 	// Every story opens on the defaults — also the only combination showing
 	// both an on and an off switch.
-	beforeEach: () => {
-		localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(DEFAULT_SETTINGS))
+	//
+	// The locale comes from the toolbar global, so the picker and the copy
+	// around it never contradict each other on screen: this is the only writer
+	// of the key, and `LocaleProvider`'s settings-to-i18n wiring is app-tier, so
+	// a story of this widget has nothing else joining the two.
+	beforeEach: ({ globals }) => {
+		localStorage.setItem(
+			SETTINGS_STORAGE_KEY,
+			JSON.stringify({ ...DEFAULT_SETTINGS, locale: globals.locale }),
+		)
 	},
 	decorators: [withSettings],
 } satisfies Meta<typeof SettingsDialog>
@@ -76,6 +85,25 @@ const assertDefaults: NonNullable<Story['play']> = async ({ canvasElement }) => 
 	await expect(referenceImage).toBeChecked()
 	await expect(numberedTiles).not.toBeChecked()
 	await expect(showTimer).toBeChecked()
+}
+
+/**
+ * The one row jsdom cannot judge: a native `<select>` wearing product chrome,
+ * with the platform's own option list. Picks Dutch and checks the control took
+ * it — the copy around it stays English, because only `LocaleProvider` joins the
+ * setting to the catalogue and that lives a tier up.
+ */
+export const LanguagePicked: Story = {
+	globals: { viewport: { value: 'desktop' } },
+	play: async ({ canvasElement }) => {
+		const canvas = within(canvasElement)
+		const picker = canvas.getByRole('combobox', { name: LANGUAGE_LABEL })
+
+		await expect(picker).toHaveValue('en')
+		await userEvent.selectOptions(picker, 'nl')
+
+		await waitFor(() => expect(picker).toHaveValue('nl'))
+	},
 }
 
 /** Figma `5 · Settings` at 1000. Hint row dropped — see the component docblock. */

@@ -7,7 +7,13 @@ import { AppStateProviders, type RenderProviders } from './app-state-providers'
 export type { RenderProviders }
 
 export interface RenderWithProvidersOptions extends Omit<RenderOptions, 'wrapper'> {
-	/** Renders under a specific locale. Defaults to English. */
+	/**
+	 * Which catalogue renders. Defaults to English.
+	 *
+	 * This drives `I18nProvider` only — it does not seed the stored `locale`
+	 * setting. A spec that cares what the language picker *displays* seeds
+	 * `SETTINGS_STORAGE_KEY` itself, the same way it seeds any other setting.
+	 */
 	locale?: Locale
 	/** The app state providers the component under test reads from. Each defaults to off. */
 	providers?: RenderProviders
@@ -28,7 +34,7 @@ export const renderWithProviders = (
 	{ locale = 'en', providers = {}, ...options }: RenderWithProvidersOptions = {},
 ): RenderResult => {
 	const Providers = ({ children }: { children: ReactNode }) => (
-		<I18nProvider initialLocale={locale}>
+		<I18nProvider locale={locale}>
 			<AppStateProviders providers={providers}>{children}</AppStateProviders>
 		</I18nProvider>
 	)

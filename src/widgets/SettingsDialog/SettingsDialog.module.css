@@ -40,3 +40,10 @@
 	align-items: flex-start;
 	gap: var(--space-5);
 }
+
+/* The only row that spans the card. `.rows` packs to `flex-start` so a Switch's
+   label is not a card-wide click target; a select field has to be full width to
+   read as one, so it opts back out here rather than the rule flipping for all. */
+.languageRow {
+	align-self: stretch;
+}

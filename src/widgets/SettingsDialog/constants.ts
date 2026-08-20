@@ -5,4 +5,5 @@ export const SETTINGS_DIALOG_TESTIDS = {
 	REFERENCE_IMAGE_SUFFIX: '-reference-image',
 	NUMBERED_TILES_SUFFIX: '-numbered-tiles',
 	SHOW_TIMER_SUFFIX: '-show-timer',
+	LANGUAGE_SUFFIX: '-language',
 } as const

@@ -1,4 +1,5 @@
 import { isJsonObject } from '@/lib/storage'
+import { isSupportedLocale } from '@i18n'
 
 import type { Settings } from './types'
 
@@ -6,4 +7,5 @@ export const isSettings = (value: unknown): value is Settings =>
 	isJsonObject(value) &&
 	typeof value.referenceImage === 'boolean' &&
 	typeof value.numberedTiles === 'boolean' &&
-	typeof value.showTimer === 'boolean'
+	typeof value.showTimer === 'boolean' &&
+	isSupportedLocale(value.locale)

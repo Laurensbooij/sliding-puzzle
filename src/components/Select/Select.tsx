@@ -21,15 +21,21 @@ export interface SelectProps extends Omit<
 > {
 	/** Visible micro-label above the field, and the select's accessible name. */
 	label: ReactNode
-	/** The list to choose from. Four or more; fewer belongs in a SegmentedControl. */
+	/** The list to choose from. See the note on sizing below. */
 	options: readonly SelectOption[]
 	/** Overrides the BASE testid; the field and chevron testids derive from it. */
 	dataTestId?: string
 }
 
 /**
- * Single choice from four or more options — art packs, difficulty. For three or
- * fewer use SegmentedControl.
+ * Single choice from a list — art packs, difficulty, language.
+ *
+ * **Sizing is about the list, not today's count.** Prefer SegmentedControl when
+ * the options are a closed set of three or four that will stay that size; reach
+ * for Select when the list is open-ended, however short it is now. A language
+ * picker starts at two and grows with every catalogue shipped, and a segmented
+ * track visibly breaks at four or five — swapping the control mid-life is the
+ * cost the earlier "four or more" floor was hiding.
  *
  * A native `<select>` wearing product chrome (ADR-0011): only the closed field
  * is styled, and the option list that opens is the platform's own. That is the

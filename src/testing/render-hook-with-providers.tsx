@@ -5,7 +5,7 @@ import type { FC, ReactNode } from 'react'
 import { AppStateProviders, type RenderProviders } from './app-state-providers'
 
 export interface RenderHookWithProvidersOptions {
-	/** Renders under a specific locale. Defaults to English. */
+	/** Which catalogue renders. Defaults to English. Same caveat as `renderWithProviders`. */
 	locale?: Locale
 	/** The app state providers the hook reads from. Each defaults to off. */
 	providers?: RenderProviders
@@ -31,7 +31,7 @@ export const renderHookWithProviders = <Result,>(
 	}: RenderHookWithProvidersOptions = {},
 ): RenderHookResult<Result, unknown> => {
 	const Providers = ({ children }: { children: ReactNode }) => (
-		<I18nProvider initialLocale={locale}>
+		<I18nProvider locale={locale}>
 			<AppStateProviders providers={providers}>
 				{ProviderUnderTest ? <ProviderUnderTest>{children}</ProviderUnderTest> : children}
 			</AppStateProviders>

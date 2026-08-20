@@ -2,7 +2,7 @@ import { GAME_CONFIG_STORAGE_KEY } from '@game-config'
 import { RECORDS_STORAGE_KEY } from '@records'
 import { readStorage, renderHookWithProviders, seedStorage } from '@testing'
 import { act } from '@testing-library/react'
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { SETTINGS_STORAGE_KEY } from '../constants'
 import { useSettings } from '../use-settings'
@@ -20,9 +20,22 @@ const otherHomes = (config: string) => ({
 
 const VALID_CONFIG = JSON.stringify({ boardSize: 5, sourceImage: 'rocket' })
 
-const storedSettings = { referenceImage: false, numberedTiles: true, showTimer: false }
+const storedSettings = {
+	referenceImage: false,
+	numberedTiles: true,
+	showTimer: false,
+	locale: 'en',
+}
+
+/** jsdom reports `['en']`; a spec about detection has to say otherwise itself. */
+const speakingDutch = () =>
+	vi.spyOn(globalThis.navigator, 'languages', 'get').mockReturnValue(['nl-BE', 'en'])
 
 describe('SettingsProvider', () => {
+	afterEach(() => {
+		vi.restoreAllMocks()
+	})
+
 	it('starts a first-time player with the reference image on, numbers off and the timer on', () => {
 		const { result } = renderSettings()
 
@@ -44,6 +57,11 @@ describe('SettingsProvider', () => {
 		['a shape it does not recognise', JSON.stringify({ theme: 'dark' })],
 		['missing a preference', JSON.stringify({ referenceImage: false, showTimer: false })],
 		['holding the wrong type', JSON.stringify({ ...storedSettings, showTimer: 'yes' })],
+		['naming a language we do not ship', JSON.stringify({ ...storedSettings, locale: 'de' })],
+		[
+			'missing a language',
+			JSON.stringify({ referenceImage: false, numberedTiles: true, showTimer: false }),
+		],
 		['a payload that is not an object', JSON.stringify([false, true, false])],
 	])('falls back to the defaults when the stored settings are %s', (_case, stored) => {
 		const seeded = seedStorage(otherHomes(VALID_CONFIG))
@@ -96,6 +114,36 @@ describe('SettingsProvider', () => {
 		expect(reopened.current.numberedTiles).toBe(true)
 		expect(reopened.current.showTimer).toBe(false)
 		expect(reopened.current.referenceImage).toBe(true)
+	})
+
+	it('starts a first-time player in the language their browser asks for', () => {
+		speakingDutch()
+
+		const { result } = renderSettings()
+
+		expect(result.current.locale).toBe('nl')
+	})
+
+	// The stored choice is the player's; a browser they later reconfigure does
+	// not get to overrule it.
+	it('keeps a stored language even when the browser now asks for another', () => {
+		speakingDutch()
+
+		const { result } = renderSettings(JSON.stringify(storedSettings))
+
+		expect(result.current.locale).toBe('en')
+	})
+
+	it('remembers the language across a remount, leaving the preferences alone', () => {
+		const { result, unmount } = renderSettings()
+
+		act(() => result.current.setLocale('nl'))
+		unmount()
+		const { result: reopened } = renderSettings()
+
+		expect(reopened.current.locale).toBe('nl')
+		expect(reopened.current.referenceImage).toBe(true)
+		expect(reopened.current.showTimer).toBe(true)
 	})
 
 	it('remembers the reference image being turned off', () => {
