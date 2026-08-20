@@ -4,10 +4,6 @@
 
 Scaffold an AI-first React codebase. Conventions get enforced by tooling, not by review.
 
-## Screenshots
-
-_Add screenshots to `assets/03-project-setup/`. Storybook's first run and a custom lint rule firing both make good shots._
-
 ## How it went
 
 The phase ran in three stages, deliberately in this order:
