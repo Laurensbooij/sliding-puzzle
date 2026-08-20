@@ -1,7 +1,5 @@
 # 01: Task manager
 
-**Status:** Done
-
 ## Goal
 
 Set up issue tracking before writing code. Agents and humans need one shared backlog.

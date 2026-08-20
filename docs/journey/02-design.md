@@ -1,7 +1,5 @@
 # 02: Design
 
-**Status:** Done
-
 **Figma file:** [Slider puzzle](https://www.figma.com/design/r5wlPxDsJnLjZGJcrvmj9s/Slider-puzzle?node-id=4-3&t=UuGmFAnJnpKF6UKG-1), the canonical design system: tokens, components, and screens.
 
 ## Goal

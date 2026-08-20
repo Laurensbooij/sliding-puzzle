@@ -1,7 +1,5 @@
 # 03: Project setup
 
-**Status:** Done
-
 ## Goal
 
 Scaffold an AI-first React codebase. Conventions get enforced by tooling, not by review.

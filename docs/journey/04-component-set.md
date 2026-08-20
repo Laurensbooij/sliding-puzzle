@@ -1,7 +1,5 @@
 # 04: Component set
 
-**Status:** Done
-
 ## Goal
 
 Build the components the puzzle needs. Document each one in Storybook.

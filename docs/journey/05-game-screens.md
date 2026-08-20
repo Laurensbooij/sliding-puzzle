@@ -1,7 +1,5 @@
 # 05: Game screens
 
-**Status:** Done
-
 ## Goal
 
 Build the app around the already-playable game. Routing, the app shell, and every screen
