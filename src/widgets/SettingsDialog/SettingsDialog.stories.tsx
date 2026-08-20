@@ -61,7 +61,7 @@ const meta = {
 	//
 	// The locale comes from the toolbar global, so the picker and the copy
 	// around it never contradict each other on screen: this is the only writer
-	// of the key, and `LocalizedApp`'s settings-to-i18n wiring is app-tier, so
+	// of the key, and `LocaleProvider`'s settings-to-i18n wiring is app-tier, so
 	// a story of this widget has nothing else joining the two.
 	beforeEach: ({ globals }) => {
 		localStorage.setItem(
@@ -90,7 +90,7 @@ const assertDefaults: NonNullable<Story['play']> = async ({ canvasElement }) => 
 /**
  * The one row jsdom cannot judge: a native `<select>` wearing product chrome,
  * with the platform's own option list. Picks Dutch and checks the control took
- * it — the copy around it stays English, because only `LocalizedApp` joins the
+ * it — the copy around it stays English, because only `LocaleProvider` joins the
  * setting to the catalogue and that lives a tier up.
  */
 export const LanguagePicked: Story = {

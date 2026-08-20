@@ -7,7 +7,7 @@ import { screen } from '@testing-library/react'
 import type { RenderResult } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 
-import { LocalizedApp } from './LocalizedApp'
+import { LocaleProvider } from './LocaleProvider'
 
 const DUTCH_SETTINGS: Settings = {
 	referenceImage: true,
@@ -25,14 +25,14 @@ const renderComponent = (stored?: Settings): RenderResult => {
 	if (stored) seedStorage({ [SETTINGS_STORAGE_KEY]: JSON.stringify(stored) })
 
 	return renderWithProviders(
-		<LocalizedApp>
+		<LocaleProvider>
 			<Message message={globalMessages.appName} />
-		</LocalizedApp>,
+		</LocaleProvider>,
 		{ providers: { settings: true } },
 	)
 }
 
-describe('LocalizedApp', () => {
+describe('LocaleProvider', () => {
 	it('renders the app in the language the player stored', () => {
 		const { translate: translateDutch } = createTranslate('nl')
 		renderComponent(DUTCH_SETTINGS)

@@ -3,13 +3,17 @@ import { useSettings } from '@settings'
 import type { FC, ReactNode } from 'react'
 import { useEffect } from 'react'
 
-export interface LocalizedAppProps {
+export interface LocaleProviderProps {
 	children: ReactNode
 }
 
 /**
- * Feeds the player's stored language to `I18nProvider`, and tells the document
- * which language it is now in.
+ * Decides which language the app is in, and tells the document about it.
+ *
+ * Paired with `I18nProvider`, which it renders: this one *chooses* the locale —
+ * from the player's stored setting — and that one is what the choice is handed
+ * to. Reach for `useSettings()` to read the current locale; neither of these is
+ * a context of its own.
  *
  * The join has to happen in a component because `I18nProvider` is controlled:
  * `@settings` imports `Locale` from `@i18n`, so the provider reading
@@ -22,7 +26,7 @@ export interface LocalizedAppProps {
  * knows it is the whole app. `index.html` ships `lang="en"`, so without this a
  * screen reader reads Dutch with English phonemes (WCAG 3.1.1).
  */
-export const LocalizedApp: FC<LocalizedAppProps> = ({ children }) => {
+export const LocaleProvider: FC<LocaleProviderProps> = ({ children }) => {
 	const { locale } = useSettings()
 
 	useEffect(() => {

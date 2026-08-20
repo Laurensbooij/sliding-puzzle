@@ -9,7 +9,7 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { RouterProvider, createBrowserRouter } from 'react-router'
 
-import { LocalizedApp } from './LocalizedApp'
+import { LocaleProvider } from './LocaleProvider'
 import { routes } from './routes/routes'
 
 const router = createBrowserRouter(routes)
@@ -22,16 +22,16 @@ if (!rootElement) throw new Error('Root element #root is missing from index.html
 // state the screens share.
 //
 // Settings is outermost of the pair it forms with i18n, because it now owns the
-// locale: `LocalizedApp` reads the setting and hands it to `I18nProvider`.
+// locale: `LocaleProvider` reads the setting and hands it to `I18nProvider`.
 createRoot(rootElement).render(
 	<StrictMode>
 		<GameConfigProvider>
 			<SettingsProvider>
-				<LocalizedApp>
+				<LocaleProvider>
 					<RecordsProvider>
 						<RouterProvider router={router} />
 					</RecordsProvider>
-				</LocalizedApp>
+				</LocaleProvider>
 			</SettingsProvider>
 		</GameConfigProvider>
 	</StrictMode>,
