@@ -1,6 +1,6 @@
-import { RECORDS_STORAGE_KEY, RecordsProvider, useRecords } from '@/lib/records'
-import type { Records } from '@/lib/records'
 import { createBoard } from '@engine'
+import { RECORDS_STORAGE_KEY, useRecords } from '@records'
+import type { Records } from '@records'
 import { readStorage, renderHookWithProviders, seedStorage } from '@testing'
 import type { RenderHookResult } from '@testing-library/react'
 import { beforeEach, describe, expect, it } from 'vitest'
@@ -42,7 +42,7 @@ const renderRecordedSolve = ({
 			isNewBest: useRecordedSolve(onScreen),
 			best: useRecords().bestFor(onScreen.boardSize),
 		}),
-		{ wrapper: RecordsProvider },
+		{ providers: { records: true } },
 	)
 }
 

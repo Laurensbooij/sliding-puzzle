@@ -1,10 +1,7 @@
 import { PLAY_TESTIDS } from '@/features/play'
 import { playMessages } from '@/features/play/Play/translation-messages'
 import { setupMessages } from '@/features/setup/Setup/translation-messages'
-import { GameConfigProvider } from '@/lib/game-config'
-import { RecordsProvider } from '@/lib/records'
 import { ROUTES } from '@/lib/routes'
-import { SettingsProvider } from '@/lib/settings'
 import { createTranslate } from '@i18n'
 import { globalMessages } from '@messages'
 import { type RenderWithProvidersOptions, renderWithProviders, setDesktopViewport } from '@testing'
@@ -80,16 +77,8 @@ const renderComponent = (
 	setDesktopViewport(desktop)
 
 	return renderWithProviders(
-		<GameConfigProvider>
-			<SettingsProvider>
-				<RecordsProvider>
-					<RouterProvider
-						router={createMemoryRouter(routes, { initialEntries: [initialEntry] })}
-					/>
-				</RecordsProvider>
-			</SettingsProvider>
-		</GameConfigProvider>,
-		options,
+		<RouterProvider router={createMemoryRouter(routes, { initialEntries: [initialEntry] })} />,
+		{ ...options, providers: { gameConfig: true, settings: true, records: true } },
 	)
 }
 

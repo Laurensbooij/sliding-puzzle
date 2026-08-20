@@ -144,11 +144,11 @@ from 'react'`). Props type named exactly **`ComponentNameProps`**, exported
 
 - **Source images are born shared in `src/source-images/`.** The Board widget renders
   them; the Setup screen will enumerate them. Same rationale as ADR-0009.
-- **Import only through the typed registry** — `src/source-images/index.ts` exports a
+- **Import only through the typed registry** — `@source-images` exports a
   `SourceImageName` union and a `Record<SourceImageName, FC<SVGProps<SVGSVGElement>>>`
   of `?react` imports. Never hard-code an asset path: a missing source image must be a
-  type error, not a 404 (lint-enforced: `no-restricted-imports` blocks
-  `@/source-images/vectors/*`).
+  type error, not a 404 (lint-enforced: `no-restricted-imports` blocks any path into
+  `source-images/vectors/`).
 - **Never serve assets from `public/`.** A Vite import fails the build when the file
   is gone and drops it from the bundle when nothing renders it; `public/` does
   neither.

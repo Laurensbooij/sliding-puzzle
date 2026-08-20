@@ -1,6 +1,6 @@
-import type { BoardSize } from '@/lib/game-config'
 import { Button } from '@components/Button'
 import { Dialog } from '@components/Dialog'
+import type { BoardSize } from '@game-config'
 import { Message } from '@i18n'
 import type { FC } from 'react'
 

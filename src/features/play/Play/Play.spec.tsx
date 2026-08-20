@@ -1,16 +1,11 @@
-import { DEFAULT_GAME_CONFIG, GAME_CONFIG_STORAGE_KEY, GameConfigProvider } from '@/lib/game-config'
-import type { BoardSize } from '@/lib/game-config'
-import { RECORDS_STORAGE_KEY, RecordsProvider } from '@/lib/records'
-import type { Records } from '@/lib/records'
-import {
-	DEFAULT_SETTINGS,
-	SETTINGS_STORAGE_KEY,
-	SettingsProvider,
-	useSettings,
-} from '@/lib/settings'
+import { DEFAULT_GAME_CONFIG, GAME_CONFIG_STORAGE_KEY } from '@game-config'
+import type { BoardSize } from '@game-config'
 import { createTranslate } from '@i18n'
 import { gameMachine } from '@machines/game-machine'
 import { globalMessages } from '@messages'
+import { RECORDS_STORAGE_KEY } from '@records'
+import type { Records } from '@records'
+import { DEFAULT_SETTINGS, SETTINGS_STORAGE_KEY, useSettings } from '@settings'
 import { readStorage, renderWithProviders, seedStorage } from '@testing'
 import type { RenderResult } from '@testing-library/react'
 import { act, screen, within } from '@testing-library/react'
@@ -142,14 +137,11 @@ const renderComponent = ({
 	})
 
 	return renderWithProviders(
-		<GameConfigProvider>
-			<SettingsProvider>
-				<RecordsProvider>
-					<Play game={game} onAbandon={onAbandon} />
-					{withSettingsSwitches && <SettingsSwitches />}
-				</RecordsProvider>
-			</SettingsProvider>
-		</GameConfigProvider>,
+		<>
+			<Play game={game} onAbandon={onAbandon} />
+			{withSettingsSwitches && <SettingsSwitches />}
+		</>,
+		{ providers: { gameConfig: true, settings: true, records: true } },
 	)
 }
 

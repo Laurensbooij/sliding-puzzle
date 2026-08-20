@@ -1,13 +1,6 @@
 import { PLAY_TESTIDS } from '@/features/play'
-import {
-	DEFAULT_GAME_CONFIG,
-	GAME_CONFIG_STORAGE_KEY,
-	GameConfigProvider,
-	useGameConfig,
-} from '@/lib/game-config'
-import type { BoardSize } from '@/lib/game-config'
-import { RecordsProvider } from '@/lib/records'
-import { SettingsProvider } from '@/lib/settings'
+import { DEFAULT_GAME_CONFIG, GAME_CONFIG_STORAGE_KEY, useGameConfig } from '@game-config'
+import type { BoardSize } from '@game-config'
 import { renderWithProviders, seedStorage } from '@testing'
 import type { RenderResult } from '@testing-library/react'
 import { screen } from '@testing-library/react'
@@ -57,15 +50,9 @@ const renderComponent = (boardSize: BoardSize = 3): RenderResult => {
 		},
 	])
 
-	return renderWithProviders(
-		<GameConfigProvider>
-			<SettingsProvider>
-				<RecordsProvider>
-					<RouterProvider router={router} />
-				</RecordsProvider>
-			</SettingsProvider>
-		</GameConfigProvider>,
-	)
+	return renderWithProviders(<RouterProvider router={router} />, {
+		providers: { gameConfig: true, settings: true, records: true },
+	})
 }
 
 /** The tiles a press would move — the only buttons the board leaves enabled. */

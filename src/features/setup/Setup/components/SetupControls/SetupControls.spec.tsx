@@ -1,8 +1,8 @@
-import { DEFAULT_GAME_CONFIG, GAME_CONFIG_STORAGE_KEY, GameConfigProvider } from '@/lib/game-config'
-import type { BoardSize, GameConfig } from '@/lib/game-config'
-import { RECORDS_STORAGE_KEY, RecordsProvider } from '@/lib/records'
-import type { Records } from '@/lib/records'
+import { DEFAULT_GAME_CONFIG, GAME_CONFIG_STORAGE_KEY } from '@game-config'
+import type { BoardSize, GameConfig } from '@game-config'
 import { createTranslate } from '@i18n'
+import { RECORDS_STORAGE_KEY } from '@records'
+import type { Records } from '@records'
 import { readStorage, renderWithProviders, seedStorage } from '@testing'
 import { screen, within } from '@testing-library/react'
 import { userEvent } from '@testing-library/user-event'
@@ -43,13 +43,9 @@ const renderComponent = ({ config, bests, handleRef }: SetupControlsCase = {}) =
 	})
 	const onStart = vi.fn()
 
-	const view = renderWithProviders(
-		<GameConfigProvider>
-			<RecordsProvider>
-				<SetupControls ref={handleRef} onStart={onStart} />
-			</RecordsProvider>
-		</GameConfigProvider>,
-	)
+	const view = renderWithProviders(<SetupControls ref={handleRef} onStart={onStart} />, {
+		providers: { gameConfig: true, records: true },
+	})
 
 	return { ...view, onStart }
 }

@@ -71,3 +71,13 @@ _Avoid_: quit, exit, forfeit
 **Record**:
 The fewest moves a player has solved a given board size in.
 _Avoid_: high score, best time
+
+**Game config**:
+What the next game is made of: the board size and the source image. Chosen in
+Setup, before a game begins.
+_Avoid_: settings, options, preferences
+
+**Settings**:
+How a game is displayed: the reference image, numbered tiles, the timer.
+Independent of what is being played — settings never touch the board or the rules.
+_Avoid_: preferences, options, config

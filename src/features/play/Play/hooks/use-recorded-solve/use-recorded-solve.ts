@@ -1,6 +1,6 @@
-import type { BoardSize } from '@/lib/game-config'
-import { isNewBest, useRecords } from '@/lib/records'
 import type { Board } from '@engine'
+import type { BoardSize } from '@game-config'
+import { isNewBest, useRecords } from '@records'
 import { useEffect, useRef, useState } from 'react'
 
 export interface RecordedSolveInput {

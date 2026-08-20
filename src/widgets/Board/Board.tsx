@@ -1,5 +1,3 @@
-import { SOURCE_IMAGES } from '@/source-images'
-import type { SourceImageName } from '@/source-images'
 import { IconButton } from '@components/IconButton'
 import type { Board as BoardModel, CellIndex } from '@engine'
 import {
@@ -12,6 +10,8 @@ import {
 	toPlacements,
 } from '@engine'
 import { Message, useTranslate } from '@i18n'
+import { SOURCE_IMAGES } from '@source-images'
+import type { SourceImageName } from '@source-images'
 import type { FC, ReactNode } from 'react'
 import { useEffect, useRef, useState } from 'react'
 

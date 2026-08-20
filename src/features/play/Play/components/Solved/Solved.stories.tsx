@@ -1,5 +1,5 @@
-import type { BoardSize } from '@/lib/game-config'
 import { createBoard } from '@engine'
+import type { BoardSize } from '@game-config'
 import { Message } from '@i18n'
 import type { Meta, StoryObj } from '@storybook/react-vite'
 import { Board } from '@widgets/Board'

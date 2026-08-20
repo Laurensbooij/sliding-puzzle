@@ -1,7 +1,7 @@
-import { DEFAULT_SETTINGS, SETTINGS_STORAGE_KEY, SettingsProvider } from '@/lib/settings'
 import { IconButton } from '@components/IconButton'
 import { createTranslate } from '@i18n'
 import { globalMessages } from '@messages'
+import { DEFAULT_SETTINGS, SETTINGS_STORAGE_KEY, SettingsProvider } from '@settings'
 import type { Decorator, Meta, StoryObj } from '@storybook/react-vite'
 import type { FC } from 'react'
 import { useState } from 'react'
