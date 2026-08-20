@@ -1,4 +1,4 @@
-# 03 — Project setup
+# 03: Project setup
 
 **Status:** Done
 
@@ -15,10 +15,10 @@ _Add screenshots to `assets/03-project-setup/`. Storybook's first run and a cust
 The phase ran in three stages, deliberately in this order:
 
 1. **Grill first, code never.** A long interview worked through the design tree in
-   rounds — domain vocabulary, then the engine seam, then state, then tooling. Nothing
+   rounds: domain vocabulary, then the engine seam, then state, then tooling. Nothing
    was scaffolded until the frontier of open questions was empty.
 2. **Write the decisions down as they landed**, into [CONTEXT.md](../../CONTEXT.md) and
-   [docs/adr/](../adr/) — not afterwards from memory.
+   [docs/adr/](../adr/), not afterwards from memory.
 3. **Scaffold, then prove it.** The setup ends with one real component (`Tile`) carrying
    a story, a spec, tokens and a testid constant, because conventions nobody has
    exercised are conventions with unknown holes.
@@ -39,9 +39,9 @@ What the ADRs don't record:
   `@storybook/addon-vitest` in a real browser tests the accessibility tree far better
   than jsdom's approximation. It also drags Playwright into CI for a project with no
   E2E. Reverted to jsdom plus RTL specs; the addon is additive and can land later.
-- **The custom lint plugin shrank from twelve candidate rules to a handful.** Everything else
-  — arrow functions, file naming, a11y, Testing Library hygiene, the engine's import
-  boundary — was already covered by maintained plugins or plain config.
+- **The custom lint plugin shrank from twelve candidate rules to a handful.** Everything
+  else, arrow functions, file naming, a11y, Testing Library hygiene, the engine's import
+  boundary, was already covered by maintained plugins or plain config.
 - **One convention turned out impossible to enforce as asked.** A pre-commit hook cannot
   see the commit message, so "skip the checks for `CP` commits" can't be a hook decision.
   It became `pnpm cp`, an explicit `--no-verify` bypass, with the pre-push hook doing the
@@ -60,5 +60,4 @@ conventions already enforced by lint rather than by review.
 
 ## References
 
-- Issues: _add `SLI-x` links_
 - Commits: `b50496d`, `069ce3d`

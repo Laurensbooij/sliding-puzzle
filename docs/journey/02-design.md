@@ -1,8 +1,8 @@
-# 02 — Design
+# 02: Design
 
 **Status:** Done
 
-**Figma file:** [Slider puzzle](https://www.figma.com/design/r5wlPxDsJnLjZGJcrvmj9s/Slider-puzzle?node-id=4-3&t=UuGmFAnJnpKF6UKG-1) — the canonical design system: tokens, components, and screens.
+**Figma file:** [Slider puzzle](https://www.figma.com/design/r5wlPxDsJnLjZGJcrvmj9s/Slider-puzzle?node-id=4-3&t=UuGmFAnJnpKF6UKG-1), the canonical design system: tokens, components, and screens.
 
 ## Goal
 
@@ -42,7 +42,7 @@ system and stayed on as the prototyping surface. **Figma** holds the canonical s
 ```mermaid
 flowchart LR
   B[Written brief] --> C[Claude design]
-  C -- "one-time transfer" --> F["Figma — source of truth"]
+  C -- "one-time transfer" --> F["Figma: source of truth"]
   C -- "sync approved changes" --> F
   F -- "grounds prototypes" --> C
   F -- "token export (ADR-0006)" --> I[Implementation]
@@ -57,8 +57,8 @@ flowchart LR
    component. From this point Figma is the source of truth.
 4. **Sync Figma back into Claude design**, so the prototyping surface speaks the same
    names and values as the canonical file.
-5. **Prototype app UX in Claude design** — screens, responsive behaviour, accessibility
-   details — where iteration is conversational and cheap.
+5. **Prototype app UX in Claude design**: screens, responsive behaviour, accessibility
+   details, where iteration is conversational and cheap.
 6. **Land the results in Figma** as screens and composite components, closing component
    gaps the screens exposed.
 
@@ -80,7 +80,7 @@ The first state Claude design produced from the brief, before any refinement:
 <img src="assets/02-design/claude-design-records.png" width="450" alt="Records screen: bests per grid size and an empty recent-solves list">
 
 The first generation already had the two-material rule, the glass-on-wood board and the
-full screen set. What changed later was placement and affordance, not the look — sound
+full screen set. What changed later was placement and affordance, not the look: sound
 moved out of the sheet into the header, artwork moved from a select into the setup
 screen, and the grid-size control left the play screen once a game became
 fixed-size for its lifetime.
@@ -95,7 +95,7 @@ The canonical system in Figma:
 
 <img src="assets/02-design/figma-button-grid.png" width="533" alt="Button page: variants-by-states grid with every variant in five states">
 
-The finalized Setup screen, desktop and mobile — tiles scrambled into a solvable
+The finalized Setup screen, desktop and mobile: tiles scrambled into a solvable
 position, not the completed picture:
 
 <img src="assets/02-design/figma-screens-setup-desktop.png" width="700" alt="Setup screen in Figma at desktop size, board showing a scrambled sailboat">
@@ -109,13 +109,13 @@ position, not the completed picture:
   arrow keys name the tile relative to the gap.
 - **Domain language beat generated names on transfer.** The generated `PuzzleTray`,
   `PuzzleTile`, `PuzzleBoard` became **Frame**, **Tile**, **Board** per
-  [CONTEXT.md](../../CONTEXT.md) — "puzzle" is banned as a code term.
+  [CONTEXT.md](../../CONTEXT.md): "puzzle" is banned as a code term.
 - **Tokens are two-tier in Figma**: a `Primitives` collection (scopes empty, invisible
-  in pickers) aliased by semantic collections. Composites — shadows, type ramps — are
+  in pickers) aliased by semantic collections. Composites (shadows, type ramps) are
   Figma styles, because a variable cannot hold a multi-layer shadow or font shorthand.
 - **What Figma cannot reproduce is documented, not faked**: repeating-gradient wood
   grain, `backdrop-filter` saturation, and zero-blur ring shadows (which Figma does not
-  render — focus rings are stroke bands instead). The Materials card marks every
+  render: focus rings are stroke bands instead). The Materials card marks every
   declaration "in Figma" or "CSS only", with the CSS as source of truth.
 - **The sync back was explicit, not drift.** Claude design was re-anchored with a Figma
   export and this prompt:
@@ -143,5 +143,5 @@ set phase builds them in code, consuming tokens by export and reading specs from
 ## References
 
 - Figma file: [Slider puzzle](https://www.figma.com/design/r5wlPxDsJnLjZGJcrvmj9s/Slider-puzzle?node-id=4-3&t=UuGmFAnJnpKF6UKG-1)
-- [ADR-0006 — tokens generated from Figma](../adr/0006-tokens-generated-from-figma-by-manual-export.md)
-- [CONTEXT.md](../../CONTEXT.md) — the domain vocabulary the design follows
+- [ADR-0006: tokens generated from Figma](../adr/0006-tokens-generated-from-figma-by-manual-export.md)
+- [CONTEXT.md](../../CONTEXT.md), the domain vocabulary the design follows

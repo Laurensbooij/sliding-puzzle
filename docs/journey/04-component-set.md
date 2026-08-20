@@ -1,4 +1,4 @@
-# 04 — Component set
+# 04: Component set
 
 **Status:** Done
 
@@ -12,7 +12,7 @@ The Board mid-game, on the wooden frame with the footer's hint line and restart 
 
 <img src="assets/04-component-set/storybook-board.png" width="700" alt="Board component in Storybook: a 3x3 wooden frame holding glass tiles with sailboat fragments, one gap, and a footer reading 'Tap a tile beside the gap' next to a restart button">
 
-Button's variant set — filled, outline, ghost, soft and danger, all sharing one icon:
+Button's variant set: filled, outline, ghost, soft and danger, all sharing one icon:
 
 <img src="assets/04-component-set/storybook-button.png" width="700" alt="Five Shuffle buttons in a row: solid green, white outline, plain text, soft mint fill, and solid red">
 
@@ -22,9 +22,9 @@ Dialog's confirmation variant, glass material and motion over a blurred, inert b
 
 ## How it went
 
-The phase opened with a [Wayfinder map](https://linear.app/sliding-puzzle/issue/SLI-5)
-rather than a backlog, because the space had too many interlocking open questions to cut
-tickets against directly — token architecture, component boundaries, whether to take a
+The phase opened with a Wayfinder map (SLI-5) rather than a backlog, because the space
+had too many interlocking open questions to cut
+tickets against directly: token architecture, component boundaries, whether to take a
 UI library, how to verify WCAG AA, how the game feature would adopt the design at all.
 
 1. **Two research tickets ran first**, as `/research` subagents on throwaway branches,
@@ -38,8 +38,8 @@ UI library, how to verify WCAG AA, how the game feature would adopt the design a
    carrying the WCAG acceptance checklist the strategy ticket had defined.
 4. **Execution ran in waves of parallel agent sessions** once tickets unblocked: token
    cutover and the a11y gate stack first (everything else depended on both), then Icon,
-   Tooltip, Tile adoption and the XState game machine, then a six-way wave — Badge,
-   Card, StatCard, SegmentedControl, Switch, and the source-image registry — landing
+   Tooltip, Tile adoption and the XState game machine, then a six-way wave (Badge,
+   Card, StatCard, SegmentedControl, Switch, and the source-image registry) landing
    together. Six sessions building independently surfaced small inconsistencies (three
    different `className` idioms, ESLint not walking agent worktrees), cleaned up in one
    pass afterward rather than mid-build. A second wave built Select, Button and
@@ -62,7 +62,7 @@ What the ADRs don't record:
 
 - **Renaming caught up with reality twice, mid-phase.** Figma's typography variables
   moved from `size/*` to `font-size/*`, and `StatTile` became **StatCard** everywhere in
-  Figma. Claude Design — the prototyping surface, never canon — still lags on both and
+  Figma. Claude Design, the prototyping surface, never canon, still lags on both and
   picks them up on its next manual sync.
 - **Two Figma-side fixes stayed in the backlog on purpose**: a contrast rebind so filled
   accent/danger controls clear AA, and a glyph-size snap for Button/IconButton icons.
@@ -70,8 +70,8 @@ What the ADRs don't record:
   themselves, so they wait for a design pass rather than blocking this one.
 - **Component inventory research found only one candidate for a library**: Select (and
   marginally Tooltip) were the sole cases a headless library would have justified. Both
-  got hand-rolled anyway — Select as a styled native `<select>` because the design
-  specifies native-with-chrome, Tooltip on the Popover API — so the "no runtime UI
+  got hand-rolled anyway: Select as a styled native `<select>` because the design
+  specifies native-with-chrome, Tooltip on the Popover API. The "no runtime UI
   dependencies" stance never had to make an exception.
 - **The parallel-build waves were a deliberate bet**, not an accident of tooling: cutting
   the backlog by blocking relations made unblocked tickets provably independent, so
@@ -82,15 +82,10 @@ What the ADRs don't record:
 ## Next
 
 The component set is done: 11 shared primitives, the game's `Tile`, `Board` and `Frame`,
-the XState lifecycle machine, and the token/a11y pipeline they all sit on. Wiring them
-into a playable page is Milestone 05 — Puzzle implementation — deliberately out of
-scope here. Board and IconButton unblock
-[Play screen composition](https://linear.app/sliding-puzzle/issue/SLI-33); Dialog
-unblocks [Solved experience and the post-adoption VoiceOver pass](https://linear.app/sliding-puzzle/issue/SLI-34) —
-both queued in the **Game screens** project.
+the XState lifecycle machine, and the token/a11y pipeline they all sit on. Composing them
+into the app's screens is [Milestone 05: Game screens](05-game-screens.md), queued in the
+**Game screens** Linear project.
 
 ## References
 
-- Issues: [Design system implementation — wayfinder map](https://linear.app/sliding-puzzle/issue/SLI-5),
-  [Design system implementation](https://linear.app/sliding-puzzle/project/design-system-implementation-5c919c477334) (project, 18 tickets)
 - Commits: `85969ba`..`6acbf06`

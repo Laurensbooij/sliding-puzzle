@@ -1,14 +1,10 @@
-# 01 — Task manager
+# 01: Task manager
 
 **Status:** Done
 
 ## Goal
 
 Set up issue tracking before writing code. Agents and humans need one shared backlog.
-
-## Screenshots
-
-_Add screenshots to `assets/01-task-manager/`._
 
 ## Decisions
 
@@ -22,5 +18,4 @@ A backlog exists. Design work can be captured as issues instead of notes.
 
 ## References
 
-- Issues: _add `SLI-x` links_
 - Commits: `069ce3d`
