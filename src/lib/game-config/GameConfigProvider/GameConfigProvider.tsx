@@ -1,5 +1,5 @@
 import { usePersistedState } from '@/lib/storage'
-import type { SourceImageName } from '@/source-images'
+import type { SourceImageName } from '@source-images'
 import { type FC, type ReactNode, createContext, useCallback, useMemo } from 'react'
 
 import { DEFAULT_GAME_CONFIG, GAME_CONFIG_STORAGE_KEY } from '../constants'

@@ -53,6 +53,22 @@ const aliasSpellingPatterns = [
 		group: ['@/widgets', '@/widgets/*'],
 		message: 'Import widgets as `@widgets/<Name>`.',
 	},
+	{
+		group: ['@/lib/game-config', '@/lib/game-config/*'],
+		message: 'Import the game config state home as `@game-config`.',
+	},
+	{
+		group: ['@/lib/records', '@/lib/records/*'],
+		message: 'Import the records state home as `@records`.',
+	},
+	{
+		group: ['@/lib/settings', '@/lib/settings/*'],
+		message: 'Import the settings state home as `@settings`.',
+	},
+	{
+		group: ['@/source-images', '@/source-images/*'],
+		message: 'Import the source image registry as `@source-images`.',
+	},
 	// A widget's barrel is its whole public API. Its nested sub-components sit
 	// beside it rather than under a `components/` segment, so without this the
 	// deep path is just as importable as the barrel.
@@ -61,10 +77,16 @@ const aliasSpellingPatterns = [
 		message:
 			'Reach a widget through its barrel — `@widgets/<Name>`. What sits inside it is private.',
 	},
+	// A shared component's barrel is its whole public API, same as a widget's.
+	{
+		group: ['@components/*/*', '@components/*/**'],
+		message:
+			'Reach a shared component through its barrel — `@components/<Name>`. What sits inside it is private.',
+	},
 	{
 		group: ['@/source-images/vectors/*', '**/source-images/vectors/*'],
 		message:
-			'Reach source images through the registry — `@/source-images`. A hard-coded path skips the SourceImageName type.',
+			'Reach source images through the registry — `@source-images`. A hard-coded path skips the SourceImageName type.',
 	},
 ]
 
@@ -74,17 +96,17 @@ const aliasSpellingPatterns = [
 // they mount the provider under test.
 const appStateProviderPatterns = [
 	{
-		group: ['@/lib/game-config', '@/lib/game-config/*'],
+		group: ['@game-config'],
 		importNames: ['GameConfigProvider'],
 		message: 'Opt in with `renderWithProviders(ui, { providers: { gameConfig: true } })`.',
 	},
 	{
-		group: ['@/lib/settings', '@/lib/settings/*'],
+		group: ['@settings'],
 		importNames: ['SettingsProvider'],
 		message: 'Opt in with `renderWithProviders(ui, { providers: { settings: true } })`.',
 	},
 	{
-		group: ['@/lib/records', '@/lib/records/*'],
+		group: ['@records'],
 		importNames: ['RecordsProvider'],
 		message: 'Opt in with `renderWithProviders(ui, { providers: { records: true } })`.',
 	},
@@ -221,12 +243,21 @@ export default tseslint.config(
 		plugins: { 'import-x': importX },
 		// Without a TypeScript resolver the rule cannot turn an extensionless or
 		// aliased specifier into a file path, and silently matches nothing.
+		//
+		// `extensions` is the same trap one level down: import-x only builds an
+		// export map for extensions listed here, and the default list is JS-only —
+		// so no-cycle passes every TypeScript file without ever reading it.
 		settings: {
+			'import-x/extensions': ['.js', '.jsx', '.mjs', '.cjs', '.ts', '.tsx'],
 			'import-x/resolver-next': [
 				createTypeScriptImportResolver({ project: './tsconfig.app.json' }),
 			],
 		},
 		rules: {
+			// Barrel-to-barrel imports inside one tier are legal and correct —
+			// `Dialog` imports `@components/Modal` — which is exactly the shape a
+			// cycle would take once a barrel is a real boundary. See ADR-0007.
+			'import-x/no-cycle': 'error',
 			'import-x/no-restricted-paths': [
 				'error',
 				{

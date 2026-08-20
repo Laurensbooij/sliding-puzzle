@@ -1,5 +1,5 @@
-import { useGameConfig } from '@/lib/game-config'
 import { ROUTES } from '@/lib/routes'
+import { useGameConfig } from '@game-config'
 import type { FC } from 'react'
 import { useNavigate } from 'react-router'
 

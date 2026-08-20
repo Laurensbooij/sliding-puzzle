@@ -1,5 +1,5 @@
-import { BOARD_SIZES } from '@/lib/game-config'
-import type { BoardSize } from '@/lib/game-config'
+import { BOARD_SIZES } from '@game-config'
+import type { BoardSize } from '@game-config'
 import { describe, expect, it } from 'vitest'
 
 import { nextBoardSize } from './next-board-size'

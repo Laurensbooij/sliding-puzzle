@@ -1,5 +1,5 @@
-import { useGameConfig } from '@/lib/game-config'
 import { createBoard } from '@engine'
+import { useGameConfig } from '@game-config'
 import { useTranslate } from '@i18n'
 import { Board } from '@widgets/Board'
 import type { FC } from 'react'

@@ -2,11 +2,13 @@
 
 Code flows one way — `engine → lib → {machines | components} → widgets →
 features → app` — features never import one another, widgets never import one
-another, and machines and components never import each other. Five modules carry
-a named import alias (`@engine`, `@i18n`, `@messages`, `@testing`, `@css-utils`),
-plus the glob aliases `@components/*`, `@machines/*` and `@widgets/*`; everything
-else uses `@/*`. An aliased module may **only** be reached through
-its alias; the long `@/...` spelling is a lint error.
+another, and machines and components never import each other. Nine modules carry
+a named import alias (`@engine`, `@i18n`, `@messages`, `@testing`, `@css-utils`,
+`@game-config`, `@records`, `@settings`, `@source-images`), plus the glob aliases
+`@components/*`, `@machines/*` and `@widgets/*`; everything else uses `@/*`. An
+aliased module may **only** be reached through its alias; the long `@/...`
+spelling is a lint error, and for the two glob tiers so is anything deeper than
+the barrel.
 
 Recorded because the alias set looks arbitrary without its rule, and because a
 reader will otherwise add `@features` or `@components` and quietly undo the
@@ -55,6 +57,25 @@ earns its glob alias because the tier is imported _forward_ by every feature —
 composes class names depends on it, and its API is one function
 ([SLI-36](https://linear.app/sliding-puzzle/issue/SLI-36)).
 
+**Amended (state homes and source images):** four named aliases join —
+`@game-config`, `@records`, `@settings` and `@source-images`. Each clears the
+rule above: a barrel with a public API that consumers across tiers depend on.
+The three state homes stay three flat aliases rather than one `@state/*` glob —
+a glob needs them collected under `src/lib/state/`, which is visibly the
+grouping [ADR-0015](./0015-state-homes-are-modular.md) rejected.
+
+`storage` is deliberately excluded. Five of its six imports are the three state
+providers themselves. It is the building block the state homes are made of, not
+a module features depend on, and an alias would invite a feature to persist
+state directly instead of through a state home.
+
+**Amended (the components barrel is a boundary):** `@components/*/*` joins the
+ban that already covers `@widgets/*/*` — a shared component's barrel is its
+whole public API, same as a widget's. `import-x/no-cycle` is enabled alongside
+it: barrel-to-barrel imports inside one tier are legal and correct (`Dialog`
+imports `@components/Modal`), which is exactly the shape a cycle would take.
+Both landed with zero violations to fix.
+
 ## Considered options
 
 - **One `@/*` alias only.** Simpler, and it was the original decision. Rejected:
@@ -76,3 +97,8 @@ composes class names depends on it, and its API is one function
 - `import-x/no-restricted-paths` **requires a TypeScript resolver**. Without one
   it cannot turn an extensionless or aliased specifier into a path, and silently
   matches nothing — a configured, enabled rule that catches zero violations.
+- `import-x/no-cycle` needs **`settings['import-x/extensions']`** to list `.ts`
+  and `.tsx` on top of that resolver. import-x only builds an export map for the
+  extensions named there and the default list is JS-only, so without it the rule
+  passes every TypeScript file without reading it — the same silent-zero failure
+  one level down, and one that looks like a clean repo.

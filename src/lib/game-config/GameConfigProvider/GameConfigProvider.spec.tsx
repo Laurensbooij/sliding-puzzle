@@ -1,5 +1,5 @@
-import { RECORDS_STORAGE_KEY } from '@/lib/records'
-import { SETTINGS_STORAGE_KEY } from '@/lib/settings'
+import { RECORDS_STORAGE_KEY } from '@records'
+import { SETTINGS_STORAGE_KEY } from '@settings'
 import { readStorage, renderHookWithProviders, seedStorage } from '@testing'
 import { act } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
