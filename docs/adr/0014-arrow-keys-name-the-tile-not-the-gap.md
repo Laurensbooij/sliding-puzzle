@@ -33,3 +33,8 @@ flip and someone eventually "fixes" it. Left open by
 - Arrow keys are an accelerator for the single adjacent move only. Multi-cell runs
   are reached by tabbing to any tile in the gap's row or column — every one of them
   is already a tab stop — so no modifier chord exists or is needed.
+- Arrows are live screen-wide, not scoped to focus: while an interactive Board is
+  mounted and no dialog is open, its `window`-level listener claims every unchorded
+  arrow press ([SLI-71](https://linear.app/sliding-puzzle/issue/SLI-71)). Ctrl/⌘/Alt
+  chords stay the browser's, an open dialog anywhere keeps all arrows, and at most
+  one interactive Board mounts per screen.

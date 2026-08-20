@@ -119,6 +119,17 @@
 	transition: var(--transition-cell-slide);
 }
 
+/*
+ * While arrows drive the board (`data-input="arrow"`, set by the component),
+ * no tile shows a focus ring: focus itself never moves on an arrow press, but
+ * the tile holding it is no longer the centre of attention. Tiles only — a
+ * footer control's ring is the player's place in the Tab order, which an
+ * arrow press does not invalidate.
+ */
+.board[data-input='arrow'] .cell :focus-visible {
+	outline: none;
+}
+
 /* The gap paints nothing — it is the well showing through. It exists so the
    empty cell has a stable target, and is hidden from assistive tech. */
 
