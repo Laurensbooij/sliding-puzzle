@@ -1,8 +1,8 @@
-import { DEFAULT_GAME_CONFIG, GAME_CONFIG_STORAGE_KEY, GameConfigProvider } from '@/lib/game-config'
+import { DEFAULT_GAME_CONFIG, GAME_CONFIG_STORAGE_KEY } from '@/lib/game-config'
 import type { BoardSize, GameConfig } from '@/lib/game-config'
-import { RECORDS_STORAGE_KEY, RecordsProvider } from '@/lib/records'
+import { RECORDS_STORAGE_KEY } from '@/lib/records'
 import type { Records } from '@/lib/records'
-import { DEFAULT_SETTINGS, SETTINGS_STORAGE_KEY, SettingsProvider } from '@/lib/settings'
+import { DEFAULT_SETTINGS, SETTINGS_STORAGE_KEY } from '@/lib/settings'
 import type { Settings } from '@/lib/settings'
 import { createTranslate } from '@i18n'
 import { globalMessages } from '@messages'
@@ -62,15 +62,9 @@ const renderComponent = ({ desktop = false, config, bests, settings }: SetupCase
 	// The settings provider stands above every route in the app, so it stands
 	// here too — which is what makes "Setup ignores this setting" falsifiable
 	// rather than untestable.
-	const view = renderWithProviders(
-		<GameConfigProvider>
-			<SettingsProvider>
-				<RecordsProvider>
-					<Setup onStart={onStart} />
-				</RecordsProvider>
-			</SettingsProvider>
-		</GameConfigProvider>,
-	)
+	const view = renderWithProviders(<Setup onStart={onStart} />, {
+		providers: { gameConfig: true, settings: true, records: true },
+	})
 
 	return { ...view, onStart }
 }
