@@ -218,7 +218,10 @@ export const Board: FC<BoardProps> = ({
 			// still bubbles here from inside it. Bail before claiming anything:
 			// the board must not play itself behind the scrim, and a dialog that
 			// owns arrows — a radio group, a scrollable body — must keep them.
-			if (document.querySelector('dialog[open]')) return
+			// Asked of the document rather than of this screen: two of the dialogs
+			// that open over Play are mounted above it and it cannot see them.
+			const aDialogIsOpen = document.querySelector('dialog[open]') !== null
+			if (aDialogIsOpen) return
 
 			// A chorded arrow is history navigation (Alt+←/→, ⌘+←/→), never a move.
 			if (event.ctrlKey || event.metaKey || event.altKey) return
@@ -234,12 +237,15 @@ export const Board: FC<BoardProps> = ({
 			if (event.repeat) return
 
 			const cell = cellForDirection(board, direction)
-			if (cell !== null && movesForCell(board, cell).length > 0) onCellPress?.(cell)
+			if (cell !== null) pressCell(cell)
 		}
 
 		window.addEventListener('keydown', handleWindowKeyDown)
 		return () => window.removeEventListener('keydown', handleWindowKeyDown)
-	}, [interactive, board, onCellPress])
+		// `pressCell` closes over the board and the handler, so it stands for
+		// both: a listener attached to a stale one would play the arrangement
+		// the player has already moved on from.
+	}, [interactive, pressCell])
 
 	// The ring-suppression flag's clearing signals. `focusin` where focus
 	// actually moved is the honest one — it covers Tab, Shift+Tab and

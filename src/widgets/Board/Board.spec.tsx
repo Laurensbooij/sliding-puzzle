@@ -260,21 +260,29 @@ describe('Board', () => {
 			},
 		)
 
-		// One press is one move — but a held arrow keeps being claimed, or it
-		// would start scrolling the page after the first move.
-		it('moves nothing on a held arrow repeat yet still claims the key', () => {
+		// One press is one move, however long the key is held — but every repeat
+		// stays claimed, or the page would start scrolling under the player
+		// after the first move.
+		it('moves once for a held arrow, however many repeats follow', () => {
 			const onCellPress = vi.fn()
 			renderComponent({ onCellPress })
 
-			const repeat = new KeyboardEvent('keydown', {
-				key: 'ArrowRight',
-				cancelable: true,
-				repeat: true,
-			})
-			window.dispatchEvent(repeat)
+			const press = new KeyboardEvent('keydown', { key: 'ArrowRight', cancelable: true })
+			window.dispatchEvent(press)
 
-			expect(onCellPress).not.toHaveBeenCalled()
-			expect(repeat.defaultPrevented).toBe(true)
+			const repeats = [1, 2, 3].map(() => {
+				const repeat = new KeyboardEvent('keydown', {
+					key: 'ArrowRight',
+					cancelable: true,
+					repeat: true,
+				})
+				window.dispatchEvent(repeat)
+				return repeat
+			})
+
+			expect(onCellPress).toHaveBeenCalledExactlyOnceWith(3)
+			expect(press.defaultPrevented).toBe(true)
+			expect(repeats.every((repeat) => repeat.defaultPrevented)).toBe(true)
 		})
 
 		// Half-swallowed arrows lurch the page exactly when the player is
