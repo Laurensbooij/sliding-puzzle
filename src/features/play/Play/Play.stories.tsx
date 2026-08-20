@@ -14,6 +14,7 @@ import { useEffect } from 'react'
 import { expect, fn, userEvent, waitFor, within } from 'storybook/test'
 
 import { Play } from './Play'
+import { PLAY_TESTIDS } from './constants'
 import { playMessages } from './translation-messages'
 
 const { translate } = createTranslate()
@@ -208,6 +209,57 @@ export const AbandonConfirmation: Story = {
 			name: translate(globalMessages.keepPlaying),
 		})
 		await expect(keepPlaying).toHaveFocus()
+	},
+}
+
+/**
+ * Arrows are live screen-wide while the board is interactive (SLI-71), so an
+ * open dialog must keep every one of them: no move, no announcement, nothing.
+ * Without the bail the board plays itself behind the scrim — a tile slides and
+ * the move count ticks while the player answers "Abandon this game?".
+ *
+ * Proven here against a real `showModal()`. The jsdom shim reflects
+ * `<dialog open>` but has no top layer, no inert background and no focus trap
+ * — exactly the part that would keep passing if the real behaviour broke — so
+ * Chromium is the only honest runner for this case. The closing half of the
+ * story presses the same arrows after "Keep playing" and expects moves, which
+ * keeps the bail assertion from passing vacuously on a board whose arrows are
+ * broken outright.
+ */
+export const ArrowsIgnoredBehindDialog: Story = {
+	play: async ({ canvasElement }) => {
+		const canvas = within(canvasElement)
+		const abandon = canvas.getByTestId(`${BOARD_TESTIDS.BASE}${BOARD_TESTIDS.ABANDON_SUFFIX}`)
+		await userEvent.click(abandon)
+
+		const confirmation = await canvas.findByRole('dialog', {
+			name: translate(playMessages.abandonTitle),
+		})
+		await waitFor(() => expect(confirmation).toBeVisible())
+
+		const moves = canvas.getByTestId(`${PLAY_TESTIDS.BASE}${PLAY_TESTIDS.MOVES_SUFFIX}`)
+		const movesBefore = moves.textContent
+
+		// All four, so the assertion cannot luck through on the one direction
+		// the shuffled gap happens to block.
+		await userEvent.keyboard('{ArrowUp}{ArrowDown}{ArrowLeft}{ArrowRight}')
+
+		await expect(moves).toHaveTextContent(movesBefore ?? '')
+		const announcer = canvas.getByTestId(
+			`${BOARD_TESTIDS.BASE}${BOARD_TESTIDS.ANNOUNCER_SUFFIX}`,
+		)
+		await expect(announcer).toBeEmptyDOMElement()
+		await expect(confirmation).toBeVisible()
+
+		const keepPlaying = within(confirmation).getByRole('button', {
+			name: translate(globalMessages.keepPlaying),
+		})
+		await userEvent.click(keepPlaying)
+
+		// At least two of the four directions are legal from any gap cell, so
+		// a live board must move on this same sequence once the dialog is gone.
+		await userEvent.keyboard('{ArrowUp}{ArrowDown}{ArrowLeft}{ArrowRight}')
+		await waitFor(() => expect(moves).not.toHaveTextContent(movesBefore ?? ''))
 	},
 }
 

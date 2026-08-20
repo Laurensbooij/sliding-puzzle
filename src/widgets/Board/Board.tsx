@@ -12,8 +12,8 @@ import {
 	toPlacements,
 } from '@engine'
 import { Message, useTranslate } from '@i18n'
-import type { FC, KeyboardEvent, ReactNode } from 'react'
-import { useRef, useState } from 'react'
+import type { FC, ReactNode } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 import styles from './Board.module.css'
 import { Tile } from './Tile'
@@ -106,21 +106,33 @@ const NO_ANNOUNCEMENT: Announcement = { text: '', move: 0 }
  *   without a modifier chord: tab to the far tile and press it.
  * - **Space / Enter** — presses the focused tile (the Tile's own behaviour).
  * - **Arrows** — press the tile that would travel that way into the gap
- *   (ADR-0014), from anywhere inside the board. An accelerator for the single
+ *   (ADR-0014), from anywhere on the screen. An accelerator for the single
  *   adjacent move; runs go through Tab.
  *
- * Arrows are handled here rather than on a Tile because the tile they name is
- * fixed by the gap, not by whatever currently holds focus. Nothing outside the
- * board is affected: the listener sits on the container, so the keys are live
- * only while focus is inside it.
+ * Arrows are live screen-wide: the tile they name is fixed by the gap, not by
+ * whatever holds focus, so the listener sits on `window` and a player never
+ * has to Tab in before playing. Three bails scope it — an open dialog anywhere
+ * in the document keeps every arrow (the board must not play itself behind a
+ * scrim, and a dialog that owns arrows must keep them), a Ctrl/⌘/Alt chord
+ * stays the browser's, and a held key's repeats move nothing while still
+ * being claimed so the page never starts scrolling mid-hold. Which is also
+ * the standing constraint: mount at most one interactive Board per screen,
+ * or a single keypress plays them all.
+ *
+ * An arrow-driven move leaves no focus ring behind: the press flags this
+ * container `data-input="arrow"`, and the stylesheet hides the ring on tiles
+ * only — a footer control's ring is the player's place in the Tab order,
+ * which an arrow press does not invalidate. Focus itself never moves, so
+ * tabbing to a far tile for a multi-cell run survives every arrow. The flag
+ * clears when focus genuinely moves or a pointer goes down.
  *
  * Tiles render in tile order rather than cell order, so a move animates the same
  * element from its old cell to its new one instead of remounting it elsewhere.
  *
  * With `footer`, the two game controls become the last tab stops after the
- * movable tiles — abandon, then restart. Arrows stay board-wide there: they name
- * a tile by the gap, not by what holds focus, and a button has no native arrow
- * behaviour to displace.
+ * movable tiles — abandon, then restart. Arrows stay screen-wide there: they
+ * name a tile by the gap, not by what holds focus, and a button has no native
+ * arrow behaviour to displace.
  *
  * `interactive={false}` withdraws all of that. The board paints exactly as it
  * does when played and answers nothing: no tab stop, no press, no arrow, no live
@@ -141,7 +153,9 @@ export const Board: FC<BoardProps> = ({
 	dataTestId,
 }) => {
 	const [announcement, setAnnouncement] = useState(NO_ANNOUNCEMENT)
+	const [arrowInput, setArrowInput] = useState(false)
 	const announcedBoard = useRef(board)
+	const focusHolder = useRef<EventTarget | null>(null)
 	const { translate } = useTranslate()
 	const base = dataTestId ?? BOARD_TESTIDS.BASE
 	const movable = movableTiles(board)
@@ -190,27 +204,71 @@ export const Board: FC<BoardProps> = ({
 		if (movesForCell(board, cell).length > 0) onCellPress?.(cell)
 	}
 
-	const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
-		// Returns before the `preventDefault` below: an inert board claims no keys,
-		// so arrows keep scrolling the screen it is decorating.
-		if (!interactive) return
+	// Screen-wide, so the listener lives on `window`, and per board: each press
+	// must read the arrangement actually on screen. An inert board attaches
+	// nothing, leaving every key to the screen it decorates.
+	useEffect(() => {
+		if (!interactive) return undefined
 
-		const direction = DIRECTION_BY_KEY[event.key]
-		if (!direction) return
+		const handleWindowKeyDown = (event: globalThis.KeyboardEvent) => {
+			const direction = DIRECTION_BY_KEY[event.key]
+			if (!direction) return
 
-		// Claimed whether or not a tile answers, so a blocked direction never
-		// falls through to scrolling the page instead.
-		event.preventDefault()
-		const cell = cellForDirection(board, direction)
-		if (cell !== null) pressCell(cell)
-	}
+			// A modal dialog makes the background inert for pointers, but a keydown
+			// still bubbles here from inside it. Bail before claiming anything:
+			// the board must not play itself behind the scrim, and a dialog that
+			// owns arrows — a radio group, a scrollable body — must keep them.
+			if (document.querySelector('dialog[open]')) return
+
+			// A chorded arrow is history navigation (Alt+←/→, ⌘+←/→), never a move.
+			if (event.ctrlKey || event.metaKey || event.altKey) return
+
+			// Claimed whether or not a tile answers, so a blocked direction never
+			// falls through to scrolling the page instead. Space, PageUp/PageDown
+			// and Home/End remain as scroll routes.
+			event.preventDefault()
+			setArrowInput(true)
+
+			// One press is one move; a held arrow keeps being claimed above, or
+			// it would start scrolling the page after the first move.
+			if (event.repeat) return
+
+			const cell = cellForDirection(board, direction)
+			if (cell !== null && movesForCell(board, cell).length > 0) onCellPress?.(cell)
+		}
+
+		window.addEventListener('keydown', handleWindowKeyDown)
+		return () => window.removeEventListener('keydown', handleWindowKeyDown)
+	}, [interactive, board, onCellPress])
+
+	// The ring-suppression flag's clearing signals. `focusin` where focus
+	// actually moved is the honest one — it covers Tab, Shift+Tab and
+	// programmatic moves alike, while a window regaining focus re-fires it on
+	// the element that already held it, whose ring the player still owns.
+	// `pointerdown` covers a click landing on the already-focused tile, which
+	// moves no focus at all.
+	useEffect(() => {
+		if (!interactive) return undefined
+
+		focusHolder.current = document.activeElement
+
+		const handleFocusIn = (event: FocusEvent) => {
+			const moved = event.target !== focusHolder.current
+			focusHolder.current = event.target
+			if (moved) setArrowInput(false)
+		}
+
+		const handlePointerDown = () => setArrowInput(false)
+
+		window.addEventListener('focusin', handleFocusIn)
+		window.addEventListener('pointerdown', handlePointerDown)
+		return () => {
+			window.removeEventListener('focusin', handleFocusIn)
+			window.removeEventListener('pointerdown', handlePointerDown)
+		}
+	}, [interactive])
 
 	return (
-		// The handler serves the tiles that bubble into it, not this element:
-		// every key it acts on arrives from a focused <button>, and the board
-		// itself is neither focusable nor a tab stop. Nothing is faked
-		// interactive, which is what the rule guards against.
-		// eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions -- key delegation from focusable descendants
 		<div
 			className={styles.board}
 			data-testid={base}
@@ -218,7 +276,7 @@ export const Board: FC<BoardProps> = ({
 			aria-label={
 				label ?? translate(boardMessages.label, { rows: board.rows, cols: board.cols })
 			}
-			onKeyDown={handleKeyDown}
+			data-input={arrowInput ? 'arrow' : undefined}
 		>
 			<span className={styles.bevel} />
 			<div className={styles.well} style={wellStyle}>

@@ -5,7 +5,7 @@ import { createTranslate } from '@i18n'
 import type { RenderWithProvidersOptions } from '@testing'
 import { renderWithProviders } from '@testing'
 import type { RenderResult } from '@testing-library/react'
-import { screen, within } from '@testing-library/react'
+import { fireEvent, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import type { FC } from 'react'
 import { useState } from 'react'
@@ -68,13 +68,28 @@ const StatefulBoard: FC<StatefulBoardProps> = ({ board: initial, ...props }) => 
 	)
 }
 
+/** What the screen around the board contributes: a focusable neighbour. */
+const OUTSIDE_LABEL = 'Outside the board'
+
 const renderComponent = (
-	{ stateful = false, ...props }: Partial<BoardProps> & { stateful?: boolean } = {},
+	{
+		stateful = false,
+		outside = false,
+		...props
+	}: Partial<BoardProps> & { stateful?: boolean; outside?: boolean } = {},
 	options?: RenderWithProvidersOptions,
 ): RenderResult => {
 	const merged = { board: gapCentre, sourceImage: 'sailboat', ...props } satisfies BoardProps
+	const rendered = stateful ? <StatefulBoard {...merged} /> : <Board {...merged} />
 	return renderWithProviders(
-		stateful ? <StatefulBoard {...merged} /> : <Board {...merged} />,
+		outside ? (
+			<>
+				<button type="button">{OUTSIDE_LABEL}</button>
+				{rendered}
+			</>
+		) : (
+			rendered
+		),
 		options,
 	)
 }
@@ -201,14 +216,87 @@ describe('Board', () => {
 			expect(onCellPress).not.toHaveBeenCalled()
 		})
 
-		it('leaves arrow keys alone until focus is inside the board', async () => {
+		// SLI-71: arrows are the game's primary input, so they play the board
+		// from anywhere on the screen — no Tab into a tile first.
+		it('moves a tile on an arrow pressed before anything holds focus', async () => {
 			const user = userEvent.setup()
 			const onCellPress = vi.fn()
 			renderComponent({ onCellPress })
 
 			await user.keyboard('{ArrowRight}')
 
+			expect(onCellPress).toHaveBeenCalledExactlyOnceWith(3)
+		})
+
+		it('moves a tile on an arrow pressed with focus outside the board', async () => {
+			const user = userEvent.setup()
+			const onCellPress = vi.fn()
+			renderComponent({ onCellPress, outside: true })
+
+			const neighbour = screen.getByRole('button', { name: OUTSIDE_LABEL })
+			neighbour.focus()
+			await user.keyboard('{ArrowRight}')
+
+			expect(onCellPress).toHaveBeenCalledExactlyOnceWith(3)
+		})
+
+		// Screen-wide capture must not swallow Alt+←/→ and ⌘+←/→ history
+		// navigation, so a chorded arrow is left entirely to the browser.
+		it.each<['ctrlKey' | 'metaKey' | 'altKey']>([['ctrlKey'], ['metaKey'], ['altKey']])(
+			'leaves an arrow chorded with %s to the browser',
+			(modifier) => {
+				const onCellPress = vi.fn()
+				renderComponent({ onCellPress })
+
+				const chord = new KeyboardEvent('keydown', {
+					key: 'ArrowRight',
+					cancelable: true,
+					[modifier]: true,
+				})
+				window.dispatchEvent(chord)
+
+				expect(onCellPress).not.toHaveBeenCalled()
+				expect(chord.defaultPrevented).toBe(false)
+			},
+		)
+
+		// One press is one move — but a held arrow keeps being claimed, or it
+		// would start scrolling the page after the first move.
+		it('moves nothing on a held arrow repeat yet still claims the key', () => {
+			const onCellPress = vi.fn()
+			renderComponent({ onCellPress })
+
+			const repeat = new KeyboardEvent('keydown', {
+				key: 'ArrowRight',
+				cancelable: true,
+				repeat: true,
+			})
+			window.dispatchEvent(repeat)
+
 			expect(onCellPress).not.toHaveBeenCalled()
+			expect(repeat.defaultPrevented).toBe(true)
+		})
+
+		// Half-swallowed arrows lurch the page exactly when the player is
+		// already confused, so an illegal direction is claimed too.
+		it('claims an arrow even when the gap is against that edge', () => {
+			const onCellPress = vi.fn()
+			renderComponent({ board: gapTopLeft, onCellPress })
+
+			const blocked = new KeyboardEvent('keydown', { key: 'ArrowDown', cancelable: true })
+			window.dispatchEvent(blocked)
+
+			expect(onCellPress).not.toHaveBeenCalled()
+			expect(blocked.defaultPrevented).toBe(true)
+		})
+
+		it('leaves the scroll keys unclaimed as scroll routes', () => {
+			renderComponent()
+
+			const scrollKey = new KeyboardEvent('keydown', { key: 'PageDown', cancelable: true })
+			window.dispatchEvent(scrollKey)
+
+			expect(scrollKey.defaultPrevented).toBe(false)
 		})
 
 		it('plays a multi-cell run by tabbing to the far tile and pressing it', async () => {
@@ -221,6 +309,92 @@ describe('Board', () => {
 			await user.click(farTile)
 
 			expect(onCellPress).toHaveBeenCalledExactlyOnceWith(3)
+		})
+	})
+
+	/**
+	 * SLI-71: after an arrow-driven move the tile is no longer the centre of
+	 * attention, so its ring must go — but focus itself never moves, keeping the
+	 * player's place in the Tab order for multi-cell runs. The container carries
+	 * `data-input="arrow"` while arrows drive the board; the stylesheet hides
+	 * the ring on tiles only.
+	 */
+	describe('focus ring suppression', () => {
+		const boardContainer = (): HTMLElement =>
+			screen.getByRole('group', {
+				name: translate(boardMessages.label, { rows: 3, cols: 3 }),
+			})
+
+		it('carries no arrow flag until an arrow is pressed', () => {
+			renderComponent()
+
+			const container = boardContainer()
+			expect(container).not.toHaveAttribute('data-input')
+		})
+
+		it('flags the container for arrow input on an arrow press', async () => {
+			const user = userEvent.setup()
+			renderComponent()
+
+			await user.tab()
+			await user.keyboard('{ArrowRight}')
+
+			const container = boardContainer()
+			expect(container).toHaveAttribute('data-input', 'arrow')
+		})
+
+		it('keeps focus where it was when an arrow moves a tile', async () => {
+			const user = userEvent.setup()
+			renderComponent({ stateful: true })
+
+			await user.tab()
+			const focusedTile = screen.getByRole('button', { name: tileName(1) })
+			await user.keyboard('{ArrowRight}')
+
+			expect(focusedTile).toHaveFocus()
+		})
+
+		it('clears the flag when focus moves to another element', async () => {
+			const user = userEvent.setup()
+			renderComponent()
+
+			await user.tab()
+			await user.keyboard('{ArrowRight}')
+			await user.tab()
+
+			const container = boardContainer()
+			expect(container).not.toHaveAttribute('data-input')
+		})
+
+		// A window that regains focus re-fires `focusin` on the element that
+		// already held it — the player's place did not change, so the ring
+		// stays hidden.
+		it('keeps the flag on a focusin that lands on the already-focused tile', async () => {
+			const user = userEvent.setup()
+			renderComponent()
+
+			await user.tab()
+			const focusedTile = screen.getByRole('button', { name: tileName(1) })
+			await user.keyboard('{ArrowRight}')
+			fireEvent.focusIn(focusedTile)
+
+			const container = boardContainer()
+			expect(container).toHaveAttribute('data-input', 'arrow')
+		})
+
+		// A click landing on the already-focused tile moves no focus at all,
+		// so `focusin` alone would leave the flag standing.
+		it('clears the flag on a pointer press', async () => {
+			const user = userEvent.setup()
+			renderComponent()
+
+			await user.tab()
+			const focusedTile = screen.getByRole('button', { name: tileName(1) })
+			await user.keyboard('{ArrowRight}')
+			fireEvent.pointerDown(focusedTile)
+
+			const container = boardContainer()
+			expect(container).not.toHaveAttribute('data-input')
 		})
 	})
 
@@ -556,20 +730,18 @@ describe('Board', () => {
 			expect(onCellPress).not.toHaveBeenCalled()
 		})
 
-		it('leaves the arrow keys to the screen around it', async () => {
-			const user = userEvent.setup()
+		// An interactive board hears arrows screen-wide (SLI-71), so the honest
+		// proof is a press with focus nowhere near it: an inert board attaches
+		// no listener at all, and the key stays the page's to scroll with.
+		it('leaves the arrow keys to the screen around it', () => {
 			const onCellPress = vi.fn()
-			// The footer's controls are the only way to get focus inside an inert
-			// board, which is what the arrow handler needs to hear anything at all.
-			renderComponent({ interactive: false, label: INERT_LABEL, footer: true, onCellPress })
+			renderComponent({ interactive: false, label: INERT_LABEL, onCellPress })
 
-			const restart = screen.getByRole('button', {
-				name: translate(boardMessages.restart),
-			})
-			restart.focus()
-			await user.keyboard('{ArrowRight}')
+			const arrow = new KeyboardEvent('keydown', { key: 'ArrowRight', cancelable: true })
+			window.dispatchEvent(arrow)
 
 			expect(onCellPress).not.toHaveBeenCalled()
+			expect(arrow.defaultPrevented).toBe(false)
 		})
 
 		it('mounts no live region', () => {
