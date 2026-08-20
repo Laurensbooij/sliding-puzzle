@@ -3,13 +3,13 @@ import '@/styles/motion-preferences.css'
 import '@/styles/reset.css'
 import '@/styles/tokens.css'
 import { GameConfigProvider } from '@game-config'
-import { I18nProvider } from '@i18n'
 import { RecordsProvider } from '@records'
 import { SettingsProvider } from '@settings'
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { RouterProvider, createBrowserRouter } from 'react-router'
 
+import { LocalizedApp } from './LocalizedApp'
 import { routes } from './routes/routes'
 
 const router = createBrowserRouter(routes)
@@ -20,16 +20,19 @@ if (!rootElement) throw new Error('Root element #root is missing from index.html
 // Providers sit outside the router: locale and persisted state belong to the
 // session, not to a route, and remounting them on every navigation would drop
 // state the screens share.
+//
+// Settings is outermost of the pair it forms with i18n, because it now owns the
+// locale: `LocalizedApp` reads the setting and hands it to `I18nProvider`.
 createRoot(rootElement).render(
 	<StrictMode>
-		<I18nProvider>
-			<GameConfigProvider>
-				<SettingsProvider>
+		<GameConfigProvider>
+			<SettingsProvider>
+				<LocalizedApp>
 					<RecordsProvider>
 						<RouterProvider router={router} />
 					</RecordsProvider>
-				</SettingsProvider>
-			</GameConfigProvider>
-		</I18nProvider>
+				</LocalizedApp>
+			</SettingsProvider>
+		</GameConfigProvider>
 	</StrictMode>,
 )

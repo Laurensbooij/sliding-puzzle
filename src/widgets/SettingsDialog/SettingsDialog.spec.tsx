@@ -1,4 +1,4 @@
-import { createTranslate } from '@i18n'
+import { DEFAULT_LOCALE, LOCALE_ENDONYMS, createTranslate } from '@i18n'
 import { globalMessages } from '@messages'
 import { SETTINGS_STORAGE_KEY } from '@settings'
 import type { Settings } from '@settings'
@@ -21,16 +21,28 @@ const CLOSE_LABEL = translate(globalMessages.close)
 const REFERENCE_IMAGE_LABEL = translate(settingsDialogMessages.referenceImageLabel)
 const NUMBERED_TILES_LABEL = translate(settingsDialogMessages.numberedTilesLabel)
 const SHOW_TIMER_LABEL = translate(settingsDialogMessages.showTimerLabel)
+const LANGUAGE_LABEL = translate(settingsDialogMessages.languageLabel)
 
 const TESTID_SUFFIXES = [
 	SETTINGS_DIALOG_TESTIDS.CLOSE_SUFFIX,
 	SETTINGS_DIALOG_TESTIDS.REFERENCE_IMAGE_SUFFIX,
 	SETTINGS_DIALOG_TESTIDS.NUMBERED_TILES_SUFFIX,
 	SETTINGS_DIALOG_TESTIDS.SHOW_TIMER_SUFFIX,
+	SETTINGS_DIALOG_TESTIDS.LANGUAGE_SUFFIX,
 ]
 
-const ALL_OFF: Settings = { referenceImage: false, numberedTiles: false, showTimer: false }
-const ALL_ON: Settings = { referenceImage: true, numberedTiles: true, showTimer: true }
+const ALL_OFF: Settings = {
+	referenceImage: false,
+	numberedTiles: false,
+	showTimer: false,
+	locale: DEFAULT_LOCALE,
+}
+const ALL_ON: Settings = {
+	referenceImage: true,
+	numberedTiles: true,
+	showTimer: true,
+	locale: DEFAULT_LOCALE,
+}
 
 interface SettingsDialogCase {
 	open?: boolean
@@ -111,7 +123,7 @@ describe('SettingsDialog', () => {
 		])
 	})
 
-	// The four controls an e2e test would aim at.
+	// The five controls an e2e test would aim at.
 	it('tags every control it draws', () => {
 		renderComponent()
 
@@ -136,7 +148,12 @@ describe('SettingsDialog', () => {
 
 	it('opens on the preferences the player last stored', () => {
 		renderComponent({
-			stored: { referenceImage: false, numberedTiles: true, showTimer: false },
+			stored: {
+				referenceImage: false,
+				numberedTiles: true,
+				showTimer: false,
+				locale: DEFAULT_LOCALE,
+			},
 		})
 
 		const referenceImage = screen.getByRole('switch', { name: REFERENCE_IMAGE_LABEL })
@@ -324,6 +341,57 @@ describe('SettingsDialog', () => {
 
 		expect(liveRegion).toBeNull()
 		expect(status).not.toBeInTheDocument()
+	})
+
+	it('offers every language the app ships, named in its own language', () => {
+		renderComponent()
+
+		const picker = screen.getByRole('combobox', { name: LANGUAGE_LABEL })
+		const offered = screen.getAllByRole('option').map((option) => option.textContent)
+
+		expect(picker).toBeVisible()
+		expect(offered).toEqual(Object.values(LOCALE_ENDONYMS))
+	})
+
+	it('opens on the language the player last stored', () => {
+		renderComponent({ stored: { ...ALL_ON, locale: 'nl' } })
+
+		const picker = screen.getByRole('combobox', { name: LANGUAGE_LABEL })
+		expect(picker).toHaveValue('nl')
+	})
+
+	// Endonyms, not translations: the way back out of a language you cannot
+	// read. Rendering under `nl` is what makes this falsifiable — a translated
+	// list would read "Engels" here.
+	it('names the options the same whichever language is active', () => {
+		renderComponent({}, { locale: 'nl' })
+
+		const offered = screen.getAllByRole('option').map((option) => option.textContent)
+		expect(offered).toEqual(Object.values(LOCALE_ENDONYMS))
+	})
+
+	it('reopens on the language chosen before the page was reloaded', async () => {
+		const user = userEvent.setup()
+		const { unmount } = renderComponent()
+		const picker = screen.getByRole('combobox', { name: LANGUAGE_LABEL })
+
+		await user.selectOptions(picker, 'nl')
+		unmount()
+		renderComponent()
+
+		const reloaded = screen.getByRole('combobox', { name: LANGUAGE_LABEL })
+		expect(reloaded).toHaveValue('nl')
+	})
+
+	it('leaves the display preferences alone when the language changes', async () => {
+		const user = userEvent.setup()
+		renderComponent({ stored: ALL_ON })
+		const picker = screen.getByRole('combobox', { name: LANGUAGE_LABEL })
+
+		await user.selectOptions(picker, 'nl')
+
+		const switches = screen.getAllByRole('switch')
+		for (const control of switches) expect(control).toBeChecked()
 	})
 
 	it('names itself and its preferences in the active locale', () => {

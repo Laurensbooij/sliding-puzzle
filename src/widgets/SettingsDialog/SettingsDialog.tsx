@@ -1,11 +1,12 @@
 import { IconButton } from '@components/IconButton'
 import { Modal } from '@components/Modal'
+import { Select } from '@components/Select'
 import { Switch } from '@components/Switch'
-import { Message, useTranslate } from '@i18n'
+import { LOCALE_ENDONYMS, Message, SUPPORTED_LOCALES, isSupportedLocale, useTranslate } from '@i18n'
 import { globalMessages } from '@messages'
 import { useSettings } from '@settings'
-import type { FC } from 'react'
-import { useId } from 'react'
+import type { ChangeEvent, FC } from 'react'
+import { useId, useMemo } from 'react'
 
 import styles from './SettingsDialog.module.css'
 import { SETTINGS_DIALOG_TESTIDS } from './constants'
@@ -19,7 +20,7 @@ export interface SettingsDialogProps {
 }
 
 /**
- * The player's three display preferences, over a blurred scrim.
+ * The player's display preferences and their language, over a blurred scrim.
  *
  * `Modal`, not `Dialog` — the design has no badge, no description and no
  * action row, all three of which `Dialog` requires.
@@ -29,9 +30,14 @@ export interface SettingsDialogProps {
  * itself as a scrim click, so the card's padding needs its own box to absorb
  * clicks without dismissing.
  *
- * Switches write straight through to `useSettings()` — no draft, no confirm.
+ * Controls write straight through to `useSettings()` — no draft, no confirm.
  * The scrim closes too, against `Dialog`'s default: dismissing Settings loses
- * nothing.
+ * nothing. Language is the same: picking one re-renders the dialog around the
+ * player in the new language, which is the confirmation.
+ *
+ * Language options carry endonyms, so they read the same whichever language is
+ * active — the one row a player who mis-picked can still find their way back
+ * through.
  *
  * Figma's keyboard-hint row is deliberately not built (ADR-0014's arrow-key
  * accelerator loses its only UI mention; `Icon`'s `keyboard` glyph loses its
@@ -40,7 +46,7 @@ export interface SettingsDialogProps {
  * Same composition at every width — CSS-only, no runtime branch (ADR-0016).
  *
  * No live region: focus landing announces the dialog, `aria-checked`
- * announces each switch.
+ * announces each switch, and the select announces its own value.
  */
 export const SettingsDialog: FC<SettingsDialogProps> = ({ open, onClose }) => {
 	const generatedId = useId()
@@ -49,13 +55,27 @@ export const SettingsDialog: FC<SettingsDialogProps> = ({ open, onClose }) => {
 		referenceImage,
 		numberedTiles,
 		showTimer,
+		locale,
 		setReferenceImage,
 		setNumberedTiles,
 		setShowTimer,
+		setLocale,
 	} = useSettings()
 
 	const base = SETTINGS_DIALOG_TESTIDS.BASE
 	const titleId = `settings-dialog-title-${generatedId}`
+
+	const localeOptions = useMemo(
+		() => SUPPORTED_LOCALES.map((value) => ({ value, label: LOCALE_ENDONYMS[value] })),
+		[],
+	)
+
+	// `<select>` hands back a bare string; the guard narrows it without an
+	// assertion, and a value that is not a locale can only mean the DOM was
+	// tampered with.
+	const handleLocaleChange = (event: ChangeEvent<HTMLSelectElement>) => {
+		if (isSupportedLocale(event.target.value)) setLocale(event.target.value)
+	}
 
 	return (
 		<Modal open={open} onClose={onClose} labelledBy={titleId} scrimClose dataTestId={base}>
@@ -102,6 +122,18 @@ export const SettingsDialog: FC<SettingsDialogProps> = ({ open, onClose }) => {
 						onChange={(event) => setShowTimer(event.target.checked)}
 						dataTestId={`${base}${SETTINGS_DIALOG_TESTIDS.SHOW_TIMER_SUFFIX}`}
 					/>
+					{/* Wrapped rather than styled: `Select` owns its own box and
+					    takes no `className`, and this is the one row that spans the
+					    card — the switches above are inline labels that must not. */}
+					<div className={styles.languageRow}>
+						<Select
+							label={<Message message={settingsDialogMessages.languageLabel} />}
+							options={localeOptions}
+							value={locale}
+							onChange={handleLocaleChange}
+							dataTestId={`${base}${SETTINGS_DIALOG_TESTIDS.LANGUAGE_SUFFIX}`}
+						/>
+					</div>
 				</div>
 			</div>
 		</Modal>
