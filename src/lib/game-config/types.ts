@@ -1,4 +1,4 @@
-import type { SourceImageName } from '@/source-images'
+import type { SourceImageName } from '@source-images'
 
 /**
  * The board sizes Setup offers, and the one place they live: the size control

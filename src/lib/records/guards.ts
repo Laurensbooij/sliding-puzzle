@@ -1,5 +1,5 @@
-import { isBoardSize } from '@/lib/game-config'
 import { isJsonObject } from '@/lib/storage'
+import { isBoardSize } from '@game-config'
 
 import type { Records } from './types'
 

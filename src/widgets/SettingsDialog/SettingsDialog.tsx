@@ -1,9 +1,9 @@
-import { useSettings } from '@/lib/settings'
 import { IconButton } from '@components/IconButton'
 import { Modal } from '@components/Modal'
 import { Switch } from '@components/Switch'
 import { Message, useTranslate } from '@i18n'
 import { globalMessages } from '@messages'
+import { useSettings } from '@settings'
 import type { FC } from 'react'
 import { useId } from 'react'
 

@@ -1,6 +1,6 @@
-import { GameConfigProvider } from '@/lib/game-config'
-import { RecordsProvider } from '@/lib/records'
-import { SettingsProvider } from '@/lib/settings'
+import { GameConfigProvider } from '@game-config'
+import { RecordsProvider } from '@records'
+import { SettingsProvider } from '@settings'
 import type { ReactNode } from 'react'
 
 export interface RenderProviders {

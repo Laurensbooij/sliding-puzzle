@@ -1,4 +1,4 @@
-import type { BoardSize } from '@/lib/game-config'
+import type { BoardSize } from '@game-config'
 import { createTranslate } from '@i18n'
 import { renderWithProviders } from '@testing'
 import type { RenderResult } from '@testing-library/react'

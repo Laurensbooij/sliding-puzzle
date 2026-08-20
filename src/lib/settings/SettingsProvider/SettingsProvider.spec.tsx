@@ -1,5 +1,5 @@
-import { GAME_CONFIG_STORAGE_KEY } from '@/lib/game-config'
-import { RECORDS_STORAGE_KEY } from '@/lib/records'
+import { GAME_CONFIG_STORAGE_KEY } from '@game-config'
+import { RECORDS_STORAGE_KEY } from '@records'
 import { readStorage, renderHookWithProviders, seedStorage } from '@testing'
 import { act } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'

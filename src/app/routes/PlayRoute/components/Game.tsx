@@ -1,5 +1,5 @@
 import { Play } from '@/features/play'
-import type { BoardSize } from '@/lib/game-config'
+import type { BoardSize } from '@game-config'
 import { gameMachine } from '@machines/game-machine'
 import { useActorRef, useSelector } from '@xstate/react'
 import type { FC } from 'react'

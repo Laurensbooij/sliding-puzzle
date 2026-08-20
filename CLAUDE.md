@@ -41,8 +41,9 @@ widgets → features → app`. Features never import each other, and neither do
   widgets; machines and components never import each other. A widget never imports
   `@machines/*` — it may hold local UI state, never an actor. Aliased modules are
   reached only by their alias — `@engine`, `@i18n`, `@messages`, `@testing`,
-  `@css-utils`, `@components/<Name>`, `@machines/<name>`, `@widgets/<Name>` —
-  never the long `@/...` form.
+  `@css-utils`, `@game-config`, `@records`, `@settings`, `@source-images`,
+  `@components/<Name>`, `@machines/<name>`, `@widgets/<Name>` — never the long
+  `@/...` form, and never deeper than the barrel.
 - **Never import `react-intl`** (ADR-0008): all localization goes through the
   `@i18n` facade. Messages live in `translation-messages.ts` beside their
   component; regenerate `en.json` with `pnpm i18n:extract`.

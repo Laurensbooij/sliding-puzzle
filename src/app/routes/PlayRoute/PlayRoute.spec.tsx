@@ -1,6 +1,6 @@
 import { PLAY_TESTIDS } from '@/features/play'
-import { DEFAULT_GAME_CONFIG, GAME_CONFIG_STORAGE_KEY, useGameConfig } from '@/lib/game-config'
-import type { BoardSize } from '@/lib/game-config'
+import { DEFAULT_GAME_CONFIG, GAME_CONFIG_STORAGE_KEY, useGameConfig } from '@game-config'
+import type { BoardSize } from '@game-config'
 import { renderWithProviders, seedStorage } from '@testing'
 import type { RenderResult } from '@testing-library/react'
 import { screen } from '@testing-library/react'

@@ -1,4 +1,4 @@
-import type { BoardSize } from '@/lib/game-config'
+import type { BoardSize } from '@game-config'
 
 export interface Solve {
 	boardSize: BoardSize

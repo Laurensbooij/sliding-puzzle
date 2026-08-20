@@ -1,10 +1,10 @@
-import { BOARD_SIZES, isBoardSize, useGameConfig } from '@/lib/game-config'
-import { useRecords } from '@/lib/records'
 import { Button } from '@components/Button'
 import { Icon } from '@components/Icon'
 import { SegmentedControl } from '@components/SegmentedControl'
 import type { SegmentedControlProps } from '@components/SegmentedControl'
+import { BOARD_SIZES, isBoardSize, useGameConfig } from '@game-config'
 import { Message, useTranslate } from '@i18n'
+import { useRecords } from '@records'
 import type { FC, Ref } from 'react'
 import { useImperativeHandle, useRef } from 'react'
 

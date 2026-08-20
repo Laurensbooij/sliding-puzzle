@@ -11,9 +11,13 @@
       "@components/*": ["./src/components/*"],
       "@css-utils": ["./src/lib/css-utils"],
       "@engine": ["./src/engine"],
+      "@game-config": ["./src/lib/game-config"],
       "@i18n": ["./src/lib/i18n"],
       "@machines/*": ["./src/machines/*"],
       "@messages": ["./src/lib/i18n/translation-messages"],
+      "@records": ["./src/lib/records"],
+      "@settings": ["./src/lib/settings"],
+      "@source-images": ["./src/source-images"],
       "@testing": ["./src/testing"],
       "@widgets/*": ["./src/widgets/*"]
     }

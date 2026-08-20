@@ -1,5 +1,5 @@
-import type { BoardSize } from '@/lib/game-config'
 import { usePersistedState } from '@/lib/storage'
+import type { BoardSize } from '@game-config'
 import { type FC, type ReactNode, createContext, useCallback, useMemo } from 'react'
 
 import { applySolve } from '../apply-solve/apply-solve'

@@ -1,7 +1,7 @@
-import { SOURCE_IMAGES } from '@/source-images'
-import type { SourceImageName } from '@/source-images'
 import type { TileId } from '@engine'
 import { useTranslate } from '@i18n'
+import { SOURCE_IMAGES } from '@source-images'
+import type { SourceImageName } from '@source-images'
 import type { FC, KeyboardEvent } from 'react'
 import { useState } from 'react'
 

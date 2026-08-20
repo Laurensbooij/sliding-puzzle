@@ -1,5 +1,5 @@
 import { isJsonObject } from '@/lib/storage'
-import { SOURCE_IMAGE_NAMES } from '@/source-images'
+import { SOURCE_IMAGE_NAMES } from '@source-images'
 
 import { BOARD_SIZES, type BoardSize, type GameConfig } from './types'
 

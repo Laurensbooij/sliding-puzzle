@@ -1,6 +1,6 @@
-import { SOURCE_IMAGES, SOURCE_IMAGE_NAMES } from '@/source-images'
-import type { SourceImageName } from '@/source-images'
 import { Message } from '@i18n'
+import { SOURCE_IMAGES, SOURCE_IMAGE_NAMES } from '@source-images'
+import type { SourceImageName } from '@source-images'
 import type { FC } from 'react'
 import { useId } from 'react'
 
