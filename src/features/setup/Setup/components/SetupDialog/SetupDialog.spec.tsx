@@ -1,6 +1,6 @@
-import { DEFAULT_GAME_CONFIG, GAME_CONFIG_STORAGE_KEY, GameConfigProvider } from '@/lib/game-config'
+import { DEFAULT_GAME_CONFIG, GAME_CONFIG_STORAGE_KEY } from '@/lib/game-config'
 import type { BoardSize, GameConfig } from '@/lib/game-config'
-import { RECORDS_STORAGE_KEY, RecordsProvider } from '@/lib/records'
+import { RECORDS_STORAGE_KEY } from '@/lib/records'
 import type { Records } from '@/lib/records'
 import { createTranslate } from '@i18n'
 import { globalMessages } from '@messages'
@@ -38,11 +38,7 @@ const setupDialogElement = ({
 	onClose = vi.fn(),
 	onStart = vi.fn(),
 }: SetupDialogCase = {}): ReactElement => (
-	<GameConfigProvider>
-		<RecordsProvider>
-			<SetupDialog open={open} onClose={onClose} onStart={onStart} />
-		</RecordsProvider>
-	</GameConfigProvider>
+	<SetupDialog open={open} onClose={onClose} onStart={onStart} />
 )
 
 /** Seeds both providers before they read, so a case starts on the state it is
@@ -56,7 +52,9 @@ const renderComponent = ({
 		[RECORDS_STORAGE_KEY]: JSON.stringify({ bests: {} } satisfies Records),
 	})
 
-	return renderWithProviders(setupDialogElement(props))
+	return renderWithProviders(setupDialogElement(props), {
+		providers: { gameConfig: true, records: true },
+	})
 }
 
 const boardSizeGroup = () =>

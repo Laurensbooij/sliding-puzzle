@@ -29,6 +29,35 @@ directly — components need the i18n provider, and the helper supplies the real
 message catalogues rather than mocks. Pass `{ locale: 'nl' }` to render under
 another locale.
 
+### i18n is the floor, app state is opt-in
+
+`I18nProvider` is always on: every spec queries by accessible name against the real
+catalogues (ADR-0005), so a flag would be 26 call sites typing `i18n: true` and one
+forgotten flag failing on a raw message id.
+
+The three app state providers are **opt-in booleans**, each defaulting to off:
+
+```tsx
+renderWithProviders(<Setup onStart={onStart} />, {
+  providers: { gameConfig: true, settings: true, records: true },
+})
+```
+
+Opting in is how a spec **declares** what context the component under test depends on.
+A provider mounted invisibly means nothing catches the day the component starts
+reading it. `locale` stays top-level — booleans go in `providers`, values stay out.
+
+- **Nesting order is fixed** to `src/app/main.tsx` — `I18nProvider > GameConfigProvider
+  > SettingsProvider > RecordsProvider` — regardless of the key order you write.
+- **Never nest a state provider in the JSX** (lint-enforced: `no-restricted-imports`
+  bans `GameConfigProvider`, `SettingsProvider` and `RecordsProvider` in any `.spec.tsx`
+  outside `src/lib/**`, where the providers' own specs mount the provider under test).
+- **There is no combined `appState: true` flag.** Three independent state homes, three
+  independent flags — ADR-0015 rejected one provider holding all three, and a combined
+  flag re-creates it in the test helper.
+- **`RouterProvider` stays nested** in the JSX. The specs that mount one each build a
+  different `createMemoryRouter`, so no boolean can serve them.
+
 **Each `.spec.tsx` declares one top-level `renderComponent` helper that takes
 arguments, and only that helper calls `renderWithProviders`** (lint-enforced:
 `sliding-puzzle/render-through-render-component`). Cases vary by argument, not by
@@ -67,8 +96,16 @@ Whether its arguments are the _right_ ones stays a review judgement.
 
 A hook whose whole surface is its return value is rendered through
 **`renderHookWithProviders`** from `@testing`, not through a probe component built to
-display it. Same real providers, same real catalogues; pass the provider under test as
-`wrapper`:
+display it. Same real providers, same real catalogues, same `providers` flags:
+
+```tsx
+const renderRecordedSolve = (input: RecordedSolveInput) =>
+  renderHookWithProviders(() => useRecordedSolve(input), { providers: { records: true } })
+```
+
+`wrapper` stays alongside the flags as the escape hatch for a provider that is **not**
+one of the app's three — in practice, a provider's own spec mounting the provider under
+test:
 
 ```tsx
 const renderRecords = (stored?: string) => {

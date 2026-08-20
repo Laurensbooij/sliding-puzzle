@@ -68,6 +68,37 @@ const aliasSpellingPatterns = [
 	},
 ]
 
+// A spec declares the app state it depends on through `renderWithProviders`'
+// `providers` flags — nesting the provider by hand puts the dependency where
+// nothing reads it. The providers' own specs under src/lib/ are the exception:
+// they mount the provider under test.
+const appStateProviderPatterns = [
+	{
+		group: ['@/lib/game-config', '@/lib/game-config/*'],
+		importNames: ['GameConfigProvider'],
+		message: 'Opt in with `renderWithProviders(ui, { providers: { gameConfig: true } })`.',
+	},
+	{
+		group: ['@/lib/settings', '@/lib/settings/*'],
+		importNames: ['SettingsProvider'],
+		message: 'Opt in with `renderWithProviders(ui, { providers: { settings: true } })`.',
+	},
+	{
+		group: ['@/lib/records', '@/lib/records/*'],
+		importNames: ['RecordsProvider'],
+		message: 'Opt in with `renderWithProviders(ui, { providers: { records: true } })`.',
+	},
+]
+
+// A spec's own helper is the single render entry point: RTL's bare `render` and
+// `renderHook` may only be reached through the wrappers in src/testing/.
+const renderThroughHelperPath = {
+	name: '@testing-library/react',
+	importNames: ['render', 'renderHook'],
+	message:
+		"Render through the spec's own helper, which wraps renderWithProviders (components) or renderHookWithProviders (hooks) from `@testing`.",
+}
+
 // react-intl is wrapped by the facade so consumers depend on our surface, not
 // the library's. See ADR-0008.
 const reactIntlPattern = {
@@ -345,14 +376,26 @@ export default tseslint.config(
 				'error',
 				{
 					patterns: [...aliasSpellingPatterns, reactIntlPattern],
-					paths: [
-						{
-							name: '@testing-library/react',
-							importNames: ['render', 'renderHook'],
-							message:
-								"Render through the spec's own helper, which wraps renderWithProviders (components) or renderHookWithProviders (hooks) from `@testing`.",
-						},
+					paths: [renderThroughHelperPath],
+				},
+			],
+		},
+	},
+	{
+		// Same rule, plus the app state providers — restated rather than merged,
+		// and narrowed away from src/lib/ where the providers' own specs live.
+		files: ['src/**/*.spec.tsx'],
+		ignores: ['src/lib/**'],
+		rules: {
+			'no-restricted-imports': [
+				'error',
+				{
+					patterns: [
+						...aliasSpellingPatterns,
+						reactIntlPattern,
+						...appStateProviderPatterns,
 					],
+					paths: [renderThroughHelperPath],
 				},
 			],
 		},

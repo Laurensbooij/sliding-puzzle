@@ -1,4 +1,4 @@
-import { SETTINGS_STORAGE_KEY, SettingsProvider } from '@/lib/settings'
+import { SETTINGS_STORAGE_KEY } from '@/lib/settings'
 import type { Settings } from '@/lib/settings'
 import { createTranslate } from '@i18n'
 import { globalMessages } from '@messages'
@@ -45,9 +45,7 @@ const settingsDialogElement = ({
 	open = true,
 	onClose = vi.fn(),
 }: Omit<SettingsDialogCase, 'stored'> = {}): ReactElement => (
-	<SettingsProvider>
-		<SettingsDialog open={open} onClose={onClose} />
-	</SettingsProvider>
+	<SettingsDialog open={open} onClose={onClose} />
 )
 
 /** Seeds storage only when a case asks — remount cases need storage to hold
@@ -58,7 +56,10 @@ const renderComponent = (
 ): RenderResult => {
 	if (stored) seedStorage({ [SETTINGS_STORAGE_KEY]: JSON.stringify(stored) })
 
-	return renderWithProviders(settingsDialogElement(props), options)
+	return renderWithProviders(settingsDialogElement(props), {
+		...options,
+		providers: { settings: true },
+	})
 }
 
 /**

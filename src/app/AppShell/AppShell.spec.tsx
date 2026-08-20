@@ -1,5 +1,4 @@
 import type { RouteHandle } from '@/app/routes/types'
-import { SettingsProvider } from '@/lib/settings'
 import { type TranslationMessage, createTranslate } from '@i18n'
 import { globalMessages } from '@messages'
 import { type RenderWithProvidersOptions, renderWithProviders } from '@testing'
@@ -89,14 +88,12 @@ const renderComponent = (
 	options?: RenderWithProvidersOptions,
 ): RenderResult =>
 	renderWithProviders(
-		// The dialog the shell owns writes through this provider, which the app
-		// mounts above the router.
-		<SettingsProvider>
-			<RouterProvider
-				router={createMemoryRouter(specRoutes, { initialEntries: [initialEntry] })}
-			/>
-		</SettingsProvider>,
-		options,
+		<RouterProvider
+			router={createMemoryRouter(specRoutes, { initialEntries: [initialEntry] })}
+		/>,
+		// The dialog the shell owns writes through Settings, which the app mounts
+		// above the router.
+		{ ...options, providers: { settings: true } },
 	)
 
 /**
